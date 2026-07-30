@@ -37,48 +37,58 @@
 
   </a-scene>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const targetEntity = document.querySelector("#ar-target");
+ <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const targetEntity = document.querySelector("#ar-target");
 
-      // Calcolo dello spazio tra i livelli
-      const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
+    // Calcoliamo lo spazio tra ciascun livello
+    const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
-      for (let i = 1; i <= config.layers; i++) {
-        const layerNumber = String(i).padStart(2, '0');
-        const imagePath = `./images/layer${layerNumber}.png`;
+    for (let i = 1; i <= config.layers; i++) {
+      const layerNumber = String(i).padStart(2, '0');
+      const imagePath = `./images/layer${layerNumber}.png`;
 
-        // Avanzamento Z in avanti verso la fotocamera (effetto Pop-up)
-        const targetZ = (i - 1) * stepDepth;
+      // Avanzamento Z in avanti verso la fotocamera (effetto Pop-up)
+      const targetZ = (i - 1) * stepDepth;
 
-        // Usiamo a-box anziché a-plane per dare sostanza e spessore (2 mm)
-        const box = document.createElement("a-box");
-        box.setAttribute("src", imagePath);
-        
-        box.setAttribute("width", "1");
-        box.setAttribute("height", "1");
-        box.setAttribute("depth", "0.002"); // Spessore foglio (2 mm)
-        
-        box.setAttribute("position", "0 0 0");
-        box.setAttribute("rotation", "0 0 0");
-        
-        box.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double;");
+      const plane = document.createElement("a-plane");
+      plane.setAttribute("src", imagePath);
+      plane.setAttribute("width", "1");
+      plane.setAttribute("height", "1");
+      
+      // Coordinate e rotazioni di partenza rigide al centro
+      plane.setAttribute("position", "0 0 0");
+      plane.setAttribute("rotation", "0 0 0");
+      
+      // FIX MISTERO SPECCHIAMENTO / DOPPIA IMMAGINE:
+      // 1. repeat: 1 1 -> Impedisce ad A-Frame di ripetere la texture sui bordi
+      // 2. npot: true -> Gestisce le immagini con trasparenze asimmetriche o dimensioni non standard
+      plane.setAttribute("material", `
+        transparent: true; 
+        alphaTest: 0.5; 
+        side: front;
+        repeat: 1 1;
+        depthTest: true;
+      `);
+      
+      // Assegniamo un ordine di rendering crescente per evitare errori di sovrapposizione
+      plane.setAttribute("render-order", i);
 
-        if (i > 1) {
-          box.setAttribute("animation", {
-            property: "position",
-            from: "0 0 0",
-            to: `0 0 ${targetZ.toFixed(4)}`,
-            dur: config.openDuration,
-            easing: config.easing,
-            fill: "forwards"
-          });
-        }
-
-        targetEntity.appendChild(box);
+      if (i > 1) {
+        plane.setAttribute("animation", {
+          property: "position",
+          from: "0 0 0",
+          to: `0 0 ${targetZ.toFixed(4)}`,
+          dur: config.openDuration,
+          easing: config.easing,
+          fill: "forwards"
+        });
       }
-    });
-  </script>
+
+      targetEntity.appendChild(plane);
+    }
+  });
+</script>
 
 </body>
 </html>
