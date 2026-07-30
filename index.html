@@ -41,13 +41,18 @@
   document.addEventListener("DOMContentLoaded", () => {
     const targetEntity = document.querySelector("#ar-target");
 
-    // Calcolo dello spazio tra i livelli
+    // Calcoliamo lo spazio tra ciascun livello
     const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
     for (let i = 1; i <= config.layers; i++) {
       const layerNumber = String(i).padStart(2, '0');
       const imagePath = `./images/layer${layerNumber}.png`;
-      const targetZ = -((i - 1) * stepDepth);
+
+      // EFFETTO POP-UP: 
+      // Calcoliamo la distanza Z in POSITIVO (verso lo smartphone).
+      // Il livello 1 è la base (sullo sfondo a Z = 0, attaccato alla carta).
+      // I livelli successivi avanzano verso l'utente (+Z).
+      const targetZ = (i - 1) * stepDepth;
 
       const plane = document.createElement("a-plane");
       plane.setAttribute("src", imagePath);
@@ -55,11 +60,6 @@
       plane.setAttribute("height", "1");
       plane.setAttribute("position", "0 0 0");
       plane.setAttribute("material", "transparent: true; alphaTest: 0.5;");
-
-      // Se i livelli vanno molto in profondità, manteniamo la loro presenza visiva compensando leggermente la prospettiva
-      // (Ogni livello posteriore sarà leggermente più grande per non sparire in lontananza)
-      const scaleFactor = 1 + ((i - 1) * 0.15); // Aumenta del 15% a ogni livello
-      plane.setAttribute("scale", `${scaleFactor} ${scaleFactor} 1`);
 
       if (i > 1) {
         plane.setAttribute("animation", {
