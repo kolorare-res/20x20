@@ -36,35 +36,34 @@
     </a-entity>
 
   </a-scene>
-
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const targetEntity = document.querySelector("#ar-target");
 
-    // Calcoliamo lo spazio tra ciascun livello
     const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
     for (let i = 1; i <= config.layers; i++) {
       const layerNumber = String(i).padStart(2, '0');
       const imagePath = `./images/layer${layerNumber}.png`;
 
-      // EFFETTO POP-UP: 
-      // Calcoliamo la distanza Z in POSITIVO (verso lo smartphone).
-      // Il livello 1 è la base (sullo sfondo a Z = 0, attaccato alla carta).
-      // I livelli successivi avanzano verso l'utente (+Z).
       const targetZ = (i - 1) * stepDepth;
 
       const plane = document.createElement("a-plane");
       plane.setAttribute("src", imagePath);
       plane.setAttribute("width", "1");
       plane.setAttribute("height", "1");
+      
+      // Forziamo il centro perfetto (0 0 0) e azzeriamo le rotazioni
       plane.setAttribute("position", "0 0 0");
+      plane.setAttribute("rotation", "0 0 0");
+      
       plane.setAttribute("material", "transparent: true; alphaTest: 0.5;");
 
       if (i > 1) {
         plane.setAttribute("animation", {
           property: "position",
-          to: `0 0 ${targetZ.toFixed(4)}`,
+          from: "0 0 0",
+          to: `0 0 ${targetZ.toFixed(4)}`, // Si muove SOLO sull'asse Z (avanti puro)
           dur: config.openDuration,
           easing: config.easing,
           fill: "forwards"
