@@ -40,30 +40,34 @@
   document.addEventListener("DOMContentLoaded", () => {
     const targetEntity = document.querySelector("#ar-target");
 
+    // Calcoliamo lo spazio tra ciascun livello
     const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
     for (let i = 1; i <= config.layers; i++) {
       const layerNumber = String(i).padStart(2, '0');
       const imagePath = `./images/layer${layerNumber}.png`;
 
+      // Calcoliamo la distanza Z in avanti (effetto Pop-up)
       const targetZ = (i - 1) * stepDepth;
 
       const plane = document.createElement("a-plane");
       plane.setAttribute("src", imagePath);
+      
+      // Impostiamo dimensioni esplicite 1x1 e ancoraggio al centro
       plane.setAttribute("width", "1");
       plane.setAttribute("height", "1");
       
-      // Forziamo il centro perfetto (0 0 0) e azzeriamo le rotazioni
+      // Forziamo coordinate x=0, y=0, z=0 rigide per bloccare deviazioni laterali
       plane.setAttribute("position", "0 0 0");
       plane.setAttribute("rotation", "0 0 0");
       
-      plane.setAttribute("material", "transparent: true; alphaTest: 0.5;");
+      plane.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double;");
 
       if (i > 1) {
         plane.setAttribute("animation", {
           property: "position",
           from: "0 0 0",
-          to: `0 0 ${targetZ.toFixed(4)}`, // Si muove SOLO sull'asse Z (avanti puro)
+          to: `0 0 ${targetZ.toFixed(4)}`, // Spinta pura in avanti
           dur: config.openDuration,
           easing: config.easing,
           fill: "forwards"
