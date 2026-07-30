@@ -1,15 +1,13 @@
 const config = {
-  // Numero totale di livelli presenti nella cartella /images (layer01.png, layer02.png, ...)
+  // Numero di livelli nella cartella /images
   layers: 6,
 
-  // Distanza massima (in metri) a cui arriverà l'ultimo livello quando la pagina è aperta
-  maxDepth: 0.25,
+  // Aumentiamo la profondità massima (es. 1 metri) per rendere lo stacco ben visibile
+  maxDepth: 1,
 
-  // Durata dell'animazione in millisecondi
-  openDuration: 5000,   // 5 secondi per aprirsi
-  pauseDuration: 2500,  // (Riservato per i prossimi step)
-  closeDuration: 5000,  // 5 secondi per richiudersi
+  // Durata dell'apertura iniziale in millisecondi (es. 6000 = 6 secondi per aprirsi)
+  openDuration: 6000,
 
-  // Tipo di accelerazione/frenata dell'animazione
+  // Tipo di accelerazione/frenata morbida
   easing: "easeInOutQuad"
 };
