@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mostra AR - Poetica della Pagina</title>
+
+  <!-- 1. Librerie A-Frame e MindAR -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <!-- 2. Il tuo file di configurazione -->
+  <script src="./config.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <a-scene 
+    mindar-image="imageTargetSrc: ./targets.mind;" 
+    color-space="sRGB" 
+    renderer="colorManagement: true, physicallyCorrectLights" 
+    vr-mode-ui="enabled: false" 
+    device-orientation-permission-ui="enabled: false">
+
+    <!-- La fotocamera dello smartphone -->
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- Contenitore dell'opera riconosciuta (I livelli verranno generati qui dentro) -->
+    <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
+    </a-entity>
+
+  </a-scene>
+
+  <!-- 3. Script per la generazione automatica dei livelli -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const targetEntity = document.querySelector("#ar-target");
+
+      // Calcoliamo lo spazio tra ciascun livello in base alla profondità massima
+      // Se ci sono 6 livelli, ci saranno 5 intervalli
+      const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
+
+      for (let i = 1; i <= config.layers; i++) {
+        // Formattiamo il numero a due cifre: 1 -> "01", 2 -> "02", ecc.
+        const layerNumber = String(i).padStart(2, '0');
+        const imagePath = `./images/layer${layerNumber}.png`;
+
+        // Calcoliamo la posizione finale Z per questo specifico livello
+        // Il livello 1 rimane a Z = 0, i successivi vanno sempre più in profondità (-Z)
+        const targetZ = -((i - 1) * stepDepth);
+
+        // Creiamo il piano 3D
+        const plane = document.createElement("a-plane");
+        plane.setAttribute("src", imagePath);
+        plane.setAttribute("width", "1");
+        plane.setAttribute("height", "1");
+        plane.setAttribute("position", "0 0 0"); // Posizione iniziale: tutti chiusi a 0
+        plane.setAttribute("material", "transparent: true; alphaTest: 0.5;");
+
+        // Applichiamo l'animazione (solo se il livello si deve muovere, cioè dal livello 2 in poi)
+        if (i > 1) {
+          plane.setAttribute("animation", {
+            property: "position",
+            to: `0 0 ${targetZ.toFixed(4)}`,
+            dur: config.openDuration,
+            dir: "alternate",
+            loop: true,
+            easing: config.easing
+          });
+        }
+
+        // Inseriamo il piano nell'opera AR
+        targetEntity.appendChild(plane);
+      }
+    });
+  </script>
+
+</body>
+</html>
