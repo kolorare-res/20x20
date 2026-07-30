@@ -37,40 +37,44 @@
 
   </a-scene>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const targetEntity = document.querySelector("#ar-target");
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const targetEntity = document.querySelector("#ar-target");
 
-      // Calcolo dello spazio tra i livelli
-      const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
+    // Calcolo dello spazio tra i livelli
+    const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
-      for (let i = 1; i <= config.layers; i++) {
-        const layerNumber = String(i).padStart(2, '0');
-        const imagePath = `./images/layer${layerNumber}.png`;
-        const targetZ = -((i - 1) * stepDepth);
+    for (let i = 1; i <= config.layers; i++) {
+      const layerNumber = String(i).padStart(2, '0');
+      const imagePath = `./images/layer${layerNumber}.png`;
+      const targetZ = -((i - 1) * stepDepth);
 
-        const plane = document.createElement("a-plane");
-        plane.setAttribute("src", imagePath);
-        plane.setAttribute("width", "1");
-        plane.setAttribute("height", "1");
-        plane.setAttribute("position", "0 0 0");
-        plane.setAttribute("material", "transparent: true; alphaTest: 0.5;");
+      const plane = document.createElement("a-plane");
+      plane.setAttribute("src", imagePath);
+      plane.setAttribute("width", "1");
+      plane.setAttribute("height", "1");
+      plane.setAttribute("position", "0 0 0");
+      plane.setAttribute("material", "transparent: true; alphaTest: 0.5;");
 
-        // L'animazione parte da 0 e si ferma a targetZ senza mai tornare indietro
-        if (i > 1) {
-          plane.setAttribute("animation", {
-            property: "position",
-            to: `0 0 ${targetZ.toFixed(4)}`,
-            dur: config.openDuration,
-            easing: config.easing,
-            fill: "forwards" // Mantiene la posizione finale e NON si richiude
-          });
-        }
+      // Se i livelli vanno molto in profondità, manteniamo la loro presenza visiva compensando leggermente la prospettiva
+      // (Ogni livello posteriore sarà leggermente più grande per non sparire in lontananza)
+      const scaleFactor = 1 + ((i - 1) * 0.15); // Aumenta del 15% a ogni livello
+      plane.setAttribute("scale", `${scaleFactor} ${scaleFactor} 1`);
 
-        targetEntity.appendChild(plane);
+      if (i > 1) {
+        plane.setAttribute("animation", {
+          property: "position",
+          to: `0 0 ${targetZ.toFixed(4)}`,
+          dur: config.openDuration,
+          easing: config.easing,
+          fill: "forwards"
+        });
       }
-    });
-  </script>
+
+      targetEntity.appendChild(plane);
+    }
+  });
+</script>
 
 </body>
 </html>
