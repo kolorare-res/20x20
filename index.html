@@ -40,41 +40,43 @@
   document.addEventListener("DOMContentLoaded", () => {
     const targetEntity = document.querySelector("#ar-target");
 
-    // Calcoliamo lo spazio tra ciascun livello
+    // Calcolo dello spazio tra i livelli
     const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
     for (let i = 1; i <= config.layers; i++) {
       const layerNumber = String(i).padStart(2, '0');
       const imagePath = `./images/layer${layerNumber}.png`;
 
-      // Calcoliamo la distanza Z in avanti (effetto Pop-up)
+      // Avanzamento Z in avanti (effetto Pop-up)
       const targetZ = (i - 1) * stepDepth;
 
-      const plane = document.createElement("a-plane");
-      plane.setAttribute("src", imagePath);
+      // Usiamo a-box anziché a-plane per dare sostanza e spessore
+      const box = document.createElement("a-box");
+      box.setAttribute("src", imagePath);
       
-      // Impostiamo dimensioni esplicite 1x1 e ancoraggio al centro
-      plane.setAttribute("width", "1");
-      plane.setAttribute("height", "1");
+      // Dimensioni: Larghezza 1m, Altezza 1m, Spessore (depth) 2 mm
+      box.setAttribute("width", "1");
+      box.setAttribute("height", "1");
+      box.setAttribute("depth", "0.002"); // <-- SPESSORE DEL FOGLIO (2 mm)
       
-      // Forziamo coordinate x=0, y=0, z=0 rigide per bloccare deviazioni laterali
-      plane.setAttribute("position", "0 0 0");
-      plane.setAttribute("rotation", "0 0 0");
+      box.setAttribute("position", "0 0 0");
+      box.setAttribute("rotation", "0 0 0");
       
-      plane.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double;");
+      // Materiale con trasparenza per far passare la grafica PNG
+      box.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double;");
 
       if (i > 1) {
-        plane.setAttribute("animation", {
+        box.setAttribute("animation", {
           property: "position",
           from: "0 0 0",
-          to: `0 0 ${targetZ.toFixed(4)}`, // Spinta pura in avanti
+          to: `0 0 ${targetZ.toFixed(4)}`,
           dur: config.openDuration,
           easing: config.easing,
           fill: "forwards"
         });
       }
 
-      targetEntity.appendChild(plane);
+      targetEntity.appendChild(box);
     }
   });
 </script>
