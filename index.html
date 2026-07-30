@@ -21,7 +21,7 @@
 </head>
 <body>
 
-  <!-- Aggiunti i filtri di lisciamento (filterMinCF e filterBeta) per eliminare il tremolio -->
+  <!-- STABILIZZAZIONE ATTIVA: filterMinCF e filterBeta per evitare tremolii -->
   <a-scene 
     mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 10;" 
     color-space="sRGB" 
@@ -36,50 +36,49 @@
     </a-entity>
 
   </a-scene>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const targetEntity = document.querySelector("#ar-target");
 
-    // Calcolo dello spazio tra i livelli
-    const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const targetEntity = document.querySelector("#ar-target");
 
-    for (let i = 1; i <= config.layers; i++) {
-      const layerNumber = String(i).padStart(2, '0');
-      const imagePath = `./images/layer${layerNumber}.png`;
+      // Calcolo dello spazio tra i livelli
+      const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
-      // Avanzamento Z in avanti (effetto Pop-up)
-      const targetZ = (i - 1) * stepDepth;
+      for (let i = 1; i <= config.layers; i++) {
+        const layerNumber = String(i).padStart(2, '0');
+        const imagePath = `./images/layer${layerNumber}.png`;
 
-      // Usiamo a-box anziché a-plane per dare sostanza e spessore
-      const box = document.createElement("a-box");
-      box.setAttribute("src", imagePath);
-      
-      // Dimensioni: Larghezza 1m, Altezza 1m, Spessore (depth) 2 mm
-      box.setAttribute("width", "1");
-      box.setAttribute("height", "1");
-      box.setAttribute("depth", "0.002"); // <-- SPESSORE DEL FOGLIO (2 mm)
-      
-      box.setAttribute("position", "0 0 0");
-      box.setAttribute("rotation", "0 0 0");
-      
-      // Materiale con trasparenza per far passare la grafica PNG
-      box.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double;");
+        // Avanzamento Z in avanti verso la fotocamera (effetto Pop-up)
+        const targetZ = (i - 1) * stepDepth;
 
-      if (i > 1) {
-        box.setAttribute("animation", {
-          property: "position",
-          from: "0 0 0",
-          to: `0 0 ${targetZ.toFixed(4)}`,
-          dur: config.openDuration,
-          easing: config.easing,
-          fill: "forwards"
-        });
+        // Usiamo a-box anziché a-plane per dare sostanza e spessore (2 mm)
+        const box = document.createElement("a-box");
+        box.setAttribute("src", imagePath);
+        
+        box.setAttribute("width", "1");
+        box.setAttribute("height", "1");
+        box.setAttribute("depth", "0.002"); // Spessore foglio (2 mm)
+        
+        box.setAttribute("position", "0 0 0");
+        box.setAttribute("rotation", "0 0 0");
+        
+        box.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double;");
+
+        if (i > 1) {
+          box.setAttribute("animation", {
+            property: "position",
+            from: "0 0 0",
+            to: `0 0 ${targetZ.toFixed(4)}`,
+            dur: config.openDuration,
+            easing: config.easing,
+            fill: "forwards"
+          });
+        }
+
+        targetEntity.appendChild(box);
       }
-
-      targetEntity.appendChild(box);
-    }
-  });
-</script>
+    });
+  </script>
 
 </body>
 </html>
