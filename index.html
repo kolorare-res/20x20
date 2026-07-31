@@ -36,70 +36,55 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const targetEntity = document.querySelector("#ar-target");
-      const pageAngle = config.pageOpenAngle || 130;
+
+      // Parametri di profondità e ritardo dal config
+      const totalLayers = config.layers || 6;
+      const maxDepth = config.maxDepth || 0.5;
+      const openDur = config.openDuration || 1500;
+      const stagger = config.staggerDelay || 120;
+      const easingType = config.easing || "easeOutCubic";
+
+      const stepDepth = totalLayers > 1 ? (maxDepth / (totalLayers - 1)) : 0;
 
       // ==========================================
-      // FASE 1: PAGINE LATERALI POSIZIONATE GIÀ APERTE A CERNIERA
+      // CREAZIONE E ANIMAZIONE A CASCATA DEI LAYER Z
       // ==========================================
-      const pagesData = [
-        {
-          id: "page-left",
-          image: "./images/page_left.png",
-          pivotPos: "-0.5 0 0.002",
-          planeOffset: "0.5 0 0",
-          rotation: `0 ${pageAngle} 0`
-        },
-        {
-          id: "page-right",
-          image: "./images/page_right.png",
-          pivotPos: "0.5 0 0.002",
-          planeOffset: "-0.5 0 0",
-          rotation: `0 -${pageAngle} 0`
-        },
-        {
-          id: "page-bottom",
-          image: "./images/page_bottom.png",
-          pivotPos: "0 -0.5 0.002",
-          planeOffset: "0 0.5 0",
-          rotation: `-${pageAngle} 0 0`
-        }
-      ];
-
-      pagesData.forEach((p, index) => {
-        const pivot = document.createElement("a-entity");
-        pivot.setAttribute("id", p.id);
-        pivot.setAttribute("position", p.pivotPos);
-        pivot.setAttribute("rotation", p.rotation); // Impostata direttamente senza animazione!
-
-        const plane = document.createElement("a-plane");
-        plane.setAttribute("src", p.image);
-        plane.setAttribute("width", "1");
-        plane.setAttribute("height", "1");
-        plane.setAttribute("position", p.planeOffset);
-        plane.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double; depthTest: true;");
-        plane.setAttribute("render-order", 50 + index);
-
-        pivot.appendChild(plane);
-        targetEntity.appendChild(pivot);
-      });
-
-      // ==========================================
-      // FASE 2: LAYER Z POSIZIONATI GIÀ IN PROFONDITÀ
-      // ==========================================
-      const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
-
-      for (let i = 1; i <= config.layers; i++) {
+      for (let i = 1; i <= totalLayers; i++) {
         const layerNumber = String(i).padStart(2, '0');
         const plane = document.createElement("a-plane");
+        
         plane.setAttribute("src", `./images/layer${layerNumber}.png`);
         plane.setAttribute("width", "1");
         plane.setAttribute("height", "1");
-
-        const targetZ = (i - 1) * stepDepth;
-        plane.setAttribute("position", `0 0 ${targetZ.toFixed(4)}`); // Posizionato direttamente!
-
-        plane.setAttribute("material", "transparent: true; alphaTest: 0.5; side: front; depthTest: true;");
+        plane.setAttribute("position", "0 0 0"); // Tutti partono dal piano della stampa (Z=0)
+        plane.setAttribute("rotation", "0 0 0");
+        
+        plane.setAttribute("material", `
+          transparent: true; 
+          alphaTest: 0.5; 
+          side: front;
+          depthTest: true;
+        `);
+        
+        // Render order progressivo per evitare flickering trasparente
         plane.setAttribute("render-order", i);
+
+        // Il primo layer (layer01) rimane piatto al centro della stampa, 
+        // i successivi si estraggono in profondità
+        if (i > 1) {
+          const targetZ = (i - 1) * stepDepth;
+          const delayTime = (i - 1) * stagger;
+
+          plane.setAttribute("animation", `
+            property: position;
+            from: 0 0 0;
+            to: 0 0 ${targetZ.toFixed(4)};
+            dur: ${openDur};
+            delay: ${delayTime};
+            easing: ${easingType};
+            fill: forwards;
+          `);
+        }
 
         targetEntity.appendChild(plane);
       }
