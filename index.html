@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Altrove</title>
 
-  <!-- Librerie A-Frame e MindAR -->
+  <!-- Librerie A-Frame 1.4.2 e MindAR 1.2.5 -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
@@ -36,116 +36,70 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const targetEntity = document.querySelector("#ar-target");
-
-      // Parametri dal config
-      const pageAnimDur = config.pageOpenDuration || 1800;
       const pageAngle = config.pageOpenAngle || 130;
-      const pageEasing = config.pageEasing || "easeOutCubic";
-      const baseLayersDelay = config.sequenceMode ? pageAnimDur : 0;
 
       // ==========================================
-      // FASE 1: APERTURA PAGINE A CERNIERA SUI BORDI (CORRETTO)
+      // FASE 1: PAGINE LATERALI POSIZIONATE GIÀ APERTE A CERNIERA
       // ==========================================
-      const pagesConfig = [
+      const pagesData = [
         {
           id: "page-left",
           image: "./images/page_left.png",
-          pivotPos: "-0.5 0 0.001",    // Cerniera SUL BORDO SINISTRO
-          planeOffset: "0.5 0 0",      // Sposta il centro del foglio A DESTRA del pivot (coincide con il centro)
-          toRot: `0 ${pageAngle} 0`    // Ruota a libro verso l'esterno
+          pivotPos: "-0.5 0 0.002",
+          planeOffset: "0.5 0 0",
+          rotation: `0 ${pageAngle} 0`
         },
         {
           id: "page-right",
           image: "./images/page_right.png",
-          pivotPos: "0.5 0 0.001",     // Cerniera SUL BORDO DESTRO
-          planeOffset: "-0.5 0 0",     // Sposta il centro del foglio A SINISTRA del pivot
-          toRot: `0 -${pageAngle} 0`   // Ruota a libro verso l'esterno
+          pivotPos: "0.5 0 0.002",
+          planeOffset: "-0.5 0 0",
+          rotation: `0 -${pageAngle} 0`
         },
         {
           id: "page-bottom",
           image: "./images/page_bottom.png",
-          pivotPos: "0 -0.5 0.001",    // Cerniera SUL BORDO INFERIORE
-          planeOffset: "0 0.5 0",      // Sposta il centro del foglio IN ALTO rispetto al pivot
-          toRot: `-${pageAngle} 0 0`   // Ruota verso il basso
+          pivotPos: "0 -0.5 0.002",
+          planeOffset: "0 0.5 0",
+          rotation: `-${pageAngle} 0 0`
         }
       ];
 
-      pagesConfig.forEach((p, index) => {
-        // Pivot (punto di cerniera fisso sul bordo del target)
+      pagesData.forEach((p, index) => {
         const pivot = document.createElement("a-entity");
+        pivot.setAttribute("id", p.id);
         pivot.setAttribute("position", p.pivotPos);
-        pivot.setAttribute("rotation", "0 0 0");
+        pivot.setAttribute("rotation", p.rotation); // Impostata direttamente senza animazione!
 
-        // Foglio/Pagina
-        const pagePlane = document.createElement("a-plane");
-        pagePlane.setAttribute("src", p.image);
-        pagePlane.setAttribute("width", "1");
-        pagePlane.setAttribute("height", "1");
-        // Posizionamento relativo corretto
-        pagePlane.setAttribute("position", p.planeOffset);
-        
-        pagePlane.setAttribute("material", `
-          transparent: true; 
-          alphaTest: 0.5; 
-          side: double;
-          depthTest: true;
-        `);
-        
-        pagePlane.setAttribute("render-order", 50 + index);
+        const plane = document.createElement("a-plane");
+        plane.setAttribute("src", p.image);
+        plane.setAttribute("width", "1");
+        plane.setAttribute("height", "1");
+        plane.setAttribute("position", p.planeOffset);
+        plane.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double; depthTest: true;");
+        plane.setAttribute("render-order", 50 + index);
 
-        // Animazione di rotazione del Pivot
-        pivot.setAttribute("animation", {
-          property: "rotation",
-          from: "0 0 0",
-          to: p.toRot,
-          dur: pageAnimDur,
-          easing: pageEasing,
-          fill: "forwards"
-        });
-
-        pivot.appendChild(pagePlane);
+        pivot.appendChild(plane);
         targetEntity.appendChild(pivot);
       });
 
       // ==========================================
-      // FASE 2: ESTRAZIONE LAYER IN PROFONDITÀ (Z-AXIS)
+      // FASE 2: LAYER Z POSIZIONATI GIÀ IN PROFONDITÀ
       // ==========================================
       const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
       for (let i = 1; i <= config.layers; i++) {
         const layerNumber = String(i).padStart(2, '0');
-        const imagePath = `./images/layer${layerNumber}.png`;
-        const targetZ = (i - 1) * stepDepth;
-
         const plane = document.createElement("a-plane");
-        plane.setAttribute("src", imagePath);
+        plane.setAttribute("src", `./images/layer${layerNumber}.png`);
         plane.setAttribute("width", "1");
         plane.setAttribute("height", "1");
-        plane.setAttribute("position", "0 0 0");
-        plane.setAttribute("rotation", "0 0 0");
-        
-        plane.setAttribute("material", `
-          transparent: true; 
-          alphaTest: 0.5; 
-          side: front;
-          depthTest: true;
-        `);
-        
+
+        const targetZ = (i - 1) * stepDepth;
+        plane.setAttribute("position", `0 0 ${targetZ.toFixed(4)}`); // Posizionato direttamente!
+
+        plane.setAttribute("material", "transparent: true; alphaTest: 0.5; side: front; depthTest: true;");
         plane.setAttribute("render-order", i);
-
-        const layerDelay = baseLayersDelay + ((i - 1) * (config.staggerDelay || 80));
-
-        if (i > 1) {
-          plane.setAttribute("animation", {
-            property: "position",
-            from: "0 0 0",
-            to: `0 0 ${targetZ.toFixed(4)}`,
-            dur: config.openDuration,
-            delay: layerDelay,
-            easing: config.easing,
-            fill: "forwards"
-          });
-        }
 
         targetEntity.appendChild(plane);
       }
