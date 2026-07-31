@@ -45,24 +45,24 @@
 
       const stepDepth = totalLayers > 1 ? (maxDepth / (totalLayers - 1)) : 0;
       
-      // Profondità standard per il soffitto (allineata a maxDepth)
+      // Profondità soffitto (pari a maxDepth)
       const topCenterZ = maxDepth / 2;
 
-      // PROFONDITÀ EXTRA PER IL BOTTOM: 
-      // Si estende del 40% in più rispetto al maxDepth dei layer per sporgere in avanti
+      // Profondità extra base (sporge del 40% in più)
       const bottomDepth = maxDepth * 1.4; 
       const bottomCenterZ = bottomDepth / 2;
 
       // ==========================================
-      // TEXTURE TOP E BOTTOM
+      // TEXTURE FONDO, SOFFITTO E BASE
       // ==========================================
       const boxTextures = {
+        back: "./images/box_back.png",     // Texture parete fondo (quadrata)
         top: "./images/box_top.png",       // Texture soffitto
         bottom: "./images/box_bottom.png"  // Texture base allungata
       };
 
       // ==========================================
-      // 1. STRUTTURA SCATOLA: SOLO TOP E BOTTOM
+      // 1. STRUTTURA SCATOLA 3D: BACK + TOP + BOTTOM ALLUNGATO
       // ==========================================
       const boxGroup = document.createElement("a-entity");
       boxGroup.setAttribute("id", "diorama-box");
@@ -84,10 +84,13 @@
         return wall;
       };
 
-      // PARETE SUPERIORE (SOFFITTO - Profondità standard)
+      // PARETE DI FONDO (Z = 0)
+      boxGroup.appendChild(createWall("1", "1", "0 0 -0.005", "0 0 0", boxTextures.back));
+
+      // PARETE SUPERIORE (SOFFITTO)
       boxGroup.appendChild(createWall("1", maxDepth, `0 0.5 ${topCenterZ}`, "90 0 0", boxTextures.top));
 
-      // PARETE INFERIORE (BASE - Profondità allungata)
+      // PARETE INFERIORE (BASE ALLUNGATA TOWARDS THE CAMERA)
       boxGroup.appendChild(createWall("1", bottomDepth, `0 -0.5 ${bottomCenterZ}`, "-90 0 0", boxTextures.bottom));
 
       targetEntity.appendChild(boxGroup);
