@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mostra AR - Poetica della Pagina</title>
+  <title>Altrove</title>
 
-  <!-- Libreria A-Frame 1.4.2 e MindAR 1.2.5 (Combinazione più stabile in assoluto) -->
+  <!-- Librerie A-Frame e MindAR -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
@@ -37,41 +37,41 @@
     document.addEventListener("DOMContentLoaded", () => {
       const targetEntity = document.querySelector("#ar-target");
 
-      // Recupero tempi e parametri dal file config.js
+      // Parametri dal config
       const pageAnimDur = config.pageOpenDuration || 1800;
-      const pageAngle = config.pageOpenAngle || 120;
+      const pageAngle = config.pageOpenAngle || 140; // Portato a 140° per maggiore visibilità
       const pageEasing = config.pageEasing || "easeOutCubic";
       const baseLayersDelay = config.sequenceMode ? pageAnimDur : 0;
 
       // ==========================================
-      // FASE 1: CREAZIONE E APERTURA DELLE 3 PAGINE (CERNIERA)
+      // FASE 1: CREAZIONE PAGINE (ANCORATE A Z=0)
       // ==========================================
       const pagesConfig = [
         {
           id: "page-left",
           image: "./images/page_left.png",
-          pivotPos: "-0.5 0 0",
+          pivotPos: "-0.5 0 0.001",   // Z=0.001 per stare esattamente sul target di stampa
           planeOffset: "-0.5 0 0",
           toRot: `0 ${pageAngle} 0`
         },
         {
           id: "page-right",
           image: "./images/page_right.png",
-          pivotPos: "0.5 0 0",
+          pivotPos: "0.5 0 0.001",    // Z=0.001 per stare esattamente sul target di stampa
           planeOffset: "0.5 0 0",
           toRot: `0 -${pageAngle} 0`
         },
         {
           id: "page-bottom",
           image: "./images/page_bottom.png",
-          pivotPos: "0 -0.5 0",
+          pivotPos: "0 -0.5 0.001",   // Z=0.001 per stare esattamente sul target di stampa
           planeOffset: "0 -0.5 0",
           toRot: `-${pageAngle} 0 0`
         }
       ];
 
       pagesConfig.forEach((p, index) => {
-        // Entità Pivot (Perno di cerniera)
+        // Pivot cerniera
         const pivot = document.createElement("a-entity");
         pivot.setAttribute("position", p.pivotPos);
         pivot.setAttribute("rotation", "0 0 0");
@@ -90,25 +90,25 @@
           depthTest: true;
         `);
         
-        pagePlane.setAttribute("render-order", 20 + index);
+        // Assegniamo un render-order alto per evitare compenetrazioni
+        pagePlane.setAttribute("render-order", 50 + index);
 
-        // Attacchiamo l'animazione al pivot usando la sintassi nativa di A-Frame
-        pivot.setAttribute("animation", `
-          property: rotation; 
-          from: 0 0 0; 
-          to: ${p.toRot}; 
-          dur: ${pageAnimDur}; 
-          easing: ${pageEasing}; 
-          dir: normal;
-          fill: forwards;
-        `);
+        // Animazione JS diretta sul pivot per forzare la rotazione da 0 al valore finale
+        pivot.setAttribute("animation", {
+          property: "rotation",
+          from: "0 0 0",
+          to: p.toRot,
+          dur: pageAnimDur,
+          easing: pageEasing,
+          fill: "forwards"
+        });
 
         pivot.appendChild(pagePlane);
         targetEntity.appendChild(pivot);
       });
 
       // ==========================================
-      // FASE 2: ESTRAZIONE PROGRESSIVA DEI LAYER Z
+      // FASE 2: ESTRAZIONE LAYER IN PROFONDITÀ (Z-AXIS)
       // ==========================================
       const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
 
@@ -133,19 +133,19 @@
         
         plane.setAttribute("render-order", i);
 
-        // Ritardo per far partire i layer DOPO l'apertura delle pagine
+        // Calcolo ritardo per far uscire i layer Z solo dopo le pagine
         const layerDelay = baseLayersDelay + ((i - 1) * (config.staggerDelay || 80));
 
         if (i > 1) {
-          plane.setAttribute("animation", `
-            property: position; 
-            from: 0 0 0; 
-            to: 0 0 ${targetZ.toFixed(4)}; 
-            dur: ${config.openDuration}; 
-            delay: ${layerDelay}; 
-            easing: ${config.easing}; 
-            fill: forwards;
-          `);
+          plane.setAttribute("animation", {
+            property: "position",
+            from: "0 0 0",
+            to: `0 0 ${targetZ.toFixed(4)}`,
+            dur: config.openDuration,
+            delay: layerDelay,
+            easing: config.easing,
+            fill: "forwards"
+          });
         }
 
         targetEntity.appendChild(plane);
