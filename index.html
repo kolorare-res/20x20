@@ -44,28 +44,28 @@
       const baseLayersDelay = config.sequenceMode ? pageAnimDur : 0;
 
       // ==========================================
-      // FASE 1: APERTURA PAGINE A CERNIERA SUI BORDI
+      // FASE 1: APERTURA PAGINE A CERNIERA SUI BORDI (CORRETTO)
       // ==========================================
       const pagesConfig = [
         {
           id: "page-left",
           image: "./images/page_left.png",
-          pivotPos: "-0.5 0 0.001",    // Cerniera posizionata SUL BORDO SINISTRO
-          planeOffset: "-0.5 0 0",     // Sposta il centro del foglio a sinistra della cerniera
-          toRot: `0 ${pageAngle} 0`    // Ruota verso l'esterno (sinistra)
+          pivotPos: "-0.5 0 0.001",    // Cerniera SUL BORDO SINISTRO
+          planeOffset: "0.5 0 0",      // Sposta il centro del foglio A DESTRA del pivot (coincide con il centro)
+          toRot: `0 ${pageAngle} 0`    // Ruota a libro verso l'esterno
         },
         {
           id: "page-right",
           image: "./images/page_right.png",
-          pivotPos: "0.5 0 0.001",     // Cerniera posizionata SUL BORDO DESTRO
-          planeOffset: "0.5 0 0",      // Sposta il centro del foglio a destra della cerniera
-          toRot: `0 -${pageAngle} 0`   // Ruota verso l'esterno (destra)
+          pivotPos: "0.5 0 0.001",     // Cerniera SUL BORDO DESTRO
+          planeOffset: "-0.5 0 0",     // Sposta il centro del foglio A SINISTRA del pivot
+          toRot: `0 -${pageAngle} 0`   // Ruota a libro verso l'esterno
         },
         {
           id: "page-bottom",
           image: "./images/page_bottom.png",
-          pivotPos: "0 -0.5 0.001",    // Cerniera posizionata SUL BORDO INFERIORE
-          planeOffset: "0 -0.5 0",     // Sposta il centro del foglio in basso rispetto alla cerniera
+          pivotPos: "0 -0.5 0.001",    // Cerniera SUL BORDO INFERIORE
+          planeOffset: "0 0.5 0",      // Sposta il centro del foglio IN ALTO rispetto al pivot
           toRot: `-${pageAngle} 0 0`   // Ruota verso il basso
         }
       ];
@@ -81,7 +81,7 @@
         pagePlane.setAttribute("src", p.image);
         pagePlane.setAttribute("width", "1");
         pagePlane.setAttribute("height", "1");
-        // Spostiamo il piano rispetto al pivot in modo che il bordo coincida con l'asse di rotazione
+        // Posizionamento relativo corretto
         pagePlane.setAttribute("position", p.planeOffset);
         
         pagePlane.setAttribute("material", `
