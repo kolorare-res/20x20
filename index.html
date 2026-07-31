@@ -37,9 +37,8 @@
     document.addEventListener("DOMContentLoaded", () => {
       const targetEntity = document.querySelector("#ar-target");
 
-      // Parametri di profondità e ritardo dal config
       const totalLayers = config.layers || 6;
-      const maxDepth = config.maxDepth || 0.5;
+      const maxDepth = config.maxDepth || 0.6; // Profondità accentuata per il grandangolo
       const openDur = config.openDuration || 1500;
       const stagger = config.staggerDelay || 120;
       const easingType = config.easing || "easeOutCubic";
@@ -47,7 +46,19 @@
       const stepDepth = totalLayers > 1 ? (maxDepth / (totalLayers - 1)) : 0;
 
       // ==========================================
-      // CREAZIONE E ANIMAZIONE A CASCATA DEI LAYER Z
+      // 1. SCATOLA NATIVA DI FONDO (STRUTTURA 3D)
+      // ==========================================
+      // Un cubo molto sottile sul retro che fa da fondo solido alla scatola
+      const boxBack = document.createElement("a-box");
+      boxBack.setAttribute("width", "1");
+      boxBack.setAttribute("height", "1");
+      boxBack.setAttribute("depth", "0.02");
+      boxBack.setAttribute("position", `0 0 -0.01`);
+      boxBack.setAttribute("material", "color: #111111; roughness: 0.9;");
+      targetEntity.appendChild(boxBack);
+
+      // ==========================================
+      // 2. LAYER Z CON EFFETTO PROSPETTICO "GRANDANGOLO"
       // ==========================================
       for (let i = 1; i <= totalLayers; i++) {
         const layerNumber = String(i).padStart(2, '0');
@@ -56,8 +67,8 @@
         plane.setAttribute("src", `./images/layer${layerNumber}.png`);
         plane.setAttribute("width", "1");
         plane.setAttribute("height", "1");
-        plane.setAttribute("position", "0 0 0"); // Tutti partono dal piano della stampa (Z=0)
-        plane.setAttribute("rotation", "0 0 0");
+        plane.setAttribute("position", "0 0 0");
+        plane.setAttribute("scale", "1 1 1");
         
         plane.setAttribute("material", `
           transparent: true; 
@@ -66,19 +77,31 @@
           depthTest: true;
         `);
         
-        // Render order progressivo per evitare flickering trasparente
         plane.setAttribute("render-order", i);
 
-        // Il primo layer (layer01) rimane piatto al centro della stampa, 
-        // i successivi si estraggono in profondità
         if (i > 1) {
           const targetZ = (i - 1) * stepDepth;
           const delayTime = (i - 1) * stagger;
 
-          plane.setAttribute("animation", `
+          // Effetto grandangolo/prospettiva forzata: 
+          // Più il layer è avanti, più viene scalato in grandezza (es. da 1.0 a 1.25)
+          const scaleFactor = 1 + ((i - 1) / (totalLayers - 1)) * 0.28;
+
+          // Annamiamo contemporaneamente la posizione Z e la scala per l'effetto ottico a tunnel
+          plane.setAttribute("animation__pos", `
             property: position;
             from: 0 0 0;
             to: 0 0 ${targetZ.toFixed(4)};
+            dur: ${openDur};
+            delay: ${delayTime};
+            easing: ${easingType};
+            fill: forwards;
+          `);
+
+          plane.setAttribute("animation__scale", `
+            property: scale;
+            from: 1 1 1;
+            to: ${scaleFactor} ${scaleFactor} 1;
             dur: ${openDur};
             delay: ${delayTime};
             easing: ${easingType};
