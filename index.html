@@ -38,27 +38,71 @@
       const targetEntity = document.querySelector("#ar-target");
 
       const totalLayers = config.layers || 6;
-      const maxDepth = config.maxDepth || 0.6; // Profondità accentuata per il grandangolo
+      const maxDepth = config.maxDepth || 0.6;
       const openDur = config.openDuration || 1500;
       const stagger = config.staggerDelay || 120;
       const easingType = config.easing || "easeOutCubic";
 
       const stepDepth = totalLayers > 1 ? (maxDepth / (totalLayers - 1)) : 0;
+      const boxCenterZ = maxDepth / 2;
 
       // ==========================================
-      // 1. SCATOLA NATIVA DI FONDO (STRUTTURA 3D)
+      // 1. STRUTTURA SCATOLA 3D NATIVA (5 FACCE)
       // ==========================================
-      // Un cubo molto sottile sul retro che fa da fondo solido alla scatola
-      const boxBack = document.createElement("a-box");
-      boxBack.setAttribute("width", "1");
-      boxBack.setAttribute("height", "1");
-      boxBack.setAttribute("depth", "0.02");
-      boxBack.setAttribute("position", `0 0 -0.01`);
-      boxBack.setAttribute("material", "color: #111111; roughness: 0.9;");
-      targetEntity.appendChild(boxBack);
+      const boxGroup = document.createElement("a-entity");
+      boxGroup.setAttribute("id", "diorama-box");
+
+      // Stile comune per le pareti interne della scatola
+      const wallMaterial = "color: #1a1a1a; roughness: 0.8; side: double;";
+
+      // PARETE DI FONDO (Z = 0)
+      const wallBack = document.createElement("a-plane");
+      wallBack.setAttribute("width", "1");
+      wallBack.setAttribute("height", "1");
+      wallBack.setAttribute("position", "0 0 -0.005");
+      wallBack.setAttribute("material", wallMaterial);
+      boxGroup.appendChild(wallBack);
+
+      // PARETE SINISTRA
+      const wallLeft = document.createElement("a-plane");
+      wallLeft.setAttribute("width", maxDepth);
+      wallLeft.setAttribute("height", "1");
+      wallLeft.setAttribute("position", `-0.5 0 ${boxCenterZ}`);
+      wallLeft.setAttribute("rotation", "0 90 0");
+      wallLeft.setAttribute("material", wallMaterial);
+      boxGroup.appendChild(wallLeft);
+
+      // PARETE DESTRA
+      const wallRight = document.createElement("a-plane");
+      wallRight.setAttribute("width", maxDepth);
+      wallRight.setAttribute("height", "1");
+      wallRight.setAttribute("position", `0.5 0 ${boxCenterZ}`);
+      wallRight.setAttribute("rotation", "0 -90 0");
+      wallRight.setAttribute("material", wallMaterial);
+      boxGroup.appendChild(wallRight);
+
+      // PARETE SUPERIORE (TETTO)
+      const wallTop = document.createElement("a-plane");
+      wallTop.setAttribute("width", "1");
+      wallTop.setAttribute("height", maxDepth);
+      wallTop.setAttribute("position", `0 0.5 ${boxCenterZ}`);
+      wallTop.setAttribute("rotation", "90 0 0");
+      wallTop.setAttribute("material", wallMaterial);
+      boxGroup.appendChild(wallTop);
+
+      // PARETE INFERIORE (BASE)
+      const wallBottom = document.createElement("a-plane");
+      wallBottom.setAttribute("width", "1");
+      wallBottom.setAttribute("height", maxDepth);
+      wallBottom.setAttribute("position", `0 -0.5 ${boxCenterZ}`);
+      wallBottom.setAttribute("rotation", "-90 0 0");
+      wallBottom.setAttribute("material", wallMaterial);
+      boxGroup.appendChild(wallBottom);
+
+      targetEntity.appendChild(boxGroup);
 
       // ==========================================
-      // 2. LAYER Z CON EFFETTO PROSPETTICO "GRANDANGOLO"
+      // 2. LAYER Z ALL'INTERNO DELLA SCATOLA
       // ==========================================
       for (let i = 1; i <= totalLayers; i++) {
         const layerNumber = String(i).padStart(2, '0');
@@ -77,17 +121,13 @@
           depthTest: true;
         `);
         
-        plane.setAttribute("render-order", i);
+        plane.setAttribute("render-order", 10 + i);
 
         if (i > 1) {
           const targetZ = (i - 1) * stepDepth;
           const delayTime = (i - 1) * stagger;
-
-          // Effetto grandangolo/prospettiva forzata: 
-          // Più il layer è avanti, più viene scalato in grandezza (es. da 1.0 a 1.25)
           const scaleFactor = 1 + ((i - 1) / (totalLayers - 1)) * 0.28;
 
-          // Annamiamo contemporaneamente la posizione Z e la scala per l'effetto ottico a tunnel
           plane.setAttribute("animation__pos", `
             property: position;
             from: 0 0 0;
