@@ -47,57 +47,57 @@
       const boxCenterZ = maxDepth / 2;
 
       // ==========================================
-      // 1. STRUTTURA SCATOLA 3D NATIVA (5 FACCE)
+      // IMMAGINI TEXTURE PER LE PARETI DELLA SCATOLA
+      // (Puoi cambiare i percorsi o lasciarne alcune vuote)
+      // ==========================================
+      const boxTextures = {
+        back: "./images/box_back.png",     // Texture fondo
+        left: "./images/box_left.png",     // Texture parete sinistra
+        right: "./images/box_right.png",   // Texture parete destra
+        top: "./images/box_top.png",       // Texture soffitto
+        bottom: "./images/box_bottom.png"  // Texture pavimento/base
+      };
+
+      // ==========================================
+      // 1. STRUTTURA SCATOLA 3D ILLUSTRATA
       // ==========================================
       const boxGroup = document.createElement("a-entity");
       boxGroup.setAttribute("id", "diorama-box");
 
-      // Stile comune per le pareti interne della scatola
-      const wallMaterial = "color: #1a1a1a; roughness: 0.8; side: double;";
+      // Helper function per creare e rivestire una parete
+      const createWall = (width, height, position, rotation, texturePath) => {
+        const wall = document.createElement("a-plane");
+        wall.setAttribute("width", width);
+        wall.setAttribute("height", height);
+        wall.setAttribute("position", position);
+        wall.setAttribute("rotation", rotation);
+        
+        if (texturePath) {
+          // Se c'è un'immagine, la applica come texture
+          wall.setAttribute("src", texturePath);
+          wall.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double; depthTest: true;");
+        } else {
+          // Altrimenti usa un colore solido scuro di fallback
+          wall.setAttribute("material", "color: #1a1a1a; roughness: 0.8; side: double; depthTest: true;");
+        }
+        
+        return wall;
+      };
 
       // PARETE DI FONDO (Z = 0)
-      const wallBack = document.createElement("a-plane");
-      wallBack.setAttribute("width", "1");
-      wallBack.setAttribute("height", "1");
-      wallBack.setAttribute("position", "0 0 -0.005");
-      wallBack.setAttribute("material", wallMaterial);
-      boxGroup.appendChild(wallBack);
+      boxGroup.appendChild(createWall("1", "1", "0 0 -0.005", "0 0 0", boxTextures.back));
 
       // PARETE SINISTRA
-      const wallLeft = document.createElement("a-plane");
-      wallLeft.setAttribute("width", maxDepth);
-      wallLeft.setAttribute("height", "1");
-      wallLeft.setAttribute("position", `-0.5 0 ${boxCenterZ}`);
-      wallLeft.setAttribute("rotation", "0 90 0");
-      wallLeft.setAttribute("material", wallMaterial);
-      boxGroup.appendChild(wallLeft);
+      boxGroup.appendChild(createWall(maxDepth, "1", `-0.5 0 ${boxCenterZ}`, "0 90 0", boxTextures.left));
 
       // PARETE DESTRA
-      const wallRight = document.createElement("a-plane");
-      wallRight.setAttribute("width", maxDepth);
-      wallRight.setAttribute("height", "1");
-      wallRight.setAttribute("position", `0.5 0 ${boxCenterZ}`);
-      wallRight.setAttribute("rotation", "0 -90 0");
-      wallRight.setAttribute("material", wallMaterial);
-      boxGroup.appendChild(wallRight);
+      boxGroup.appendChild(createWall(maxDepth, "1", `0.5 0 ${boxCenterZ}`, "0 -90 0", boxTextures.right));
 
-      // PARETE SUPERIORE (TETTO)
-      const wallTop = document.createElement("a-plane");
-      wallTop.setAttribute("width", "1");
-      wallTop.setAttribute("height", maxDepth);
-      wallTop.setAttribute("position", `0 0.5 ${boxCenterZ}`);
-      wallTop.setAttribute("rotation", "90 0 0");
-      wallTop.setAttribute("material", wallMaterial);
-      boxGroup.appendChild(wallTop);
+      // PARETE SUPERIORE (SOFFITTO)
+      boxGroup.appendChild(createWall("1", maxDepth, `0 0.5 ${boxCenterZ}`, "90 0 0", boxTextures.top));
 
       // PARETE INFERIORE (BASE)
-      const wallBottom = document.createElement("a-plane");
-      wallBottom.setAttribute("width", "1");
-      wallBottom.setAttribute("height", maxDepth);
-      wallBottom.setAttribute("position", `0 -0.5 ${boxCenterZ}`);
-      wallBottom.setAttribute("rotation", "-90 0 0");
-      wallBottom.setAttribute("material", wallMaterial);
-      boxGroup.appendChild(wallBottom);
+      boxGroup.appendChild(createWall("1", maxDepth, `0 -0.5 ${boxCenterZ}`, "-90 0 0", boxTextures.bottom));
 
       targetEntity.appendChild(boxGroup);
 
