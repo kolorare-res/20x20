@@ -44,27 +44,29 @@
       const easingType = config.easing || "easeOutCubic";
 
       const stepDepth = totalLayers > 1 ? (maxDepth / (totalLayers - 1)) : 0;
-      const boxCenterZ = maxDepth / 2;
+      
+      // Profondità standard per il soffitto (allineata a maxDepth)
+      const topCenterZ = maxDepth / 2;
+
+      // PROFONDITÀ EXTRA PER IL BOTTOM: 
+      // Si estende del 40% in più rispetto al maxDepth dei layer per sporgere in avanti
+      const bottomDepth = maxDepth * 1.4; 
+      const bottomCenterZ = bottomDepth / 2;
 
       // ==========================================
-      // IMMAGINI TEXTURE PER LE PARETI DELLA SCATOLA
-      // (Puoi cambiare i percorsi o lasciarne alcune vuote)
+      // TEXTURE TOP E BOTTOM
       // ==========================================
       const boxTextures = {
-        back: "./images/box_back.png",     // Texture fondo
-        left: "./images/box_left.png",     // Texture parete sinistra
-        right: "./images/box_right.png",   // Texture parete destra
         top: "./images/box_top.png",       // Texture soffitto
-        bottom: "./images/box_bottom.png"  // Texture pavimento/base
+        bottom: "./images/box_bottom.png"  // Texture base allungata
       };
 
       // ==========================================
-      // 1. STRUTTURA SCATOLA 3D ILLUSTRATA
+      // 1. STRUTTURA SCATOLA: SOLO TOP E BOTTOM
       // ==========================================
       const boxGroup = document.createElement("a-entity");
       boxGroup.setAttribute("id", "diorama-box");
 
-      // Helper function per creare e rivestire una parete
       const createWall = (width, height, position, rotation, texturePath) => {
         const wall = document.createElement("a-plane");
         wall.setAttribute("width", width);
@@ -73,31 +75,20 @@
         wall.setAttribute("rotation", rotation);
         
         if (texturePath) {
-          // Se c'è un'immagine, la applica come texture
           wall.setAttribute("src", texturePath);
           wall.setAttribute("material", "transparent: true; alphaTest: 0.5; side: double; depthTest: true;");
         } else {
-          // Altrimenti usa un colore solido scuro di fallback
           wall.setAttribute("material", "color: #1a1a1a; roughness: 0.8; side: double; depthTest: true;");
         }
         
         return wall;
       };
 
-      // PARETE DI FONDO (Z = 0)
-      boxGroup.appendChild(createWall("1", "1", "0 0 -0.005", "0 0 0", boxTextures.back));
+      // PARETE SUPERIORE (SOFFITTO - Profondità standard)
+      boxGroup.appendChild(createWall("1", maxDepth, `0 0.5 ${topCenterZ}`, "90 0 0", boxTextures.top));
 
-      // PARETE SINISTRA
-      boxGroup.appendChild(createWall(maxDepth, "1", `-0.5 0 ${boxCenterZ}`, "0 90 0", boxTextures.left));
-
-      // PARETE DESTRA
-      boxGroup.appendChild(createWall(maxDepth, "1", `0.5 0 ${boxCenterZ}`, "0 -90 0", boxTextures.right));
-
-      // PARETE SUPERIORE (SOFFITTO)
-      boxGroup.appendChild(createWall("1", maxDepth, `0 0.5 ${boxCenterZ}`, "90 0 0", boxTextures.top));
-
-      // PARETE INFERIORE (BASE)
-      boxGroup.appendChild(createWall("1", maxDepth, `0 -0.5 ${boxCenterZ}`, "-90 0 0", boxTextures.bottom));
+      // PARETE INFERIORE (BASE - Profondità allungata)
+      boxGroup.appendChild(createWall("1", bottomDepth, `0 -0.5 ${bottomCenterZ}`, "-90 0 0", boxTextures.bottom));
 
       targetEntity.appendChild(boxGroup);
 
