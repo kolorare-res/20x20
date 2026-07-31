@@ -3,14 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove</title>
+  <title>Mostra AR - Poetica della Pagina</title>
 
-  <!-- Librerie Base -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <!-- Libreria A-Frame 1.4.2 e MindAR 1.2.5 (Combinazione più stabile in assoluto) -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  
-  <!-- LIBRERIA EXTRA PER SISTEMI PARTICELLARI (A-Frame Particle System) -->
-  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@v1.1.3/dist/aframe-particle-system-component.min.js"></script>
 
   <!-- File di configurazione -->
   <script src="./config.js"></script>
@@ -32,29 +29,6 @@
 
     <!-- Contenitore dell'opera riconosciuta -->
     <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
-
-      <!-- ========================================== -->
-      <!-- 3. SISTEMA PARTICELLARE: EFFETTO INCHIOSTRO/LETTERE -->
-      <!-- ========================================== -->
-      <!-- Questa entità genera frammenti scuri fluttuanti al centro -->
-      <a-entity id="ink-particles" 
-        position="0 0 0"
-        visible="false"
-        particle-system="
-          preset: default; 
-          color: #000000,#222222; 
-          size: 0.02; 
-          particleCount: 80; 
-          maxAge: 4; 
-          velocityValue: 0 0.05 0; 
-          velocitySpread: 0.1 0.1 0.1;
-          accelerationValue: 0 0.01 0;
-          texture: https://cdn.rawgit.com/tarruda/aframe-particle-system-component/master/dist/images/smokeparticle.png;
-          blending: normal;
-          opacity: 0.6;
-        ">
-      </a-entity>
-
     </a-entity>
 
   </a-scene>
@@ -62,37 +36,72 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const targetEntity = document.querySelector("#ar-target");
-      const inkParticles = document.querySelector("#ink-particles");
 
-      // Calcolo del ritardo base per i layer Z
-      const baseLayersDelay = config.sequenceMode ? config.pageOpenDuration : 0;
+      // Recupero tempi e parametri dal file config.js
+      const pageAnimDur = config.pageOpenDuration || 1800;
+      const pageAngle = config.pageOpenAngle || 120;
+      const pageEasing = config.pageEasing || "easeOutCubic";
+      const baseLayersDelay = config.sequenceMode ? pageAnimDur : 0;
 
       // ==========================================
       // FASE 1: CREAZIONE E APERTURA DELLE 3 PAGINE (CERNIERA)
       // ==========================================
       const pagesConfig = [
-        { id: "page-left", image: "./images/page_left.png", pivotPos: "-0.5 0 0", planeOffset: "-0.5 0 0", openRotation: `0 ${config.pageOpenAngle} 0` },
-        { id: "page-right", image: "./images/page_right.png", pivotPos: "0.5 0 0", planeOffset: "0.5 0 0", openRotation: `0 -${config.pageOpenAngle} 0` },
-        { id: "page-bottom", image: "./images/page_bottom.png", pivotPos: "0 -0.5 0", planeOffset: "0 -0.5 0", openRotation: `-${config.pageOpenAngle} 0 0` }
+        {
+          id: "page-left",
+          image: "./images/page_left.png",
+          pivotPos: "-0.5 0 0",
+          planeOffset: "-0.5 0 0",
+          toRot: `0 ${pageAngle} 0`
+        },
+        {
+          id: "page-right",
+          image: "./images/page_right.png",
+          pivotPos: "0.5 0 0",
+          planeOffset: "0.5 0 0",
+          toRot: `0 -${pageAngle} 0`
+        },
+        {
+          id: "page-bottom",
+          image: "./images/page_bottom.png",
+          pivotPos: "0 -0.5 0",
+          planeOffset: "0 -0.5 0",
+          toRot: `-${pageAngle} 0 0`
+        }
       ];
 
       pagesConfig.forEach((p, index) => {
+        // Entità Pivot (Perno di cerniera)
         const pivot = document.createElement("a-entity");
         pivot.setAttribute("position", p.pivotPos);
         pivot.setAttribute("rotation", "0 0 0");
 
+        // Piano grafico della pagina
         const pagePlane = document.createElement("a-plane");
         pagePlane.setAttribute("src", p.image);
         pagePlane.setAttribute("width", "1");
         pagePlane.setAttribute("height", "1");
         pagePlane.setAttribute("position", p.planeOffset);
-        pagePlane.setAttribute("material", `transparent: true; alphaTest: 0.5; side: double; repeat: 1 1; depthTest: true;`);
-        pagePlane.setAttribute("render-order", 10 + index);
+        
+        pagePlane.setAttribute("material", `
+          transparent: true; 
+          alphaTest: 0.5; 
+          side: double;
+          depthTest: true;
+        `);
+        
+        pagePlane.setAttribute("render-order", 20 + index);
 
-        pivot.setAttribute("animation", {
-          property: "rotation", from: "0 0 0", to: p.openRotation,
-          dur: config.pageOpenDuration, easing: config.pageEasing, fill: "forwards"
-        });
+        // Attacchiamo l'animazione al pivot usando la sintassi nativa di A-Frame
+        pivot.setAttribute("animation", `
+          property: rotation; 
+          from: 0 0 0; 
+          to: ${p.toRot}; 
+          dur: ${pageAnimDur}; 
+          easing: ${pageEasing}; 
+          dir: normal;
+          fill: forwards;
+        `);
 
         pivot.appendChild(pagePlane);
         targetEntity.appendChild(pivot);
@@ -114,30 +123,29 @@
         plane.setAttribute("height", "1");
         plane.setAttribute("position", "0 0 0");
         plane.setAttribute("rotation", "0 0 0");
-        plane.setAttribute("material", `transparent: true; alphaTest: 0.5; side: front; repeat: 1 1; depthTest: true;`);
+        
+        plane.setAttribute("material", `
+          transparent: true; 
+          alphaTest: 0.5; 
+          side: front;
+          depthTest: true;
+        `);
+        
         plane.setAttribute("render-order", i);
 
-        // Calcolo ritardo individuale per l'effetto cascata
-        const layerDelay = baseLayersDelay + ((i - 1) * config.staggerDelay);
+        // Ritardo per far partire i layer DOPO l'apertura delle pagine
+        const layerDelay = baseLayersDelay + ((i - 1) * (config.staggerDelay || 80));
 
         if (i > 1) {
-          plane.setAttribute("animation", {
-            property: "position", from: "0 0 0", to: `0 0 ${targetZ.toFixed(4)}`,
-            dur: config.openDuration, delay: layerDelay, easing: config.easing, fill: "forwards"
-          });
-        }
-        
-        // --- SINCRONIZZAZIONE PARTICELLE ---
-        // Quando il layer 2 (il primo che si stacca) inizia a muoversi, attiviamo le particelle
-        if (i === 2 && i > 1) {
-            plane.addEventListener('animationstart', () => {
-                inkParticles.setAttribute('visible', 'true');
-                // Leggera animazione in avanti del sistema particellare
-                inkParticles.setAttribute("animation", {
-                    property: "position", from: "0 0 0", to: `0 0 ${config.maxDepth / 2}`,
-                    dur: config.openDuration * 2, easing: "easeOutSine", fill: "forwards"
-                });
-            });
+          plane.setAttribute("animation", `
+            property: position; 
+            from: 0 0 0; 
+            to: 0 0 ${targetZ.toFixed(4)}; 
+            dur: ${config.openDuration}; 
+            delay: ${layerDelay}; 
+            easing: ${config.easing}; 
+            fill: forwards;
+          `);
         }
 
         targetEntity.appendChild(plane);
