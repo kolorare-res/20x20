@@ -27,7 +27,7 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Contenitore dell'opera riconosciuta -->
+    <!-- Contenitore dell'opera riconosciuta: Altrove -->
     <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
     </a-entity>
 
@@ -39,48 +39,49 @@
 
       // Parametri dal config
       const pageAnimDur = config.pageOpenDuration || 1800;
-      const pageAngle = config.pageOpenAngle || 140; // Portato a 140° per maggiore visibilità
+      const pageAngle = config.pageOpenAngle || 130;
       const pageEasing = config.pageEasing || "easeOutCubic";
       const baseLayersDelay = config.sequenceMode ? pageAnimDur : 0;
 
       // ==========================================
-      // FASE 1: CREAZIONE PAGINE (ANCORATE A Z=0)
+      // FASE 1: APERTURA PAGINE A CERNIERA SUI BORDI
       // ==========================================
       const pagesConfig = [
         {
           id: "page-left",
           image: "./images/page_left.png",
-          pivotPos: "-0.5 0 0.001",   // Z=0.001 per stare esattamente sul target di stampa
-          planeOffset: "-0.5 0 0",
-          toRot: `0 ${pageAngle} 0`
+          pivotPos: "-0.5 0 0.001",    // Cerniera posizionata SUL BORDO SINISTRO
+          planeOffset: "-0.5 0 0",     // Sposta il centro del foglio a sinistra della cerniera
+          toRot: `0 ${pageAngle} 0`    // Ruota verso l'esterno (sinistra)
         },
         {
           id: "page-right",
           image: "./images/page_right.png",
-          pivotPos: "0.5 0 0.001",    // Z=0.001 per stare esattamente sul target di stampa
-          planeOffset: "0.5 0 0",
-          toRot: `0 -${pageAngle} 0`
+          pivotPos: "0.5 0 0.001",     // Cerniera posizionata SUL BORDO DESTRO
+          planeOffset: "0.5 0 0",      // Sposta il centro del foglio a destra della cerniera
+          toRot: `0 -${pageAngle} 0`   // Ruota verso l'esterno (destra)
         },
         {
           id: "page-bottom",
           image: "./images/page_bottom.png",
-          pivotPos: "0 -0.5 0.001",   // Z=0.001 per stare esattamente sul target di stampa
-          planeOffset: "0 -0.5 0",
-          toRot: `-${pageAngle} 0 0`
+          pivotPos: "0 -0.5 0.001",    // Cerniera posizionata SUL BORDO INFERIORE
+          planeOffset: "0 -0.5 0",     // Sposta il centro del foglio in basso rispetto alla cerniera
+          toRot: `-${pageAngle} 0 0`   // Ruota verso il basso
         }
       ];
 
       pagesConfig.forEach((p, index) => {
-        // Pivot cerniera
+        // Pivot (punto di cerniera fisso sul bordo del target)
         const pivot = document.createElement("a-entity");
         pivot.setAttribute("position", p.pivotPos);
         pivot.setAttribute("rotation", "0 0 0");
 
-        // Piano grafico della pagina
+        // Foglio/Pagina
         const pagePlane = document.createElement("a-plane");
         pagePlane.setAttribute("src", p.image);
         pagePlane.setAttribute("width", "1");
         pagePlane.setAttribute("height", "1");
+        // Spostiamo il piano rispetto al pivot in modo che il bordo coincida con l'asse di rotazione
         pagePlane.setAttribute("position", p.planeOffset);
         
         pagePlane.setAttribute("material", `
@@ -90,10 +91,9 @@
           depthTest: true;
         `);
         
-        // Assegniamo un render-order alto per evitare compenetrazioni
         pagePlane.setAttribute("render-order", 50 + index);
 
-        // Animazione JS diretta sul pivot per forzare la rotazione da 0 al valore finale
+        // Animazione di rotazione del Pivot
         pivot.setAttribute("animation", {
           property: "rotation",
           from: "0 0 0",
@@ -133,7 +133,6 @@
         
         plane.setAttribute("render-order", i);
 
-        // Calcolo ritardo per far uscire i layer Z solo dopo le pagine
         const layerDelay = baseLayersDelay + ((i - 1) * (config.staggerDelay || 80));
 
         if (i > 1) {
