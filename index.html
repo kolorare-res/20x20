@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mostra AR - Poetica della Pagina</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Altrove - Labirinto Tipografico WebAR</title>
 
-  <!-- Librerie A-Frame e MindAR -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
-  <!-- File di configurazione -->
-  <script src="./config.js"></script>
+  <!-- Librerie A-Frame, MindAR e Text Geometry per lettere 3D -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.1/dist/aframe-text-geometry-component.min.js"></script>
 
   <style>
     body {
@@ -18,77 +16,131 @@
       overflow: hidden;
     }
   </style>
-</head>
-<body>
 
-  <!-- STABILIZZAZIONE ATTIVA: filterMinCF e filterBeta per evitare tremolii -->
+  <script>
+    // Componente personalizzato per generare il Labirinto Tipografico con Ombre Dinamiche
+    AFRAME.registerComponent('typographic-labyrinth', {
+      init: function () {
+        const el = this.el;
+        // Font standard Three.js caricato da CDN
+        const fontUrl = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/fonts/helvetiker_bold.typeface.json';
+
+        // Struttura delle frasi nel labirinto (testo, posizione X Y Z, rotazione X Y Z, colore)
+        const labirintoData = [
+          // Livello Alto (Z = -0.15) - Travi orizzontali
+          { text: "LA LETTURA E' UN PORTALE", pos: "-0.4 0.25 -0.15", rot: "0 0 0", size: 0.035, depth: 0.015, color: "#FFFFFF" },
+          { text: "EVADERE DALLA REALTA'", pos: "-0.38 -0.25 -0.18", rot: "0 0 0", size: 0.035, depth: 0.015, color: "#E6E6FA" },
+
+          // Livello Medio (Z = -0.3) - Pareti verticali in profondità
+          { text: "SPAZI INFINITI NEL TESTO", pos: "-0.28 0.4 -0.1", rot: "90 90 0", size: 0.03, depth: 0.01, color: "#B0C4DE" },
+          { text: "ABITARE ALTRE VITE", pos: "0.25 0.4 -0.15", rot: "90 90 0", size: 0.03, depth: 0.01, color: "#ADD8E6" },
+
+          // Traversa diagonale interna (Z = -0.4)
+          { text: "PAGINE SENZA CONFINE", pos: "-0.35 0 -0.38", rot: "0 0 15", size: 0.028, depth: 0.01, color: "#F0F8FF" }
+        ];
+
+        // Generazione automatica dei blocchi di testo 3D
+        labirintoData.forEach((item) => {
+          const textEl = document.createElement('a-entity');
+
+          textEl.setAttribute('text-geometry', {
+            value: item.text,
+            size: item.size,
+            height: item.depth,
+            font: fontUrl
+          });
+
+          textEl.setAttribute('position', item.pos);
+          textEl.setAttribute('rotation', item.rot);
+          textEl.setAttribute('material', {
+            color: item.color,
+            roughness: 0.3,
+            metalness: 0.2
+          });
+
+          // Attivazione esplicita delle ombre A-Frame / Three.js
+          textEl.setAttribute('shadow', 'cast: true; receive: true');
+
+          // Assicura che il mesh Three.js sottostante applichi correttamente cast/receive
+          textEl.addEventListener('model-loaded', () => {
+            const mesh = textEl.getObject3D('mesh');
+            if (mesh) {
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
+            }
+          });
+
+          el.appendChild(textEl);
+        });
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <!-- SCENA A-FRAME con Configurazione Renderer Ombre Morbide (PCFSoftShadowMap) -->
   <a-scene 
-    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 10;" 
+    mindar-image="imageTargetSrc: targets.mind" 
     color-space="sRGB" 
-    renderer="colorManagement: true, physicallyCorrectLights" 
+    renderer="colorManagement: true; physicallyCorrectLights: true; shadowMapEnabled: true; shadowMapType: PCFSoftShadowMap;" 
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false">
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Contenitore dell'opera riconosciuta -->
-    <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
+    <!-- SYSTEMA LUCI PER PROIEZIONE OMBRE -->
+    <!-- 1. Luce Ambientale di base (scura per accentuare i contrasti) -->
+    <a-light type="ambient" color="#111122" intensity="0.5"></a-light>
+
+    <!-- 2. Luce Direzionale inclinata che spara verso l'interno della scatola -->
+    <a-light 
+      type="directional" 
+      color="#FFFFFF" 
+      intensity="2.2" 
+      position="0.8 1.5 0.6" 
+      target="#box-target"
+      light="castShadow: true; 
+             shadowCameraTop: 0.8; 
+             shadowCameraBottom: -0.8; 
+             shadowCameraLeft: -0.8; 
+             shadowCameraRight: 0.8; 
+             shadowMapWidth: 2048; 
+             shadowMapHeight: 2048; 
+             shadowBias: -0.0005;">
+    </a-light>
+
+    <!-- 3. Punto Luce interno (effetti di illuminazione dal fondo "ALTROVE") -->
+    <a-light type="point" color="#00FFFF" intensity="1.2" distance="0.8" position="0 0 -0.55"></a-light>
+
+    <!-- TARGET AR -->
+    <a-entity mindar-image-target="targetIndex: 0">
+      
+      <!-- Target di puntamento per la luce direzionale -->
+      <a-entity id="box-target" position="0 0 -0.3"></a-entity>
+
+      <!-- SCATOLA PROFONDA / POZZO PROSPETTICO (1.0x1.0m = 20x20cm nel target) -->
+      <!-- 'receive: true' riceve le ombre proiettate dal testo 3D -->
+      <a-box 
+        position="0 0 -0.3" 
+        width="1.0" 
+        height="1.0" 
+        depth="0.6" 
+        shadow="cast: false; receive: true"
+        material="color: #080810; side: BackSide; roughness: 0.8">
+      </a-box>
+
+      <!-- SCRITTA SUL FONDO DEL POZZO (Emissiva / Brillante) -->
+      <a-entity 
+        text-geometry="value: ALTROVE; size: 0.11; height: 0.02; font: https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/fonts/helvetiker_bold.typeface.json"
+        position="-0.33 -0.05 -0.58"
+        shadow="cast: false; receive: true"
+        material="color: #00FFFF; emissive: #00FFFF; emissiveIntensity: 0.8">
+      </a-entity>
+
+      <!-- GENERATORE DEL LABIRINTO TIPOGRAFICO CON OMBRE -->
+      <a-entity typographic-labyrinth></a-entity>
+
     </a-entity>
-
   </a-scene>
-
- <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const targetEntity = document.querySelector("#ar-target");
-
-    // Calcoliamo lo spazio tra ciascun livello
-    const stepDepth = config.layers > 1 ? (config.maxDepth / (config.layers - 1)) : 0;
-
-    for (let i = 1; i <= config.layers; i++) {
-      const layerNumber = String(i).padStart(2, '0');
-      const imagePath = `./images/layer${layerNumber}.png`;
-
-      // Avanzamento Z in avanti verso la fotocamera (effetto Pop-up)
-      const targetZ = (i - 1) * stepDepth;
-
-      const plane = document.createElement("a-plane");
-      plane.setAttribute("src", imagePath);
-      plane.setAttribute("width", "1");
-      plane.setAttribute("height", "1");
-      
-      // Coordinate e rotazioni di partenza rigide al centro
-      plane.setAttribute("position", "0 0 0");
-      plane.setAttribute("rotation", "0 0 0");
-      
-      // FIX MISTERO SPECCHIAMENTO / DOPPIA IMMAGINE:
-      // 1. repeat: 1 1 -> Impedisce ad A-Frame di ripetere la texture sui bordi
-      // 2. npot: true -> Gestisce le immagini con trasparenze asimmetriche o dimensioni non standard
-      plane.setAttribute("material", `
-        transparent: true; 
-        alphaTest: 0.5; 
-        side: front;
-        repeat: 1 1;
-        depthTest: true;
-      `);
-      
-      // Assegniamo un ordine di rendering crescente per evitare errori di sovrapposizione
-      plane.setAttribute("render-order", i);
-
-      if (i > 1) {
-        plane.setAttribute("animation", {
-          property: "position",
-          from: "0 0 0",
-          to: `0 0 ${targetZ.toFixed(4)}`,
-          dur: config.openDuration,
-          easing: config.easing,
-          fill: "forwards"
-        });
-      }
-
-      targetEntity.appendChild(plane);
-    }
-  });
-</script>
-
 </body>
 </html>
