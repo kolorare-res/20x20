@@ -1,146 +1,403 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Altrove - Labirinto Tipografico WebAR</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diorama WebAR - Animazione Particelle (Foglie e Lettere)</title>
 
-  <!-- Librerie A-Frame, MindAR e Text Geometry per lettere 3D -->
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <!-- Librerie A-Frame e MindAR -->
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.1/dist/aframe-text-geometry-component.min.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
-  </style>
 
   <script>
-    // Componente personalizzato per generare il Labirinto Tipografico con Ombre Dinamiche
-    AFRAME.registerComponent('typographic-labyrinth', {
+    // Componente Smooth Tracker
+    AFRAME.registerComponent('smooth-tracker', {
+      schema: { factor: { type: 'number', default: 0.35 } },
       init: function () {
-        const el = this.el;
-        // Font standard Three.js caricato da CDN
-        const fontUrl = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/fonts/helvetiker_bold.typeface.json';
+        this.hasTarget = false;
+        this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
+        this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
+      },
+      tick: function () {
+        if (!this.hasTarget) return;
+        const object3D = this.el.object3D;
+        if (this.prevPos) {
+          object3D.position.lerp(this.prevPos, 1 - this.data.factor);
+          object3D.quaternion.slerp(this.prevQuat, 1 - this.data.factor);
+        }
+        this.prevPos = object3D.position.clone();
+        this.prevQuat = object3D.quaternion.clone();
+      }
+    });
 
-        // Struttura delle frasi nel labirinto (testo, posizione X Y Z, rotazione X Y Z, colore)
-        const labirintoData = [
-          // Livello Alto (Z = -0.15) - Travi orizzontali
-          { text: "LA LETTURA E' UN PORTALE", pos: "-0.4 0.25 -0.15", rot: "0 0 0", size: 0.035, depth: 0.015, color: "#FFFFFF" },
-          { text: "EVADERE DALLA REALTA'", pos: "-0.38 -0.25 -0.18", rot: "0 0 0", size: 0.035, depth: 0.015, color: "#E6E6FA" },
+    // Fix Trasparenza PNG
+    AFRAME.registerComponent('fix-png-alpha', {
+      init: function () {
+        this.el.addEventListener('materialtextureloaded', (e) => {
+          const texture = e.detail.texture;
+          if (texture) {
+            texture.minFilter = THREE.NearestFilter;
+            texture.generateMipmaps = false;
+            texture.needsUpdate = true;
+          }
+        });
+      }
+    });
 
-          // Livello Medio (Z = -0.3) - Pareti verticali in profondità
-          { text: "SPAZI INFINITI NEL TESTO", pos: "-0.28 0.4 -0.1", rot: "90 90 0", size: 0.03, depth: 0.01, color: "#B0C4DE" },
-          { text: "ABITARE ALTRE VITE", pos: "0.25 0.4 -0.15", rot: "90 90 0", size: 0.03, depth: 0.01, color: "#ADD8E6" },
+    // ==========================================
+    // COMPONENTE PARTICELLE CADENTI
+    // ==========================================
+    AFRAME.registerComponent('falling-particles', {
+      schema: {
+        count: { type: 'int', default: 22 },
+        textures: { type: 'array', default: [] },
+        zPos: { type: 'number', default: 0.2050 },
+        baseSizeMin: { type: 'number', default: 0.010 },
+        baseSizeMax: { type: 'number', default: 0.030 },
+        fallSpeedMin: { type: 'number', default: 0.0005 },
+        fallSpeedMax: { type: 'number', default: 0.0009 },
+        swayAmp: { type: 'number', default: 0.025 },
+        enable3DRotation: { type: 'boolean', default: true }
+      },
 
-          // Traversa diagonale interna (Z = -0.4)
-          { text: "PAGINE SENZA CONFINE", pos: "-0.35 0 -0.38", rot: "0 0 15", size: 0.028, depth: 0.01, color: "#F0F8FF" }
-        ];
+      init: function () {
+        this.particles = [];
+        
+        // --- LIMITI SPAZIALI AREA CADUTA ---
+        this.bounds = {
+          xMin: -0.480,  
+          xMax: -0.100,  
+          yMin: -0.325,  
+          yMax: 0.150,   
+          yKill: -0.600  
+        };
 
-        // Generazione automatica dei blocchi di testo 3D
-        labirintoData.forEach((item) => {
-          const textEl = document.createElement('a-entity');
+        const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
-          textEl.setAttribute('text-geometry', {
-            value: item.text,
-            size: item.size,
-            height: item.depth,
-            font: fontUrl
-          });
+        for (let i = 0; i < this.data.count; i++) {
+          const pEl = document.createElement('a-plane');
+          
+          const randTex = this.data.textures[Math.floor(Math.random() * this.data.textures.length)];
+          const size = this.data.baseSizeMin + (Math.random() * (this.data.baseSizeMax - this.data.baseSizeMin));
+          
+          pEl.setAttribute('width', size);
+          pEl.setAttribute('height', size);
+          pEl.setAttribute('fix-png-alpha', '');
+          pEl.setAttribute('material', `src: url(${randTex}); ${overlayMat} side: double;`);
+          pEl.setAttribute('render-order', 45);
 
-          textEl.setAttribute('position', item.pos);
-          textEl.setAttribute('rotation', item.rot);
-          textEl.setAttribute('material', {
-            color: item.color,
-            roughness: 0.3,
-            metalness: 0.2
-          });
+          this.el.appendChild(pEl);
 
-          // Attivazione esplicita delle ombre A-Frame / Three.js
-          textEl.setAttribute('shadow', 'cast: true; receive: true');
+          const pData = {
+            el: pEl,
+            xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
+            x: 0,
+            y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
+            z: this.data.zPos + (Math.random() * 0.006 - 0.003),
+            fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
+            swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
+            swayFreq: 0.0018 + (Math.random() * 0.0015),
+            rotSpeedZ: (Math.random() - 0.5) * 1.8,
+            rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
+            rotZ: Math.random() * 360,
+            rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
+            timeOffset: Math.random() * 2000
+          };
 
-          // Assicura che il mesh Three.js sottostante applichi correttamente cast/receive
-          textEl.addEventListener('model-loaded', () => {
-            const mesh = textEl.getObject3D('mesh');
-            if (mesh) {
-              mesh.castShadow = true;
-              mesh.receiveShadow = true;
-            }
-          });
+          pData.x = pData.xInit;
+          this.particles.push(pData);
+        }
+      },
 
-          el.appendChild(textEl);
+      randomRange: function (min, max) {
+        return min + Math.random() * (max - min);
+      },
+
+      resetParticle: function (p) {
+        p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
+        p.x = p.xInit;
+        p.y = this.bounds.yMax;
+        p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
+        p.rotZ = Math.random() * 360;
+      },
+
+      tick: function (time, timeDelta) {
+        if (!timeDelta) return;
+
+        this.particles.forEach(p => {
+          // 1. Caduta Verticale
+          p.y -= p.fallSpeed * (timeDelta / 16.6);
+
+          // 2. Oscillazione Orizzontale (Sway)
+          const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
+          p.x = p.xInit + sway;
+
+          // 3. Rotazione
+          p.rotZ += p.rotSpeedZ;
+          if (this.data.enable3DRotation) {
+            p.rotX += p.rotSpeedX;
+          }
+
+          p.el.object3D.position.set(p.x, p.y, p.z);
+          p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
+          if (this.data.enable3DRotation) {
+            p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
+          }
+
+          // 4. Reset a fine corsa
+          if (p.y < this.bounds.yKill) {
+            this.resetParticle(p);
+          }
         });
       }
     });
   </script>
-</head>
 
+  <style>
+    body { margin: 0; overflow: hidden; }
+    .a-enter-vr-button { display: none !important; }
+  </style>
+</head>
 <body>
-  <!-- SCENA A-FRAME con Configurazione Renderer Ombre Morbide (PCFSoftShadowMap) -->
+
   <a-scene 
-    mindar-image="imageTargetSrc: targets.mind" 
+    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5;" 
     color-space="sRGB" 
-    renderer="colorManagement: true; physicallyCorrectLights: true; shadowMapEnabled: true; shadowMapType: PCFSoftShadowMap;" 
+    renderer="colorManagement: true, physicallyCorrectLights; antialias: true;" 
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false">
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity id="ar-target" mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35"></a-entity>
 
-    <!-- SYSTEMA LUCI PER PROIEZIONE OMBRE -->
-    <!-- 1. Luce Ambientale di base (scura per accentuare i contrasti) -->
-    <a-light type="ambient" color="#111122" intensity="0.5"></a-light>
-
-    <!-- 2. Luce Direzionale inclinata che spara verso l'interno della scatola -->
-    <a-light 
-      type="directional" 
-      color="#FFFFFF" 
-      intensity="2.2" 
-      position="0.8 1.5 0.6" 
-      target="#box-target"
-      light="castShadow: true; 
-             shadowCameraTop: 0.8; 
-             shadowCameraBottom: -0.8; 
-             shadowCameraLeft: -0.8; 
-             shadowCameraRight: 0.8; 
-             shadowMapWidth: 2048; 
-             shadowMapHeight: 2048; 
-             shadowBias: -0.0005;">
-    </a-light>
-
-    <!-- 3. Punto Luce interno (effetti di illuminazione dal fondo "ALTROVE") -->
-    <a-light type="point" color="#00FFFF" intensity="1.2" distance="0.8" position="0 0 -0.55"></a-light>
-
-    <!-- TARGET AR -->
-    <a-entity mindar-image-target="targetIndex: 0">
-      
-      <!-- Target di puntamento per la luce direzionale -->
-      <a-entity id="box-target" position="0 0 -0.3"></a-entity>
-
-      <!-- SCATOLA PROFONDA / POZZO PROSPETTICO (1.0x1.0m = 20x20cm nel target) -->
-      <!-- 'receive: true' riceve le ombre proiettate dal testo 3D -->
-      <a-box 
-        position="0 0 -0.3" 
-        width="1.0" 
-        height="1.0" 
-        depth="0.6" 
-        shadow="cast: false; receive: true"
-        material="color: #080810; side: BackSide; roughness: 0.8">
-      </a-box>
-
-      <!-- SCRITTA SUL FONDO DEL POZZO (Emissiva / Brillante) -->
-      <a-entity 
-        text-geometry="value: ALTROVE; size: 0.11; height: 0.02; font: https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/fonts/helvetiker_bold.typeface.json"
-        position="-0.33 -0.05 -0.58"
-        shadow="cast: false; receive: true"
-        material="color: #00FFFF; emissive: #00FFFF; emissiveIntensity: 0.8">
-      </a-entity>
-
-      <!-- GENERATORE DEL LABIRINTO TIPOGRAFICO CON OMBRE -->
-      <a-entity typographic-labyrinth></a-entity>
-
-    </a-entity>
   </a-scene>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const targetEntity = document.querySelector("#ar-target");
+
+      const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
+      const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+
+      // ==========================================
+      // 1. CONFIGURAZIONE DEI LIVELLI PNG
+      // ==========================================
+      const thickness3mm = 0.015;
+      const planeWidth = 1.0;     
+      const planeHeight = 1.0;    
+      const depth4cmRel = 0.20;   
+
+      const layersConfig = [
+        { src: "./images/layer01.png", z: 0.0075 },
+        // LAYER 05 SPOSTATO ALLA POSIZIONE 2 (z: 0.2000)
+        { 
+          src: "./images/layer05.png", 
+          z: 0.2000, 
+          bottomTexture: "./images/layer05_bottom.png",
+          customDepth: depth4cmRel,
+          extraOverlay: {
+            src: "./images/layer05_extra.png",
+            offsetZ: 0.0500
+          }
+        },
+        { src: "./images/layer02.png", z: 0.3925 },
+        { 
+          src: "./images/layer04.png", 
+          z: 0.5850, 
+          bottomTexture: "./images/layer04_bottom.png",
+          topTexture: "./images/layer04_top.png",
+          topYPos: -0.0500,
+          extraOverlay: {
+            src: "./images/layer04_extra.png",
+            offsetZ: 0.0750
+          },
+          boat: {
+            src: "./images/paper_boat.png",
+            offsetZ: 0.0750,
+            startYPos: 0.0,
+            width: 1.0,
+            height: 1.0
+          }
+        },
+        // LAYER 03 SPOSTATO ALLA POSIZIONE 5 (z: 0.7775)
+        { 
+          src: "./images/layer03.png", 
+          z: 0.7775, 
+          bottomTexture: "./images/layer03_bottom.png",
+          extraOverlay: {
+            src: "./images/layer03_extra.png",
+            offsetZ: 0.0500
+          }
+        },
+        { src: "./images/layer06.png", z: 0.9925 }
+      ];
+
+      const bottomTexture = "./images/box_bottom.png"; 
+      const sideTexture = "./images/layer05-box_side.png"; 
+
+      // ==========================================
+      // 2. PIANO BASE GENERALE
+      // ==========================================
+      const overlapZ = -0.01; 
+      const frontMargin = 0.005; 
+      
+      const zBack = (layersConfig[0].z - thickness3mm / 2) + overlapZ; 
+      const zFront = (layersConfig[layersConfig.length - 1].z + thickness3mm / 2) + frontMargin; 
+      
+      const bottomLengthExact = zFront - zBack; 
+      const bottomCenterZExact = zBack + (bottomLengthExact / 2); 
+      const bottomYPos = -(planeHeight / 2 + 0.001);
+
+      const bottomPlane = document.createElement("a-plane");
+      bottomPlane.setAttribute("width", planeWidth);
+      bottomPlane.setAttribute("height", bottomLengthExact);
+      bottomPlane.setAttribute("position", `0 ${bottomYPos.toFixed(4)} ${bottomCenterZExact.toFixed(4)}`);
+      bottomPlane.setAttribute("rotation", "-90 0 0");
+      bottomPlane.setAttribute("fix-png-alpha", "");
+      bottomPlane.setAttribute("material", `src: url(${bottomTexture}); ${cleanAlphaMat} side: double;`);
+      bottomPlane.setAttribute("render-order", 1);
+      targetEntity.appendChild(bottomPlane);
+
+      // ==========================================
+      // 3. PIANI ORIZZONTALI AUTOMATICI
+      // ==========================================
+      layersConfig.forEach((layer, idx) => {
+        const nextLayer = layersConfig[idx + 1];
+
+        if (layer.bottomTexture || layer.topTexture) {
+          const zCurrentFront = layer.z;
+          let stripDepth = layer.customDepth || (nextLayer ? nextLayer.z - zCurrentFront : 0.20);
+          const stripCenterZ = zCurrentFront + (stripDepth / 2);
+
+          if (layer.bottomTexture) {
+            const bPlane = document.createElement("a-plane");
+            bPlane.setAttribute("width", planeWidth);
+            bPlane.setAttribute("height", stripDepth);
+            bPlane.setAttribute("position", `0 ${(bottomYPos + 0.001 + (idx * 0.0005)).toFixed(4)} ${stripCenterZ.toFixed(4)}`);
+            bPlane.setAttribute("rotation", "-90 0 0");
+            bPlane.setAttribute("fix-png-alpha", "");
+            bPlane.setAttribute("material", `src: url(${layer.bottomTexture}); ${cleanAlphaMat} side: double;`);
+            bPlane.setAttribute("render-order", 5 + idx);
+            targetEntity.appendChild(bPlane);
+          }
+
+          if (layer.topTexture && layer.topYPos !== undefined) {
+            const tPlane = document.createElement("a-plane");
+            tPlane.setAttribute("width", planeWidth);
+            tPlane.setAttribute("height", stripDepth);
+            tPlane.setAttribute("position", `0 ${layer.topYPos.toFixed(4)} ${stripCenterZ.toFixed(4)}`);
+            tPlane.setAttribute("rotation", "-90 0 0");
+            tPlane.setAttribute("fix-png-alpha", "");
+            tPlane.setAttribute("material", `src: url(${layer.topTexture}); ${cleanAlphaMat} side: double;`);
+            tPlane.setAttribute("render-order", 15 + idx);
+            targetEntity.appendChild(tPlane);
+          }
+        }
+      });
+
+      // ==========================================
+      // 4. PARETE LATERALE PERPENDICOLARE SX
+      // ==========================================
+      const sideCenterX = -(planeWidth / 2);
+      const strip05CenterZ = layersConfig[1].z + (depth4cmRel / 2);
+
+      const straightSide = document.createElement("a-plane");
+      straightSide.setAttribute("width", depth4cmRel);   
+      straightSide.setAttribute("height", planeHeight);  
+      straightSide.setAttribute("position", `${sideCenterX.toFixed(4)} 0 ${strip05CenterZ.toFixed(4)}`);
+      straightSide.setAttribute("rotation", "0 90 0");
+      straightSide.setAttribute("fix-png-alpha", "");
+      straightSide.setAttribute("material", `src: url(${sideTexture}); ${cleanAlphaMat} side: double;`);
+      straightSide.setAttribute("render-order", 30);
+      targetEntity.appendChild(straightSide);
+
+      // ==========================================
+      // 5. GENERAZIONE LAYER DIORAMA (2D A-PLANE)
+      // ==========================================
+      layersConfig.forEach((layer, idx) => {
+        const element = document.createElement("a-plane");
+        element.setAttribute("width", planeWidth);
+        element.setAttribute("height", planeHeight);
+        element.setAttribute("position", `0 0 ${layer.z.toFixed(4)}`);
+        element.setAttribute("fix-png-alpha", "");
+        element.setAttribute("material", `src: url(${layer.src}); ${cleanAlphaMat} side: double;`);
+        element.setAttribute("render-order", 40 + (idx * 2));
+        targetEntity.appendChild(element);
+
+        // Overlay Extra
+        if (layer.extraOverlay) { 
+          const overlayZPos = layer.z + layer.extraOverlay.offsetZ;
+          const overlayElement = document.createElement("a-plane");
+          overlayElement.setAttribute("width", planeWidth);
+          overlayElement.setAttribute("height", planeHeight);
+          overlayElement.setAttribute("position", `0 0 ${overlayZPos.toFixed(4)}`);
+          overlayElement.setAttribute("fix-png-alpha", "");
+          overlayElement.setAttribute("material", `src: url(${layer.extraOverlay.src}); ${overlayMat} side: double;`);
+          overlayElement.setAttribute("render-order", 40 + (idx * 2) + 1);
+          targetEntity.appendChild(overlayElement);
+        }
+
+        // Animazione Barca di Carta
+        if (layer.boat) {
+          const boatZPos = layer.z + layer.boat.offsetZ + 0.002;
+          const startY = layer.boat.startYPos;
+          const floatRange = 0.010;
+
+          const boatElement = document.createElement("a-plane");
+          boatElement.setAttribute("width", layer.boat.width);
+          boatElement.setAttribute("height", layer.boat.height);
+          boatElement.setAttribute("position", `0 ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`);
+          boatElement.setAttribute("fix-png-alpha", "");
+          boatElement.setAttribute("material", `src: url(${layer.boat.src}); ${overlayMat} side: double;`);
+          boatElement.setAttribute("render-order", 40 + (idx * 2) + 2);
+
+          boatElement.setAttribute("animation__float", {
+            property: "position",
+            from: `0 ${startY} ${boatZPos.toFixed(4)}`,
+            to: `0 ${(startY + floatRange).toFixed(4)} ${boatZPos.toFixed(4)}`,
+            dir: "alternate",
+            dur: 2000,
+            easing: "easeInOutSine",
+            loop: true
+          });
+
+          boatElement.setAttribute("animation__rock", {
+            property: "rotation",
+            from: "0 0 -2.5",
+            to: "0 0 2.5",
+            dir: "alternate",
+            dur: 2400,
+            easing: "easeInOutSine",
+            loop: true
+          });
+
+          targetEntity.appendChild(boatElement);
+        }
+      });
+
+      // ==========================================
+      // 6. GENERATORE UNIFICATO PARTICELLE (Foglie e Lettere)
+      // ==========================================
+      const particleTextures = [];
+      for (let i = 11; i <= 28; i++) {
+        particleTextures.push(`./images/layer05-${i}.png`);
+      }
+
+      const particlesContainer = document.createElement("a-entity");
+      particlesContainer.setAttribute("falling-particles", {
+        count: 22,
+        textures: particleTextures,
+        zPos: 0.2050, // Allineato a filo del nuovo Layer 05
+        baseSizeMin: 0.010,
+        baseSizeMax: 0.030,
+        fallSpeedMin: 0.0005,
+        fallSpeedMax: 0.0009,
+        swayAmp: 0.025,
+        enable3DRotation: true
+      });
+      targetEntity.appendChild(particlesContainer);
+
+    });
+  </script>
 </body>
 </html>
