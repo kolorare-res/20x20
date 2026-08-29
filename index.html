@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diorama WebAR - Animazione Particelle (Foglie e Lettere)</title>
 
-  <!-- Librerie A-Frame e MindAR -->
-  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <!-- Librerie A-Frame e MindAR (Versioni aggiornate e compatibili per WebAR) -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <script>
@@ -51,7 +51,7 @@
       schema: {
         count: { type: 'int', default: 22 },
         textures: { type: 'array', default: [] },
-        zPos: { type: 'number', default: 0.2050 },
+        zPos: { type: 'number', default: 0.8025 },
         baseSizeMin: { type: 'number', default: 0.010 },
         baseSizeMax: { type: 'number', default: 0.030 },
         fallSpeedMin: { type: 'number', default: 0.0005 },
@@ -63,13 +63,13 @@
       init: function () {
         this.particles = [];
         
-        // --- LIMITI SPAZIALI AREA CADUTA ---
+        // --- LIMITI SPAZIALI AMPLIATI ---
         this.bounds = {
-          xMin: -0.480,  
-          xMax: -0.100,  
-          yMin: -0.325,  
-          yMax: 0.150,   
-          yKill: -0.600  
+          xMin: -0.480,  // Esteso più a sinistra (fino al bordo esterno)
+          xMax: -0.100,  // Esteso leggermente verso il centro
+          yMin: -0.325,  // Limite inferiore visibile
+          yMax: 0.150,   // Alzato in alto (spazio di generazione sopra la scena)
+          yKill: -0.600  // Punto di reset oltre il fondo
         };
 
         const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
@@ -167,20 +167,21 @@
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false">
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false" raycaster="objects: .cantarget; far: 10000; near: 0.1"></a-camera>
     <a-entity id="ar-target" mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35"></a-entity>
 
   </a-scene>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    function buildDiorama() {
       const targetEntity = document.querySelector("#ar-target");
+      if (!targetEntity) return;
 
       const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
       const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
       // ==========================================
-      // 1. CONFIGURAZIONE DEI LIVELLI PNG
+      // 1. CONFIGURAZIONE DEI LIVELLI PNG (SCAMBIATI LAYER 05 E LAYER 03)
       // ==========================================
       const thickness3mm = 0.015;
       const planeWidth = 1.0;     
@@ -189,7 +190,7 @@
 
       const layersConfig = [
         { src: "./images/layer01.png", z: 0.0075 },
-        // LAYER 05 SPOSTATO ALLA POSIZIONE 2 (z: 0.2000)
+        // layer05 al posto di layer02 (mantiene z: 0.2000)
         { 
           src: "./images/layer05.png", 
           z: 0.2000, 
@@ -200,6 +201,7 @@
             offsetZ: 0.0500
           }
         },
+        // layer02 (o mantenimento della sequenza posizionale z: 0.3925)
         { src: "./images/layer02.png", z: 0.3925 },
         { 
           src: "./images/layer04.png", 
@@ -219,7 +221,7 @@
             height: 1.0
           }
         },
-        // LAYER 03 SPOSTATO ALLA POSIZIONE 5 (z: 0.7775)
+        // layer03 al posto di layer05 (mantiene z: 0.7775)
         { 
           src: "./images/layer03.png", 
           z: 0.7775, 
@@ -296,10 +298,11 @@
       });
 
       // ==========================================
-      // 4. PARETE LATERALE PERPENDICOLARE SX
+      // 4. PARETE LATERALE PERPENDICOLARE SX (Agganciata allo strip layer05 a z: 0.2000)
       // ==========================================
       const sideCenterX = -(planeWidth / 2);
-      const strip05CenterZ = layersConfig[1].z + (depth4cmRel / 2);
+      const layer05Index = layersConfig.findIndex(l => l.src.includes("layer05.png"));
+      const strip05CenterZ = layersConfig[layer05Index].z + (depth4cmRel / 2);
 
       const straightSide = document.createElement("a-plane");
       straightSide.setAttribute("width", depth4cmRel);   
@@ -387,7 +390,7 @@
       particlesContainer.setAttribute("falling-particles", {
         count: 22,
         textures: particleTextures,
-        zPos: 0.2050, // Allineato a filo del nuovo Layer 05
+        zPos: 0.8025,
         baseSizeMin: 0.010,
         baseSizeMax: 0.030,
         fallSpeedMin: 0.0005,
@@ -396,8 +399,14 @@
         enable3DRotation: true
       });
       targetEntity.appendChild(particlesContainer);
+    }
 
-    });
+    const sceneEl = document.querySelector('a-scene');
+    if (sceneEl.hasLoaded) {
+      buildDiorama();
+    } else {
+      sceneEl.addEventListener('loaded', buildDiorama);
+    }
   </script>
 </body>
 </html>
