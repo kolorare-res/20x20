@@ -174,7 +174,6 @@
       // CONFIGURAZIONE LIVELLI
       // ==========================================
       const layersConfig = [
-        { src: "./images/layer00.png", z: 0.0005 },
         { src: "./images/layer01.png", z: 0.0075 },
         { src: "./images/layer02.png", z: 0.015 },
         { src: "./images/layer03.png", z: 0.2 },
@@ -209,7 +208,7 @@
       targetEntity.appendChild(bottomPlane);
 
       // ==========================================
-      // GENERAZIONE PIANI ORIZZONTALI EXTRA (bottomTexture)
+      // GENERAZIONE PIANI ORIZZONTALI EXTRA
       // ==========================================
       layersConfig.forEach((layer, idx) => {
         if (layer.bottomTexture) {
@@ -229,6 +228,24 @@
           targetEntity.appendChild(bPlane);
         }
       });
+
+      // ------------------------------------------
+      // LAYER 09-BOTTOM (Quadrato 5cm x 5cm a sinistra a Z=1)
+      // ------------------------------------------
+      const l09BottomSize = 0.05; // 5 cm in metri
+      const l09BottomX = -0.5 + (l09BottomSize / 2); // A filo del bordo sinistro (X = -0.475)
+      const l09BottomZ = 1.0 - (l09BottomSize / 2);  // Bordo frontale agganciato a Z=1.0 (Z = 0.975)
+      const l09BottomY = bottomYPos + 0.002;        // Sovrapposto leggermente a box_bottom
+
+      const l09BottomPlane = document.createElement("a-plane");
+      l09BottomPlane.setAttribute("width", l09BottomSize);
+      l09BottomPlane.setAttribute("height", l09BottomSize);
+      l09BottomPlane.setAttribute("position", `${l09BottomX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09BottomZ.toFixed(4)}`);
+      l09BottomPlane.setAttribute("rotation", "-90 0 0");
+      l09BottomPlane.setAttribute("fix-png-alpha", "");
+      l09BottomPlane.setAttribute("material", `src: url(./images/layer09-bottom.png); ${cleanAlphaMat} side: double;`);
+      l09BottomPlane.setAttribute("render-order", 20);
+      targetEntity.appendChild(l09BottomPlane);
 
       // ==========================================
       // GENERAZIONE LAYER DIORAMA VERTICALI
