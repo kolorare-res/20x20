@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diorama WebAR - Animazione Particelle e Bicchiere 3D</title>
+  <title>Diorama WebAR - 9 Layer 2D e Particelle 3D</title>
 
   <!-- Librerie A-Frame e MindAR -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
@@ -45,13 +45,21 @@
     });
 
     // ==========================================
-    // COMPONENTE PARTICELLE CADENTI
+    // COMPONENTE PARTICELLE CADENTI CON CONTROLLO X, Y, Z
     // ==========================================
     AFRAME.registerComponent('falling-particles', {
       schema: {
         count: { type: 'int', default: 22 },
         textures: { type: 'array', default: [] },
-        zPos: { type: 'number', default: 0.8025 },
+        // --- GESTIONE ASSI X, Y, Z ---
+        xMin: { type: 'number', default: -0.480 },
+        xMax: { type: 'number', default: -0.100 },
+        yMin: { type: 'number', default: -0.325 },
+        yMax: { type: 'number', default: 0.150 },
+        yKill: { type: 'number', default: -0.600 },
+        zMin: { type: 'number', default: 0.700 },
+        zMax: { type: 'number', default: 0.850 },
+        // --- PROPRIETÀ DINAMICHE ---
         baseSizeMin: { type: 'number', default: 0.010 },
         baseSizeMax: { type: 'number', default: 0.030 },
         fallSpeedMin: { type: 'number', default: 0.0005 },
@@ -62,16 +70,6 @@
 
       init: function () {
         this.particles = [];
-        
-        // --- LIMITI SPAZIALI AMPLIATI ---
-        this.bounds = {
-          xMin: -0.480,  
-          xMax: -0.100,  
-          yMin: -0.325,  
-          yMax: 0.150,   
-          yKill: -0.600  
-        };
-
         const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
         for (let i = 0; i < this.data.count; i++) {
@@ -90,10 +88,10 @@
 
           const pData = {
             el: pEl,
-            xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
+            xInit: this.randomRange(this.data.xMin, this.data.xMax),
             x: 0,
-            y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
-            z: this.data.zPos + (Math.random() * 0.006 - 0.003),
+            y: this.randomRange(this.data.yMin, this.data.yMax),
+            z: this.randomRange(this.data.zMin, this.data.zMax),
             fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
             swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
             swayFreq: 0.0018 + (Math.random() * 0.0015),
@@ -114,9 +112,10 @@
       },
 
       resetParticle: function (p) {
-        p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
+        p.xInit = this.randomRange(this.data.xMin, this.data.xMax);
         p.x = p.xInit;
-        p.y = this.bounds.yMax;
+        p.y = this.data.yMax;
+        p.z = this.randomRange(this.data.zMin, this.data.zMax);
         p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
         p.rotZ = Math.random() * 360;
       },
@@ -125,10 +124,10 @@
         if (!timeDelta) return;
 
         this.particles.forEach(p => {
-          // 1. Caduta Verticale
+          // 1. Caduta Verticale (Y)
           p.y -= p.fallSpeed * (timeDelta / 16.6);
 
-          // 2. Oscillazione Orizzontale (Sway)
+          // 2. Oscillazione Orizzontale (X)
           const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
           p.x = p.xInit + sway;
 
@@ -145,7 +144,7 @@
           }
 
           // 4. Reset a fine corsa
-          if (p.y < this.bounds.yKill) {
+          if (p.y < this.data.yKill) {
             this.resetParticle(p);
           }
         });
@@ -167,85 +166,81 @@
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false">
 
-    <a-camera position="0 0 0" look-controls="enabled: false" raycaster="objects: .cantarget; far: 10000; near: 0.1"></a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
     <a-entity id="ar-target" mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35"></a-entity>
 
   </a-scene>
 
   <script>
-    function buildDiorama() {
+    document.addEventListener("DOMContentLoaded", () => {
       const targetEntity = document.querySelector("#ar-target");
-      if (!targetEntity) return;
 
       const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
       const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
       // ==========================================
-      // 1. CONFIGURAZIONE DEI LIVELLI PNG
+      // 1. CONFIGURAZIONE DEI 9 LIVELLI PNG (SPESSORE ZERO)
       // ==========================================
-      const thickness3mm = 0.015;
-      const planeWidth = 1.0;    // 1.0 corrisponde alla larghezza di 20 cm
-      const planeHeight = 1.0;   // 1.0 corrisponde all'altezza di 20 cm
-      const depth4cmRel = 0.20;   
+      const planeWidth = 1.0;    
+      const planeHeight = 1.0;   
+      const depthStep = 0.1231;
 
       const layersConfig = [
         { src: "./images/layer01.png", z: 0.0075 },
+        { src: "./images/layer02.png", z: 0.0075 + (depthStep * 1) },
         { 
-          src: "./images/layer05.png", 
-          z: 0.2000, 
-          bottomTexture: "./images/layer05_bottom.png",
-          customDepth: depth4cmRel,
+          src: "./images/layer03.png", 
+          z: 0.0075 + (depthStep * 2), 
+          bottomTexture: "./images/layer03_bottom.png",
           extraOverlay: {
-            src: "./images/layer05_extra.png",
-            offsetZ: 0.0500
+            src: "./images/layer03_extra.png",
+            offsetZ: 0.0300
           }
         },
-        { src: "./images/layer02.png", z: 0.3925 },
+        { src: "./images/layer04.png", z: 0.0075 + (depthStep * 3) },
         { 
-          src: "./images/layer04.png", 
-          z: 0.5850, 
-          bottomTexture: "./images/layer04_bottom.png",
-          topTexture: "./images/layer04_top.png",
+          src: "./images/layer05.png", 
+          z: 0.0075 + (depthStep * 4), 
+          bottomTexture: "./images/layer05_bottom.png",
+          topTexture: "./images/layer05_top.png",
           topYPos: -0.0500,
           extraOverlay: {
-            src: "./images/layer04_extra.png",
-            offsetZ: 0.0750
+            src: "./images/layer05_extra.png",
+            offsetZ: 0.0400
           },
           boat: {
             src: "./images/paper_boat.png",
-            offsetZ: 0.0750,
+            offsetZ: 0.0400,
             startYPos: 0.0,
             width: 1.0,
             height: 1.0
           }
         },
+        { src: "./images/layer06.png", z: 0.0075 + (depthStep * 5) },
         { 
-          src: "./images/layer03.png", 
-          z: 0.7775, 
-          bottomTexture: "./images/layer03_bottom.png",
+          src: "./images/layer07.png", 
+          z: 0.0075 + (depthStep * 6), 
+          bottomTexture: "./images/layer07_bottom.png",
           extraOverlay: {
-            src: "./images/layer03_extra.png",
-            offsetZ: 0.0500
+            src: "./images/layer07_extra.png",
+            offsetZ: 0.0300
           }
         },
-        { src: "./images/layer06.png", z: 0.9925 }
+        { src: "./images/layer08.png", z: 0.0075 + (depthStep * 7) },
+        { src: "./images/layer09.png", z: 0.0075 + (depthStep * 8) }
       ];
 
       const bottomTexture = "./images/box_bottom.png"; 
-      const sideTexture = "./images/layer05-box_side.png"; 
 
       // ==========================================
-      // 2. PIANO BASE GENERALE
+      // 2. PIANO BASE GENERALE (CALCOLATO ESATTAMENTE TRA LAYER 1 E LAYER 9)
       // ==========================================
-      const overlapZ = -0.01; 
-      const frontMargin = 0.005; 
-      
-      const zBack = (layersConfig[0].z - thickness3mm / 2) + overlapZ; 
-      const zFront = (layersConfig[layersConfig.length - 1].z + thickness3mm / 2) + frontMargin; 
+      const zBack = layersConfig[0].z; 
+      const zFront = layersConfig[layersConfig.length - 1].z; 
       
       const bottomLengthExact = zFront - zBack; 
       const bottomCenterZExact = zBack + (bottomLengthExact / 2); 
-      const bottomYPos = -(planeHeight / 2 + 0.001);
+      const bottomYPos = -(planeHeight / 2);
 
       const bottomPlane = document.createElement("a-plane");
       bottomPlane.setAttribute("width", planeWidth);
@@ -265,7 +260,7 @@
 
         if (layer.bottomTexture || layer.topTexture) {
           const zCurrentFront = layer.z;
-          let stripDepth = layer.customDepth || (nextLayer ? nextLayer.z - zCurrentFront : 0.20);
+          let stripDepth = layer.customDepth || (nextLayer ? nextLayer.z - zCurrentFront : depthStep);
           const stripCenterZ = zCurrentFront + (stripDepth / 2);
 
           if (layer.bottomTexture) {
@@ -295,24 +290,7 @@
       });
 
       // ==========================================
-      // 4. PARETE LATERALE PERPENDICOLARE SX
-      // ==========================================
-      const sideCenterX = -(planeWidth / 2);
-      const layer05Index = layersConfig.findIndex(l => l.src.includes("layer05.png"));
-      const strip05CenterZ = layersConfig[layer05Index].z + (depth4cmRel / 2);
-
-      const straightSide = document.createElement("a-plane");
-      straightSide.setAttribute("width", depth4cmRel);   
-      straightSide.setAttribute("height", planeHeight);  
-      straightSide.setAttribute("position", `${sideCenterX.toFixed(4)} 0 ${strip05CenterZ.toFixed(4)}`);
-      straightSide.setAttribute("rotation", "0 90 0");
-      straightSide.setAttribute("fix-png-alpha", "");
-      straightSide.setAttribute("material", `src: url(${sideTexture}); ${cleanAlphaMat} side: double;`);
-      straightSide.setAttribute("render-order", 30);
-      targetEntity.appendChild(straightSide);
-
-      // ==========================================
-      // 5. GENERAZIONE LAYER DIORAMA (2D A-PLANE)
+      // 4. GENERAZIONE LAYER DIORAMA (2D A-PLANE)
       // ==========================================
       layersConfig.forEach((layer, idx) => {
         const element = document.createElement("a-plane");
@@ -376,50 +354,7 @@
       });
 
       // ==========================================
-      // 6. INTEGRAZIONE BICCHIERE 3D RISCALATO (Diorama 20x20 cm)
-      // ==========================================
-      // Scala: 20 cm = 1.0 unità
-      // 4 cm = 0.20 unità | Raggio base inf = 0.10
-      // 5.7 cm = 0.285 unità | Raggio base sup = 0.1425
-      // 6.3 cm = 0.315 unità | Altezza = 0.315
-      
-      const glassGroup = document.createElement("a-entity");
-      glassGroup.setAttribute("id", "bicchiere-diorama");
-      
-      const glassYPos = bottomYPos + 0.001; // Poggiato perfettamente sul fondo del box
-      const glassZPos = 0.5850;             // Centrato sul Layer 04
-      glassGroup.setAttribute("position", `0 ${glassYPos.toFixed(4)} ${glassZPos.toFixed(4)}`);
-
-      const rBottom = 0.10;    // 4 cm diametro
-      const rTop = 0.1425;     // 5.7 cm diametro
-      const glassHeight = 0.315; // 6.3 cm altezza
-
-      // Corpo Conico del Bicchiere
-      const glassBody = document.createElement("a-cylinder");
-      glassBody.setAttribute("id", "corpo-bicchiere");
-      glassBody.setAttribute("position", `0 ${(glassHeight / 2).toFixed(4)} 0`); // Centrato a H/2
-      glassBody.setAttribute("radius-bottom", rBottom.toFixed(4));
-      glassBody.setAttribute("radius-top", rTop.toFixed(4));
-      glassBody.setAttribute("height", glassHeight.toFixed(4));
-      glassBody.setAttribute("radial-segments", "64");
-      glassBody.setAttribute("material", `src: url(./images/layer04.png); ${cleanAlphaMat} side: double; roughness: 0.2; metalness: 0.1;`);
-      glassBody.setAttribute("render-order", 50);
-
-      // Fondo del Bicchiere
-      const glassBottom = document.createElement("a-circle");
-      glassBottom.setAttribute("id", "fondo-bicchiere");
-      glassBottom.setAttribute("position", "0 0 0");
-      glassBottom.setAttribute("rotation", "-90 0 0");
-      glassBottom.setAttribute("radius", rBottom.toFixed(4));
-      glassBottom.setAttribute("material", `src: url(./images/layer04.png); ${cleanAlphaMat} side: double;`);
-      glassBottom.setAttribute("render-order", 50);
-
-      glassGroup.appendChild(glassBody);
-      glassGroup.appendChild(glassBottom);
-      targetEntity.appendChild(glassGroup);
-
-      // ==========================================
-      // 7. GENERATORE UNIFICATO PARTICELLE (Foglie e Lettere)
+      // 5. GENERATORE UNIFICATO PARTICELLE
       // ==========================================
       const particleTextures = [];
       for (let i = 11; i <= 28; i++) {
@@ -430,7 +365,13 @@
       particlesContainer.setAttribute("falling-particles", {
         count: 22,
         textures: particleTextures,
-        zPos: 0.8025,
+        xMin: -0.480,
+        xMax: -0.100,
+        yMin: -0.325,
+        yMax: 0.150,
+        yKill: -0.600,
+        zMin: 0.700,
+        zMax: 0.850,
         baseSizeMin: 0.010,
         baseSizeMax: 0.030,
         fallSpeedMin: 0.0005,
@@ -439,14 +380,8 @@
         enable3DRotation: true
       });
       targetEntity.appendChild(particlesContainer);
-    }
 
-    const sceneEl = document.querySelector('a-scene');
-    if (sceneEl.hasLoaded) {
-      buildDiorama();
-    } else {
-      sceneEl.addEventListener('loaded', buildDiorama);
-    }
+    });
   </script>
 </body>
 </html>
