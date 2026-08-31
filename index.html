@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Altrove</title>
 
-  <!-- Librerie A-Frame e MindAR -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
@@ -169,6 +168,7 @@
 
       const planeWidth = 1.0;    
       const planeHeight = 1.0;   
+      const depthStep = 0.1231;
 
       // ==========================================
       // CONFIGURAZIONE LIVELLI
@@ -180,7 +180,7 @@
         { src: "./images/layer04.png", z: 0.28 },
         { src: "./images/layer05.png", z: 0.35 },
         { src: "./images/layer06.png", z: 0.45 },
-        { src: "./images/layer07.png", z: 0.665 , bottomTexture: "./images/layer07_bottom.png" },
+        { src: "./images/layer07.png", z: 0.665, bottomTexture: "./images/layer07_bottom.png" },
         { src: "./images/layer08.png", z: 0.8 },
         { src: "./images/layer09.png", z: 0.9 }
       ];
@@ -208,48 +208,10 @@
       targetEntity.appendChild(bottomPlane);
 
       // ==========================================
-      // GENERAZIONE LAYER DIORAMA
+      // GENERAZIONE PIANI ORIZZONTALI EXTRA (bottomTexture)
       // ==========================================
       layersConfig.forEach((layer, idx) => {
-        const element = document.createElement("a-plane");
-        element.setAttribute("width", planeWidth);
-        element.setAttribute("height", planeHeight);
-        element.setAttribute("position", `0 0 ${layer.z.toFixed(4)}`);
-        element.setAttribute("fix-png-alpha", "");
-        element.setAttribute("material", `src: url(${layer.src}); ${cleanAlphaMat} side: double;`);
-        element.setAttribute("render-order", 40 + (idx * 2));
-        targetEntity.appendChild(element);
-      });
-
-      // ==========================================
-      // PARTICELLE
-      // ==========================================
-      const particleTextures = [];
-      for (let i = 11; i <= 28; i++) {
-        particleTextures.push(`./images/layer05-${i}.png`);
-      }
-
-      const particlesContainer = document.createElement("a-entity");
-      particlesContainer.setAttribute("falling-particles", {
-        count: 22,
-        textures: particleTextures,
-        xMin: -0.480,
-        xMax: -0.100,
-        yMin: -0.325,
-        yMax: 0.150,
-        yKill: -0.600,
-        zMin: 0.700,
-        zMax: 0.850,
-        baseSizeMin: 0.010,
-        baseSizeMax: 0.030,
-        fallSpeedMin: 0.0005,
-        fallSpeedMax: 0.0009,
-        swayAmp: 0.025,
-        enable3DRotation: true
-      });
-      targetEntity.appendChild(particlesContainer);
-
-    });
-  </script>
-</body>
-</html>
+        if (layer.bottomTexture) {
+          const nextLayer = layersConfig[idx + 1];
+          const zCurrentFront = layer.z;
+          const stripDepth = layer.
