@@ -166,11 +166,9 @@
       const targetEntity = document.querySelector("#ar-target");
 
       const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
-      const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
       const planeWidth = 1.0;    
       const planeHeight = 1.0;   
-      const depthStep = 0.1231;
 
       // ==========================================
       // CONFIGURAZIONE LIVELLI
@@ -184,24 +182,7 @@
         { src: "./images/layer06.png", z: 0.45 },
         { src: "./images/layer07.png", z: 0.665 },
         { src: "./images/layer08.png", z: 0.8 },
-        { 
-          src: "./images/layer09.png", 
-          z: 0.9,
-          // Piano in basso sovrapposto a bottom_box
-          bottomTexture: "./images/layer09_bottom.png",
-          customBottomY: -0.499,
-          // Piano intermedio a Y = 0
-          topTexture: "./images/layer09_top.png",
-          topYPos: 0.0,
-          // Barca animata
-          boat: {
-            src: "./images/paper_boat.png",
-            width: 0.20,
-            height: 0.20,
-            startYPos: -0.15,
-            offsetZ: 0.005
-          }
-        }
+        { src: "./images/layer09.png", z: 0.9 }
       ];
 
       const bottomTexture = "./images/box_bottom.png"; 
@@ -227,47 +208,7 @@
       targetEntity.appendChild(bottomPlane);
 
       // ==========================================
-      // GENERAZIONE PIANI HORIZONTAL EXTRA / LAYER09
-      // ==========================================
-      layersConfig.forEach((layer, idx) => {
-        const nextLayer = layersConfig[idx + 1];
-
-        if (layer.bottomTexture || layer.topTexture) {
-          const zCurrentFront = layer.z;
-          let stripDepth = layer.customDepth || (nextLayer ? nextLayer.z - zCurrentFront : depthStep);
-          const stripCenterZ = zCurrentFront + (stripDepth / 2);
-
-          // Piano inferiore
-          if (layer.bottomTexture) {
-            const yPos = layer.customBottomY !== undefined ? layer.customBottomY : (bottomYPos + 0.001 + (idx * 0.0005));
-            const bPlane = document.createElement("a-plane");
-            bPlane.setAttribute("width", planeWidth);
-            bPlane.setAttribute("height", stripDepth);
-            bPlane.setAttribute("position", `0 ${yPos.toFixed(4)} ${stripCenterZ.toFixed(4)}`);
-            bPlane.setAttribute("rotation", "-90 0 0");
-            bPlane.setAttribute("fix-png-alpha", "");
-            bPlane.setAttribute("material", `src: url(${layer.bottomTexture}); ${cleanAlphaMat} side: double;`);
-            bPlane.setAttribute("render-order", 5 + idx);
-            targetEntity.appendChild(bPlane);
-          }
-
-          // Piano superiore o centrale a Y = 0
-          if (layer.topTexture && layer.topYPos !== undefined) {
-            const tPlane = document.createElement("a-plane");
-            tPlane.setAttribute("width", planeWidth);
-            tPlane.setAttribute("height", stripDepth);
-            tPlane.setAttribute("position", `0 ${layer.topYPos.toFixed(4)} ${stripCenterZ.toFixed(4)}`);
-            tPlane.setAttribute("rotation", "-90 0 0");
-            tPlane.setAttribute("fix-png-alpha", "");
-            tPlane.setAttribute("material", `src: url(${layer.topTexture}); ${cleanAlphaMat} side: double;`);
-            tPlane.setAttribute("render-order", 15 + idx);
-            targetEntity.appendChild(tPlane);
-          }
-        }
-      });
-
-      // ==========================================
-      // GENERAZIONE LAYER DIORAMA E BARCA
+      // GENERAZIONE LAYER DIORAMA
       // ==========================================
       layersConfig.forEach((layer, idx) => {
         const element = document.createElement("a-plane");
@@ -278,43 +219,6 @@
         element.setAttribute("material", `src: url(${layer.src}); ${cleanAlphaMat} side: double;`);
         element.setAttribute("render-order", 40 + (idx * 2));
         targetEntity.appendChild(element);
-
-        // Barca di Carta Animata
-        if (layer.boat) {
-          const boatZPos = layer.z + layer.boat.offsetZ;
-          const startY = layer.boat.startYPos;
-          const floatRange = 0.015;
-
-          const boatElement = document.createElement("a-plane");
-          boatElement.setAttribute("width", layer.boat.width);
-          boatElement.setAttribute("height", layer.boat.height);
-          boatElement.setAttribute("position", `0 ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`);
-          boatElement.setAttribute("fix-png-alpha", "");
-          boatElement.setAttribute("material", `src: url(${layer.boat.src}); ${overlayMat} side: double;`);
-          boatElement.setAttribute("render-order", 70);
-
-          boatElement.setAttribute("animation__float", {
-            property: "position",
-            from: `0 ${startY} ${boatZPos.toFixed(4)}`,
-            to: `0 ${(startY + floatRange).toFixed(4)} ${boatZPos.toFixed(4)}`,
-            dir: "alternate",
-            dur: 2000,
-            easing: "easeInOutSine",
-            loop: true
-          });
-
-          boatElement.setAttribute("animation__rock", {
-            property: "rotation",
-            from: "0 0 -3",
-            to: "0 0 3",
-            dir: "alternate",
-            dur: 2400,
-            easing: "easeInOutSine",
-            loop: true
-          });
-
-          targetEntity.appendChild(boatElement);
-        }
       });
 
       // ==========================================
