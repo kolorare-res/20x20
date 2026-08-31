@@ -187,7 +187,7 @@
         { src: "./images/layer06.png", z: 0.4500 },
         { src: "./images/layer07.png", z: zFront - (5.0 * gridUnit), bottomTexture: "./images/layer07_bottom.png" }, // Verde: Z = 0.6769
         { src: "./images/layer08.png", z: zFront - (3.0 * gridUnit) },                                             // Magenta: Z = 0.7661
-        { src: "./images/layer09.png", z: zFront - (2.5 * gridUnit) }                                              // Blu: Z = 0.7884 (sulla mediana dell'azzurro)
+        { src: "./images/layer09.png", z: zFront - (2.5 * gridUnit) }                                              // Blu: Z = 0.7884
       ];
 
       const bottomTexture = "./images/box_bottom.png"; 
@@ -196,7 +196,7 @@
       // PIANO BASE GENERALE
       // ==========================================
       const bottomCenterZExact = zBack + (bottomLengthExact / 2); 
-      const bottomYPos = -(planeHeight / 2);
+      const bottomYPos = -(planeHeight / 2); // -0.5m
 
       const bottomPlane = document.createElement("a-plane");
       bottomPlane.setAttribute("width", planeWidth);
@@ -230,68 +230,66 @@
         }
       });
 
-// ==========================================
-// LAYER 09 (TOP, MIDDLE, BOTTOM) - SCALA E COORDINATE CORRETTE
-// ==========================================
+      // ==========================================
+      // LAYER 09 (TOP, MIDDLE, BOTTOM) - SCALA E COORDINATE CORRETTE
+      // ==========================================
 
-// 1. Dimensioni proporzionali reali basate sulle dimensioni del diorama (1.0m x 0.8925m)
-const l09TopWidth = (5 / 20) * planeWidth;         // 0.2500 m (7.5 cm)
-const l09TopDepth = (5 / 20) * bottomLengthExact; // 0.2231 m
+      // 1. Dimensioni Reali traslate in Metri
+      const l09TopSize = 0.075;    // 7.5 cm
+      const l09MiddleSize = 0.065; // 6.5 cm
+      const l09BottomSize = 0.050; // 5.0 cm
 
-const l09MiddleWidth = l09TopWidth * (6.0 / 7.5);  // 0.2000 m (6.0 cm)
-const l09MiddleDepth = l09TopDepth * (6.0 / 7.5);  // 0.1785 m
+      // 2. Griglia 4x4 angolare (20x20 cm = 0.20m di ingombro max)
+      const l09GridSize = 0.20; 
 
-const l09BottomWidth = l09TopWidth * (5.0 / 7.5);  // 0.1667 m (5.0 cm)
-const l09BottomDepth = l09TopDepth * (5.0 / 7.5);  // 0.1488 m
+      // Centro comune concentrico nell'angolo in basso a sinistra (in metri)
+      const l09CenterX = - (planeWidth / 2) + (l09GridSize / 2); // X = -0.4000
+      const l09CenterZ = zFront - (l09GridSize / 2);               // Z = 0.8000
 
-// 2. Centro comune vincolato all'angolo in basso a sinistra (X = -0.5, Z = zFront)
-const l09CenterX = - (planeWidth / 2) + (l09TopWidth / 2); // X = -0.3750
-const l09CenterZ = zFront - (l09TopDepth / 2);              // Z = 0.7884
+      // Coordinate Y precise dall'alto (Top del target = +0.5m)
+      const topReferenceY = planeHeight / 2; // +0.5000m
+      const l09TopY = topReferenceY - 0.1000;    // -10 cm dal top -> Y = 0.4000
+      const l09MiddleY = topReferenceY - 0.1350; // -13.5 cm dal top -> Y = 0.3650
+      const l09BottomY = bottomYPos + 0.0050;    // Poco sopra la base -> Y = -0.4950
 
-// ------------------------------------------
-// 1. LAYER 09 BOTTOM (5.0 cm | In basso, sopra box_bottom.png)
-// ------------------------------------------
-const l09BottomY = bottomYPos + 0.005; // Y = -0.4950
+      // ------------------------------------------
+      // 1. LAYER 09 BOTTOM (5.0 cm x 5.0 cm)
+      // ------------------------------------------
+      const l09BottomPlane = document.createElement("a-plane");
+      l09BottomPlane.setAttribute("width", l09BottomSize);
+      l09BottomPlane.setAttribute("height", l09BottomSize);
+      l09BottomPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+      l09BottomPlane.setAttribute("rotation", "-90 0 0");
+      l09BottomPlane.setAttribute("fix-png-alpha", "");
+      l09BottomPlane.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
+      l09BottomPlane.setAttribute("render-order", 20);
+      targetEntity.appendChild(l09BottomPlane);
 
-const l09BottomPlane = document.createElement("a-plane");
-l09BottomPlane.setAttribute("width", l09BottomWidth.toFixed(4));
-l09BottomPlane.setAttribute("height", l09BottomDepth.toFixed(4));
-l09BottomPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
-l09BottomPlane.setAttribute("rotation", "-90 0 0");
-l09BottomPlane.setAttribute("fix-png-alpha", "");
-l09BottomPlane.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
-l09BottomPlane.setAttribute("render-order", 20);
-targetEntity.appendChild(l09BottomPlane);
+      // ------------------------------------------
+      // 2. LAYER 09 MIDDLE (6.5 cm x 6.5 cm)
+      // ------------------------------------------
+      const l09MiddlePlane = document.createElement("a-plane");
+      l09MiddlePlane.setAttribute("width", l09MiddleSize);
+      l09MiddlePlane.setAttribute("height", l09MiddleSize);
+      l09MiddlePlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09MiddleY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+      l09MiddlePlane.setAttribute("rotation", "-90 0 0");
+      l09MiddlePlane.setAttribute("fix-png-alpha", "");
+      l09MiddlePlane.setAttribute("material", `src: url(./images/layer09_middle.png); ${cleanAlphaMat} side: double;`);
+      l09MiddlePlane.setAttribute("render-order", 21);
+      targetEntity.appendChild(l09MiddlePlane);
 
-// ------------------------------------------
-// 2. LAYER 09 MIDDLE (6.0 cm | A metà altezza del vaso azzurro)
-// ------------------------------------------
-const l09MiddleY = -0.3500; // Y = -0.3500
-
-const l09MiddlePlane = document.createElement("a-plane");
-l09MiddlePlane.setAttribute("width", l09MiddleWidth.toFixed(4));
-l09MiddlePlane.setAttribute("height", l09MiddleDepth.toFixed(4));
-l09MiddlePlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09MiddleY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
-l09MiddlePlane.setAttribute("rotation", "-90 0 0");
-l09MiddlePlane.setAttribute("fix-png-alpha", "");
-l09MiddlePlane.setAttribute("material", `src: url(./images/layer09_middle.png); ${cleanAlphaMat} side: double;`);
-l09MiddlePlane.setAttribute("render-order", 21);
-targetEntity.appendChild(l09MiddlePlane);
-
-// ------------------------------------------
-// 3. LAYER 09 TOP (7.5 cm | In alto, alla bocca del vaso azzurro)
-// ------------------------------------------
-const l09TopY = -0.2200; // Y = -0.2200
-
-const l09TopPlane = document.createElement("a-plane");
-l09TopPlane.setAttribute("width", l09TopWidth.toFixed(4));
-l09TopPlane.setAttribute("height", l09TopDepth.toFixed(4));
-l09TopPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09TopY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
-l09TopPlane.setAttribute("rotation", "-90 0 0");
-l09TopPlane.setAttribute("fix-png-alpha", "");
-l09TopPlane.setAttribute("material", `src: url(./images/layer09_top.png); ${cleanAlphaMat} side: double;`);
-l09TopPlane.setAttribute("render-order", 22);
-targetEntity.appendChild(l09TopPlane);      
+      // ------------------------------------------
+      // 3. LAYER 09 TOP (7.5 cm x 7.5 cm)
+      // ------------------------------------------
+      const l09TopPlane = document.createElement("a-plane");
+      l09TopPlane.setAttribute("width", l09TopSize);
+      l09TopPlane.setAttribute("height", l09TopSize);
+      l09TopPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09TopY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+      l09TopPlane.setAttribute("rotation", "-90 0 0");
+      l09TopPlane.setAttribute("fix-png-alpha", "");
+      l09TopPlane.setAttribute("material", `src: url(./images/layer09_top.png); ${cleanAlphaMat} side: double;`);
+      l09TopPlane.setAttribute("render-order", 22);
+      targetEntity.appendChild(l09TopPlane);      
       
       // ==========================================
       // GENERAZIONE LAYER DIORAMA VERTICALI
