@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diorama WebAR - Animazione Particelle (Foglie e Lettere)</title>
+  <title>Diorama WebAR - Animazione Particelle e Bicchiere 3D</title>
 
-  <!-- Librerie A-Frame e MindAR (Versioni aggiornate e compatibili per WebAR) -->
+  <!-- Librerie A-Frame e MindAR -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
@@ -65,10 +65,10 @@
         
         // --- LIMITI SPAZIALI AMPLIATI ---
         this.bounds = {
-          xMin: -0.480,  // Esteso più a sinistra (fino al bordo esterno)
+          xMin: -0.480,  // Esteso più a sinistra
           xMax: -0.100,  // Esteso leggermente verso il centro
           yMin: -0.325,  // Limite inferiore visibile
-          yMax: 0.150,   // Alzato in alto (spazio di generazione sopra la scena)
+          yMax: 0.150,   // Spazio di generazione sopra la scena
           yKill: -0.600  // Punto di reset oltre il fondo
         };
 
@@ -181,16 +181,15 @@
       const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
       // ==========================================
-      // 1. CONFIGURAZIONE DEI LIVELLI PNG (SCAMBIATI LAYER 05 E LAYER 03)
+      // 1. CONFIGURAZIONE DEI LIVELLI PNG
       // ==========================================
       const thickness3mm = 0.015;
-      const planeWidth = 1.0;     
+      const planeWidth = 1.0;    
       const planeHeight = 1.0;    
       const depth4cmRel = 0.20;   
 
       const layersConfig = [
         { src: "./images/layer01.png", z: 0.0075 },
-        // layer05 al posto di layer02 (mantiene z: 0.2000)
         { 
           src: "./images/layer05.png", 
           z: 0.2000, 
@@ -201,7 +200,6 @@
             offsetZ: 0.0500
           }
         },
-        // layer02 (o mantenimento della sequenza posizionale z: 0.3925)
         { src: "./images/layer02.png", z: 0.3925 },
         { 
           src: "./images/layer04.png", 
@@ -221,7 +219,6 @@
             height: 1.0
           }
         },
-        // layer03 al posto di layer05 (mantiene z: 0.7775)
         { 
           src: "./images/layer03.png", 
           z: 0.7775, 
@@ -298,7 +295,7 @@
       });
 
       // ==========================================
-      // 4. PARETE LATERALE PERPENDICOLARE SX (Agganciata allo strip layer05 a z: 0.2000)
+      // 4. PARETE LATERALE PERPENDICOLARE SX
       // ==========================================
       const sideCenterX = -(planeWidth / 2);
       const layer05Index = layersConfig.findIndex(l => l.src.includes("layer05.png"));
@@ -379,7 +376,42 @@
       });
 
       // ==========================================
-      // 6. GENERATORE UNIFICATO PARTICELLE (Foglie e Lettere)
+      // 6. INTEGRAZIONE BICCHIERE 3D PROCEDURALE
+      // ==========================================
+      const glassGroup = document.createElement("a-entity");
+      glassGroup.setAttribute("id", "bicchiere-diorama");
+      
+      // Posizionato sul piano base (Y) a livello del layer04 (Z: 0.5850)
+      const glassYPos = bottomYPos + 0.001; // Poggiato sul fondo del box
+      const glassZPos = 0.5850;
+      glassGroup.setAttribute("position", `0 ${glassYPos.toFixed(4)} ${glassZPos.toFixed(4)}`);
+
+      // Corpo Conico del Bicchiere (Base inf: 4cm, Base sup: 5.7cm, H: 6.3cm)
+      const glassBody = document.createElement("a-cylinder");
+      glassBody.setAttribute("id", "corpo-bicchiere");
+      glassBody.setAttribute("position", "0 0.0315 0"); // Centrato sull'altezza (H/2)
+      glassBody.setAttribute("radius-bottom", "0.02");   // 2cm in metri
+      glassBody.setAttribute("radius-top", "0.0285");    // 2.85cm in metri
+      glassBody.setAttribute("height", "0.063");         // 6.3cm in metri
+      glassBody.setAttribute("radial-segments", "64");
+      glassBody.setAttribute("material", `src: url(./images/layer04.png); ${cleanAlphaMat} side: double; roughness: 0.2; metalness: 0.1;`);
+      glassBody.setAttribute("render-order", 50);
+
+      // Fondo del Bicchiere
+      const glassBottom = document.createElement("a-circle");
+      glassBottom.setAttribute("id", "fondo-bicchiere");
+      glassBottom.setAttribute("position", "0 0 0");
+      glassBottom.setAttribute("rotation", "-90 0 0");
+      glassBottom.setAttribute("radius", "0.02");
+      glassBottom.setAttribute("material", `src: url(./images/layer04.png); ${cleanAlphaMat} side: double;`);
+      glassBottom.setAttribute("render-order", 50);
+
+      glassGroup.appendChild(glassBody);
+      glassGroup.appendChild(glassBottom);
+      targetEntity.appendChild(glassGroup);
+
+      // ==========================================
+      // 7. GENERATORE UNIFICATO PARTICELLE (Foglie e Lettere)
       // ==========================================
       const particleTextures = [];
       for (let i = 11; i <= 28; i++) {
