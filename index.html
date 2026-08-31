@@ -230,40 +230,33 @@
         }
       });
 
- // ==========================================
-// LAYER 09 (BOTTOM, MIDDLE, TOP)
 // ==========================================
-const gridColumns = 20;
-const gridRows = 20;
+// LAYER 09 (TOP, MIDDLE, BOTTOM) - DIMENSIONI REALI (7.5 cm, 6 cm, 5 cm)
+// ==========================================
 
-// Coordinate base dell'area azzurra 5x5
-const l09BottomWidthBase = (5 / gridColumns) * planeWidth;  // 0.2500 m (25 cm)
-const l09BottomDepthBase = (5 / gridRows) * bottomLengthExact; // 0.2231 m 
+// 1. LAYER 09 TOP (7.5 cm = 0.075m) - Il più grande che determina l'angolo
+const l09TopSize = 0.075; // 7.5 cm
 
-// Mediana (centro esatto in X e Z su cui centrare gli ingrandimenti)
-const l09CenterX = - (planeWidth / 2) + (l09BottomWidthBase / 2); // X = -0.3750
-const l09CenterZ = zFront - (l09BottomDepthBase / 2);              // Z = 0.7884
+// Centro comune calcolato per far combaciare lo spigolo esterno del TOP con l'angolo del diorama
+const l09CenterX = - (planeWidth / 2) + (l09TopSize / 2); // X = -0.4625
+const l09CenterZ = zFront - (l09TopSize / 2);              // Z = 0.8625
 
-// ------------------------------------------
-// 1. LAYER 09 BOTTOM (Base - 25cm originali)
-// ------------------------------------------
-const l09BottomY = bottomYPos + 0.002;
+// --- CREAZIONE LAYER 09 TOP (Y = 0) ---
+const l09TopY = 0;
 
-const l09BottomPlane = document.createElement("a-plane");
-l09BottomPlane.setAttribute("width", l09BottomWidthBase.toFixed(4));
-l09BottomPlane.setAttribute("height", l09BottomDepthBase.toFixed(4));
-l09BottomPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
-l09BottomPlane.setAttribute("rotation", "-90 0 0");
-l09BottomPlane.setAttribute("fix-png-alpha", "");
-l09BottomPlane.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
-l09BottomPlane.setAttribute("render-order", 20);
-targetEntity.appendChild(l09BottomPlane);
+const l09TopPlane = document.createElement("a-plane");
+l09TopPlane.setAttribute("width", l09TopSize);
+l09TopPlane.setAttribute("height", l09TopSize);
+l09TopPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09TopY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+l09TopPlane.setAttribute("rotation", "-90 0 0");
+l09TopPlane.setAttribute("fix-png-alpha", "");
+l09TopPlane.setAttribute("material", `src: url(./images/layer09_top.png); ${cleanAlphaMat} side: double;`);
+l09TopPlane.setAttribute("render-order", 20);
+targetEntity.appendChild(l09TopPlane);
 
-// ------------------------------------------
-// 2. LAYER 09 MIDDLE (Dimensione 6 cm reale = 0.06m)
-// ------------------------------------------
-const l09MiddleSize = 0.06; // 6 cm in metri
-const l09MiddleY = 0.85;    // Y = 0.85 come richiesto
+// --- CREAZIONE LAYER 09 MIDDLE (6 cm = 0.060m - Y = 0.85) ---
+const l09MiddleSize = 0.060; // 6 cm
+const l09MiddleY = 0.85;
 
 const l09MiddlePlane = document.createElement("a-plane");
 l09MiddlePlane.setAttribute("width", l09MiddleSize);
@@ -275,23 +268,20 @@ l09MiddlePlane.setAttribute("material", `src: url(./images/layer09_middle.png); 
 l09MiddlePlane.setAttribute("render-order", 21);
 targetEntity.appendChild(l09MiddlePlane);
 
-// ------------------------------------------
-// 3. LAYER 09 TOP (Dimensione 7.5 cm reale = 0.075m)
-// ------------------------------------------
-const l09TopSize = 0.075; // 7.5 cm in metri
-const l09TopY = 0;        // Y = 0 come richiesto
+// --- CREAZIONE LAYER 09 BOTTOM (5 cm = 0.050m - Alla base Y) ---
+const l09BottomSize = 0.050; // 5 cm
+const l09BottomY = bottomYPos + 0.002;
 
-const l09TopPlane = document.createElement("a-plane");
-l09TopPlane.setAttribute("width", l09TopSize);
-l09TopPlane.setAttribute("height", l09TopSize);
-l09TopPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09TopY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
-l09TopPlane.setAttribute("rotation", "-90 0 0");
-l09TopPlane.setAttribute("fix-png-alpha", "");
-l09TopPlane.setAttribute("material", `src: url(./images/layer09_top.png); ${cleanAlphaMat} side: double;`);
-l09TopPlane.setAttribute("render-order", 22);
-targetEntity.appendChild(l09TopPlane);
-
-
+const l09BottomPlane = document.createElement("a-plane");
+l09BottomPlane.setAttribute("width", l09BottomSize);
+l09BottomPlane.setAttribute("height", l09BottomSize);
+l09BottomPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+l09BottomPlane.setAttribute("rotation", "-90 0 0");
+l09BottomPlane.setAttribute("fix-png-alpha", "");
+l09BottomPlane.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
+l09BottomPlane.setAttribute("render-order", 22);
+targetEntity.appendChild(l09BottomPlane);
+      
       
       // ==========================================
       // GENERAZIONE LAYER DIORAMA VERTICALI
