@@ -231,18 +231,33 @@
       });
 
 // ==========================================
-// LAYER 09 (TOP, MIDDLE, BOTTOM) - DIMENSIONI REALI (7.5 cm, 6 cm, 5 cm)
+// SCALA REALE: 20 quadratini = 20 cm (0.20 m)
+// 1 quadratino = 1 cm (0.01 m)
 // ==========================================
+const gridWidthMetri = 0.20;  // 20 cm
+const gridDepthMetri = 0.20;  // 20 cm
 
-// 1. LAYER 09 TOP (7.5 cm = 0.075m) - Il più grande che determina l'angolo
-const l09TopSize = 0.075; // 7.5 cm
+// ------------------------------------------
+// DIMENSIONI PIANI LAYER 09 (TOP, MIDDLE, BOTTOM)
+// ------------------------------------------
+const l09TopSize = 0.075;     // 7.5 cm (Top - Più grande)
+const l09MiddleSize = 0.060;  // 6.0 cm (Middle - Intermedio)
+const l09BottomSize = 0.050;  // 5.0 cm (Bottom - Più piccolo)
 
-// Centro comune calcolato per far combaciare lo spigolo esterno del TOP con l'angolo del diorama
-const l09CenterX = - (planeWidth / 2) + (l09TopSize / 2); // X = -0.4625
-const l09CenterZ = zFront - (l09TopSize / 2);              // Z = 0.8625
+// ------------------------------------------
+// CALCOLO CENTRO COMUNALE CONCENTRICO
+// Spigolo esterno del TOP allineato all'angolo del diorama
+// ------------------------------------------
+const xLeftMargin = - (gridWidthMetri / 2); // -0.10 m (Bordo sinistro)
+const zFrontMargin = gridDepthMetri;         // +0.20 m (Bordo frontale)
 
-// --- CREAZIONE LAYER 09 TOP (Y = 0) ---
-const l09TopY = 0;
+const l09CenterX = xLeftMargin + (l09TopSize / 2);   // -0.0625 m
+const l09CenterZ = zFrontMargin - (l09TopSize / 2);  // +0.1625 m
+
+// ------------------------------------------
+// 1. LAYER 09 TOP (7.5 cm - Y = 0)
+// ------------------------------------------
+const l09TopY = 0.0;
 
 const l09TopPlane = document.createElement("a-plane");
 l09TopPlane.setAttribute("width", l09TopSize);
@@ -254,8 +269,9 @@ l09TopPlane.setAttribute("material", `src: url(./images/layer09_top.png); ${clea
 l09TopPlane.setAttribute("render-order", 20);
 targetEntity.appendChild(l09TopPlane);
 
-// --- CREAZIONE LAYER 09 MIDDLE (6 cm = 0.060m - Y = 0.85) ---
-const l09MiddleSize = 0.060; // 6 cm
+// ------------------------------------------
+// 2. LAYER 09 MIDDLE (6.0 cm - Y = 0.85)
+// ------------------------------------------
 const l09MiddleY = 0.85;
 
 const l09MiddlePlane = document.createElement("a-plane");
@@ -268,8 +284,9 @@ l09MiddlePlane.setAttribute("material", `src: url(./images/layer09_middle.png); 
 l09MiddlePlane.setAttribute("render-order", 21);
 targetEntity.appendChild(l09MiddlePlane);
 
-// --- CREAZIONE LAYER 09 BOTTOM (5 cm = 0.050m - Alla base Y) ---
-const l09BottomSize = 0.050; // 5 cm
+// ------------------------------------------
+// 3. LAYER 09 BOTTOM (5.0 cm - Y = base)
+// ------------------------------------------
 const l09BottomY = bottomYPos + 0.002;
 
 const l09BottomPlane = document.createElement("a-plane");
@@ -281,7 +298,6 @@ l09BottomPlane.setAttribute("fix-png-alpha", "");
 l09BottomPlane.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
 l09BottomPlane.setAttribute("render-order", 22);
 targetEntity.appendChild(l09BottomPlane);
-      
       
       // ==========================================
       // GENERAZIONE LAYER DIORAMA VERTICALI
