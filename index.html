@@ -230,25 +230,55 @@
         }
       });
 
-      // ==========================================
-      // LAYER 09_BOTTOM (Quadrato Azzurro 5x5 griglia)
-      // ==========================================
-      const l09Width = (5 / 20) * planeWidth;         // 0.2500 m
-      const l09Depth = 5 * gridUnit;                   // 0.2231 m (5 righe di griglia)
+    // ==========================================
+// LAYER 09_BOTTOM E PIANI PARALLELI (Azzurro 5x5 griglia)
+// ==========================================
+const l09Width = (5 / 20) * planeWidth;  // 0.2500 m
+const l09Depth = 5 * gridUnit;            // 0.2231 m (5 righe di griglia)
 
-      const l09BottomX = - (planeWidth / 2) + (l09Width / 2);   // -0.3750 (Bordo sinistro)
-      const l09BottomZ = zFront - (l09Depth / 2);                // 0.7884 (Agganciato a zFront)
-      const l09BottomY = bottomYPos + 0.002;
+const l09BottomX = - (planeWidth / 2) + (l09Width / 2); // -0.3750 (Bordo sinistro)
+const l09BottomZ = zFront - (l09Depth / 2);         // 0.7884 (Centrato sulla mediana)
 
-      const l09BottomPlane = document.createElement("a-plane");
-      l09BottomPlane.setAttribute("width", l09Width.toFixed(4));
-      l09BottomPlane.setAttribute("height", l09Depth.toFixed(4));
-      l09BottomPlane.setAttribute("position", `${l09BottomX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09BottomZ.toFixed(4)}`);
-      l09BottomPlane.setAttribute("rotation", "-90 0 0");
-      l09BottomPlane.setAttribute("fix-png-alpha", "");
-      l09BottomPlane.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
-      l09BottomPlane.setAttribute("render-order", 20);
-      targetEntity.appendChild(l09BottomPlane);
+// 1. Piano Base Originale (in basso)
+const l09BottomY_1 = bottomYPos + 0.002; // Y = -0.4980 (base)
+
+const l09BottomPlane1 = document.createElement("a-plane");
+l09BottomPlane1.setAttribute("width", l09Width.toFixed(4));
+l09BottomPlane1.setAttribute("height", l09Depth.toFixed(4));
+l09BottomPlane1.setAttribute("position", `${l09BottomX.toFixed(4)} ${l09BottomY_1.toFixed(4)} ${l09BottomZ.toFixed(4)}`);
+l09BottomPlane1.setAttribute("rotation", "-90 0 0");
+l09BottomPlane1.setAttribute("fix-png-alpha", "");
+l09BottomPlane1.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
+l09BottomPlane1.setAttribute("render-order", 20);
+targetEntity.appendChild(l09BottomPlane1);
+
+// 2. Secondo Piano Parallelo (Intermedio)
+// Modifica il valore offset (es. +0.15) per regolare l'altezza desiderata lungo Y
+const l09BottomY_2 = l09BottomY_1 + 0.15; 
+
+const l09BottomPlane2 = document.createElement("a-plane");
+l09BottomPlane2.setAttribute("width", l09Width.toFixed(4));
+l09BottomPlane2.setAttribute("height", l09Depth.toFixed(4));
+l09BottomPlane2.setAttribute("position", `${l09BottomX.toFixed(4)} ${l09BottomY_2.toFixed(4)} ${l09BottomZ.toFixed(4)}`);
+l09BottomPlane2.setAttribute("rotation", "-90 0 0");
+l09BottomPlane2.setAttribute("fix-png-alpha", "");
+l09BottomPlane2.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
+l09BottomPlane2.setAttribute("render-order", 21);
+targetEntity.appendChild(l09BottomPlane2);
+
+// 3. Terzo Piano Parallelo (Superiore)
+// Modifica il valore offset (es. +0.30) per regolare l'altezza desiderata lungo Y
+const l09BottomY_3 = l09BottomY_1 + 0.30; 
+
+const l09BottomPlane3 = document.createElement("a-plane");
+l09BottomPlane3.setAttribute("width", l09Width.toFixed(4));
+l09BottomPlane3.setAttribute("height", l09Depth.toFixed(4));
+l09BottomPlane3.setAttribute("position", `${l09BottomX.toFixed(4)} ${l09BottomY_3.toFixed(4)} ${l09BottomZ.toFixed(4)}`);
+l09BottomPlane3.setAttribute("rotation", "-90 0 0");
+l09BottomPlane3.setAttribute("fix-png-alpha", "");
+l09BottomPlane3.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
+l09BottomPlane3.setAttribute("render-order", 22);
+targetEntity.appendChild(l09BottomPlane3);
 
       // ==========================================
       // GENERAZIONE LAYER DIORAMA VERTICALI
