@@ -65,11 +65,11 @@
         
         // --- LIMITI SPAZIALI AMPLIATI ---
         this.bounds = {
-          xMin: -0.480,  // Esteso più a sinistra
-          xMax: -0.100,  // Esteso leggermente verso il centro
-          yMin: -0.325,  // Limite inferiore visibile
-          yMax: 0.150,   // Spazio di generazione sopra la scena
-          yKill: -0.600  // Punto di reset oltre il fondo
+          xMin: -0.480,  
+          xMax: -0.100,  
+          yMin: -0.325,  
+          yMax: 0.150,   
+          yKill: -0.600  
         };
 
         const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
@@ -184,8 +184,8 @@
       // 1. CONFIGURAZIONE DEI LIVELLI PNG
       // ==========================================
       const thickness3mm = 0.015;
-      const planeWidth = 1.0;    
-      const planeHeight = 1.0;    
+      const planeWidth = 1.0;    // 1.0 corrisponde alla larghezza di 20 cm
+      const planeHeight = 1.0;   // 1.0 corrisponde all'altezza di 20 cm
       const depth4cmRel = 0.20;   
 
       const layersConfig = [
@@ -376,23 +376,31 @@
       });
 
       // ==========================================
-      // 6. INTEGRAZIONE BICCHIERE 3D PROCEDURALE
+      // 6. INTEGRAZIONE BICCHIERE 3D RISCALATO (Diorama 20x20 cm)
       // ==========================================
+      // Scala: 20 cm = 1.0 unità
+      // 4 cm = 0.20 unità | Raggio base inf = 0.10
+      // 5.7 cm = 0.285 unità | Raggio base sup = 0.1425
+      // 6.3 cm = 0.315 unità | Altezza = 0.315
+      
       const glassGroup = document.createElement("a-entity");
       glassGroup.setAttribute("id", "bicchiere-diorama");
       
-      // Posizionato sul piano base (Y) a livello del layer04 (Z: 0.5850)
-      const glassYPos = bottomYPos + 0.001; // Poggiato sul fondo del box
-      const glassZPos = 0.5850;
+      const glassYPos = bottomYPos + 0.001; // Poggiato perfettamente sul fondo del box
+      const glassZPos = 0.5850;             // Centrato sul Layer 04
       glassGroup.setAttribute("position", `0 ${glassYPos.toFixed(4)} ${glassZPos.toFixed(4)}`);
 
-      // Corpo Conico del Bicchiere (Base inf: 4cm, Base sup: 5.7cm, H: 6.3cm)
+      const rBottom = 0.10;    // 4 cm diametro
+      const rTop = 0.1425;     // 5.7 cm diametro
+      const glassHeight = 0.315; // 6.3 cm altezza
+
+      // Corpo Conico del Bicchiere
       const glassBody = document.createElement("a-cylinder");
       glassBody.setAttribute("id", "corpo-bicchiere");
-      glassBody.setAttribute("position", "0 0.0315 0"); // Centrato sull'altezza (H/2)
-      glassBody.setAttribute("radius-bottom", "0.02");   // 2cm in metri
-      glassBody.setAttribute("radius-top", "0.0285");    // 2.85cm in metri
-      glassBody.setAttribute("height", "0.063");         // 6.3cm in metri
+      glassBody.setAttribute("position", `0 ${(glassHeight / 2).toFixed(4)} 0`); // Centrato a H/2
+      glassBody.setAttribute("radius-bottom", rBottom.toFixed(4));
+      glassBody.setAttribute("radius-top", rTop.toFixed(4));
+      glassBody.setAttribute("height", glassHeight.toFixed(4));
       glassBody.setAttribute("radial-segments", "64");
       glassBody.setAttribute("material", `src: url(./images/layer04.png); ${cleanAlphaMat} side: double; roughness: 0.2; metalness: 0.1;`);
       glassBody.setAttribute("render-order", 50);
@@ -402,7 +410,7 @@
       glassBottom.setAttribute("id", "fondo-bicchiere");
       glassBottom.setAttribute("position", "0 0 0");
       glassBottom.setAttribute("rotation", "-90 0 0");
-      glassBottom.setAttribute("radius", "0.02");
+      glassBottom.setAttribute("radius", rBottom.toFixed(4));
       glassBottom.setAttribute("material", `src: url(./images/layer04.png); ${cleanAlphaMat} side: double;`);
       glassBottom.setAttribute("render-order", 50);
 
