@@ -229,17 +229,23 @@
         }
       });
 
-      // ------------------------------------------
-      // LAYER 09-BOTTOM (Quadrato 5cm x 5cm a sinistra a Z=1)
-      // ------------------------------------------
-      const l09BottomSize = 0.05; // 5 cm in metri
-      const l09BottomX = -0.5 + (l09BottomSize / 2); // A filo del bordo sinistro (X = -0.475)
-      const l09BottomZ = 1.0 - (l09BottomSize / 2);  // Bordo frontale agganciato a Z=1.0 (Z = 0.975)
-      const l09BottomY = bottomYPos + 0.002;        // Sovrapposto leggermente a box_bottom
+      // ==========================================
+      // LAYER 09-BOTTOM (Corrispondente al riquadro azzurro 5x5 griglia)
+      // ==========================================
+      const gridColumns = 20;
+      const gridRows = 20;
+
+      // Dimensioni calcolate dinamicamente in base alla griglia 20x20
+      const l09Width = (5 / gridColumns) * planeWidth;         // 0.25 m (5/20 della larghezza)
+      const l09Depth = (5 / gridRows) * bottomLengthExact;      // 5/20 della profondità totale
+
+      const l09BottomX = - (planeWidth / 2) + (l09Width / 2);   // Agganciato a sinistra (X = -0.375)
+      const l09BottomZ = zFront - (l09Depth / 2);                // Agganciato al bordo frontale (Z = 0.9 - depth/2)
+      const l09BottomY = bottomYPos + 0.002;                    // Posizionato appena sopra box_bottom
 
       const l09BottomPlane = document.createElement("a-plane");
-      l09BottomPlane.setAttribute("width", l09BottomSize);
-      l09BottomPlane.setAttribute("height", l09BottomSize);
+      l09BottomPlane.setAttribute("width", l09Width.toFixed(4));
+      l09BottomPlane.setAttribute("height", l09Depth.toFixed(4));
       l09BottomPlane.setAttribute("position", `${l09BottomX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09BottomZ.toFixed(4)}`);
       l09BottomPlane.setAttribute("rotation", "-90 0 0");
       l09BottomPlane.setAttribute("fix-png-alpha", "");
