@@ -44,14 +44,11 @@
       }
     });
 
-    // ==========================================
-    // COMPONENTE PARTICELLE CADENTI CON CONTROLLO X, Y, Z
-    // ==========================================
+    // Componente Particelle Cadenti
     AFRAME.registerComponent('falling-particles', {
       schema: {
         count: { type: 'int', default: 22 },
         textures: { type: 'array', default: [] },
-        // --- GESTIONE ASSI X, Y, Z ---
         xMin: { type: 'number', default: -0.480 },
         xMax: { type: 'number', default: -0.100 },
         yMin: { type: 'number', default: -0.325 },
@@ -59,7 +56,6 @@
         yKill: { type: 'number', default: -0.600 },
         zMin: { type: 'number', default: 0.700 },
         zMax: { type: 'number', default: 0.850 },
-        // --- PROPRIETÀ DINAMICHE ---
         baseSizeMin: { type: 'number', default: 0.010 },
         baseSizeMax: { type: 'number', default: 0.030 },
         fallSpeedMin: { type: 'number', default: 0.0005 },
@@ -74,7 +70,6 @@
 
         for (let i = 0; i < this.data.count; i++) {
           const pEl = document.createElement('a-plane');
-          
           const randTex = this.data.textures[Math.floor(Math.random() * this.data.textures.length)];
           const size = this.data.baseSizeMin + (Math.random() * (this.data.baseSizeMax - this.data.baseSizeMin));
           
@@ -82,7 +77,7 @@
           pEl.setAttribute('height', size);
           pEl.setAttribute('fix-png-alpha', '');
           pEl.setAttribute('material', `src: url(${randTex}); ${overlayMat} side: double;`);
-          pEl.setAttribute('render-order', 45);
+          pEl.setAttribute('render-order', 80);
 
           this.el.appendChild(pEl);
 
@@ -124,14 +119,10 @@
         if (!timeDelta) return;
 
         this.particles.forEach(p => {
-          // 1. Caduta Verticale (Y)
           p.y -= p.fallSpeed * (timeDelta / 16.6);
-
-          // 2. Oscillazione Orizzontale (X)
           const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
           p.x = p.xInit + sway;
 
-          // 3. Rotazione
           p.rotZ += p.rotSpeedZ;
           if (this.data.enable3DRotation) {
             p.rotX += p.rotSpeedX;
@@ -143,7 +134,6 @@
             p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
           }
 
-          // 4. Reset a fine corsa
           if (p.y < this.data.yKill) {
             this.resetParticle(p);
           }
@@ -178,43 +168,46 @@
       const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
       const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
-      // ==========================================
-      // 1. CONFIGURAZIONE DEI 9 LIVELLI PNG (SPESSORE ZERO)
-      // ==========================================
-const planeWidth = 1.0;    
-const planeHeight = 1.0;   
-const depthStep = 0.1231;
+      const planeWidth = 1.0;    
+      const planeHeight = 1.0;   
+      const depthStep = 0.1231;
 
-const layersConfig = [
-  { src: "./images/layer01.png", z: 0.0075 },
-  { src: "./images/layer02.png", z: 0.015 },
-  { src: "./images/layer03.png", z: 0.2 },
-  { src: "./images/layer04.png", z: 0.28 },
-  { src: "./images/layer05.png", z: 0.35 },
-  { src: "./images/layer06.png", z: 0.45 },
-  { src: "./images/layer07.png", z: 0.665 },
-  { src: "./images/layer08.png", z: 0.8 },
-  { 
-    src: "./images/layer09.png", 
-    z: 0.9,
-    extraOverlay: {
-      src: "./images/layer09-overlay.png",
-      offsetZ: 0.001
-    },
-    boat: {
-      src: "./images/paper_boat.png",
-      width: 0.15,
-      height: 0.15,
-      startYPos: -0.2,
-      offsetZ: 0.002
-    }
-  }
-];
+      // ==========================================
+      // CONFIGURAZIONE LIVELLI
+      // ==========================================
+      const layersConfig = [
+        { src: "./images/layer01.png", z: 0.0075 },
+        { src: "./images/layer02.png", z: 0.015 },
+        { src: "./images/layer03.png", z: 0.2 },
+        { src: "./images/layer04.png", z: 0.28 },
+        { src: "./images/layer05.png", z: 0.35 },
+        { src: "./images/layer06.png", z: 0.45 },
+        { src: "./images/layer07.png", z: 0.665 },
+        { src: "./images/layer08.png", z: 0.8 },
+        { 
+          src: "./images/layer09.png", 
+          z: 0.9,
+          // Piano in basso sovrapposto a bottom_box
+          bottomTexture: "./images/layer09_bottom.png",
+          customBottomY: -0.499,
+          // Piano intermedio a Y = 0
+          topTexture: "./images/layer09_top.png",
+          topYPos: 0.0,
+          // Barca animata
+          boat: {
+            src: "./images/paper_boat.png",
+            width: 0.20,
+            height: 0.20,
+            startYPos: -0.15,
+            offsetZ: 0.005
+          }
+        }
+      ];
 
       const bottomTexture = "./images/box_bottom.png"; 
 
       // ==========================================
-      // 2. PIANO BASE GENERALE (CALCOLATO ESATTAMENTE TRA LAYER 1 E LAYER 9)
+      // PIANO BASE GENERALE
       // ==========================================
       const zBack = layersConfig[0].z; 
       const zFront = layersConfig[layersConfig.length - 1].z; 
@@ -234,7 +227,7 @@ const layersConfig = [
       targetEntity.appendChild(bottomPlane);
 
       // ==========================================
-      // 3. PIANI ORIZZONTALI AUTOMATICI
+      // GENERAZIONE PIANI HORIZONTAL EXTRA / LAYER09
       // ==========================================
       layersConfig.forEach((layer, idx) => {
         const nextLayer = layersConfig[idx + 1];
@@ -244,11 +237,13 @@ const layersConfig = [
           let stripDepth = layer.customDepth || (nextLayer ? nextLayer.z - zCurrentFront : depthStep);
           const stripCenterZ = zCurrentFront + (stripDepth / 2);
 
+          // Piano inferiore
           if (layer.bottomTexture) {
+            const yPos = layer.customBottomY !== undefined ? layer.customBottomY : (bottomYPos + 0.001 + (idx * 0.0005));
             const bPlane = document.createElement("a-plane");
             bPlane.setAttribute("width", planeWidth);
             bPlane.setAttribute("height", stripDepth);
-            bPlane.setAttribute("position", `0 ${(bottomYPos + 0.001 + (idx * 0.0005)).toFixed(4)} ${stripCenterZ.toFixed(4)}`);
+            bPlane.setAttribute("position", `0 ${yPos.toFixed(4)} ${stripCenterZ.toFixed(4)}`);
             bPlane.setAttribute("rotation", "-90 0 0");
             bPlane.setAttribute("fix-png-alpha", "");
             bPlane.setAttribute("material", `src: url(${layer.bottomTexture}); ${cleanAlphaMat} side: double;`);
@@ -256,6 +251,7 @@ const layersConfig = [
             targetEntity.appendChild(bPlane);
           }
 
+          // Piano superiore o centrale a Y = 0
           if (layer.topTexture && layer.topYPos !== undefined) {
             const tPlane = document.createElement("a-plane");
             tPlane.setAttribute("width", planeWidth);
@@ -271,7 +267,7 @@ const layersConfig = [
       });
 
       // ==========================================
-      // 4. GENERAZIONE LAYER DIORAMA (2D A-PLANE)
+      // GENERAZIONE LAYER DIORAMA E BARCA
       // ==========================================
       layersConfig.forEach((layer, idx) => {
         const element = document.createElement("a-plane");
@@ -283,24 +279,11 @@ const layersConfig = [
         element.setAttribute("render-order", 40 + (idx * 2));
         targetEntity.appendChild(element);
 
-        // Overlay Extra
-        if (layer.extraOverlay) { 
-          const overlayZPos = layer.z + layer.extraOverlay.offsetZ;
-          const overlayElement = document.createElement("a-plane");
-          overlayElement.setAttribute("width", planeWidth);
-          overlayElement.setAttribute("height", planeHeight);
-          overlayElement.setAttribute("position", `0 0 ${overlayZPos.toFixed(4)}`);
-          overlayElement.setAttribute("fix-png-alpha", "");
-          overlayElement.setAttribute("material", `src: url(${layer.extraOverlay.src}); ${overlayMat} side: double;`);
-          overlayElement.setAttribute("render-order", 40 + (idx * 2) + 1);
-          targetEntity.appendChild(overlayElement);
-        }
-
-        // Animazione Barca di Carta
+        // Barca di Carta Animata
         if (layer.boat) {
-          const boatZPos = layer.z + layer.boat.offsetZ + 0.002;
+          const boatZPos = layer.z + layer.boat.offsetZ;
           const startY = layer.boat.startYPos;
-          const floatRange = 0.010;
+          const floatRange = 0.015;
 
           const boatElement = document.createElement("a-plane");
           boatElement.setAttribute("width", layer.boat.width);
@@ -308,7 +291,7 @@ const layersConfig = [
           boatElement.setAttribute("position", `0 ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`);
           boatElement.setAttribute("fix-png-alpha", "");
           boatElement.setAttribute("material", `src: url(${layer.boat.src}); ${overlayMat} side: double;`);
-          boatElement.setAttribute("render-order", 40 + (idx * 2) + 2);
+          boatElement.setAttribute("render-order", 70);
 
           boatElement.setAttribute("animation__float", {
             property: "position",
@@ -322,8 +305,8 @@ const layersConfig = [
 
           boatElement.setAttribute("animation__rock", {
             property: "rotation",
-            from: "0 0 -2.5",
-            to: "0 0 2.5",
+            from: "0 0 -3",
+            to: "0 0 3",
             dir: "alternate",
             dur: 2400,
             easing: "easeInOutSine",
@@ -335,7 +318,7 @@ const layersConfig = [
       });
 
       // ==========================================
-      // 5. GENERATORE UNIFICATO PARTICELLE
+      // PARTICELLE
       // ==========================================
       const particleTextures = [];
       for (let i = 11; i <= 28; i++) {
