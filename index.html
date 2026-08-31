@@ -231,33 +231,38 @@
       });
 
       // ==========================================
-      // LAYER 09 (TOP, MIDDLE, BOTTOM) - SCALA E COORDINATE CORRETTE
+      // LAYER 09 (TOP, MIDDLE, BOTTOM) - CALCOLO SU 20 cm
       // ==========================================
 
-      // 1. Dimensioni Reali traslate in Metri
-      const l09TopSize = 0.075;    // 7.5 cm
-      const l09MiddleSize = 0.065; // 6.5 cm
-      const l09BottomSize = 0.050; // 5.0 cm
+      // 1. Dimensioni proporzionate al piano da 20 cm
+      // Larghezza X
+      const l09TopWidth    = (7.5 / 20) * planeWidth;  // 0.3750 (37.5% dell'ampiezza)
+      const l09MiddleWidth = (6.5 / 20) * planeWidth;  // 0.3250 (32.5% dell'ampiezza)
+      const l09BottomWidth = (5.0 / 20) * planeWidth;  // 0.2500 (25.0% dell'ampiezza)
 
-      // 2. Griglia 4x4 angolare (20x20 cm = 0.20m di ingombro max)
-      const l09GridSize = 0.20; 
+      // Profondità Z
+      const l09TopDepth    = (7.5 / 20) * bottomLengthExact; // 0.3347
+      const l09MiddleDepth = (6.5 / 20) * bottomLengthExact; // 0.2901
+      const l09BottomDepth = (5.0 / 20) * bottomLengthExact; // 0.2231
 
-      // Centro comune concentrico nell'angolo in basso a sinistra (in metri)
-      const l09CenterX = - (planeWidth / 2) + (l09GridSize / 2); // X = -0.4000
-      const l09CenterZ = zFront - (l09GridSize / 2);               // Z = 0.8000
+      // 2. Centro concentrico nell'angolo in basso a sinistra (settore da 4 moduli / 20 cm)
+      const boxRegionWidth = (4 / 20) * planeWidth;          // 0.2000
+      const boxRegionDepth = (4 / 20) * bottomLengthExact;  // 0.1785
 
-      // Coordinate Y precise dall'alto (Top del target = +0.5m)
-      const topReferenceY = planeHeight / 2; // +0.5000m
-      const l09TopY = topReferenceY - 0.1000;    // -10 cm dal top -> Y = 0.4000
-      const l09MiddleY = topReferenceY - 0.1350; // -13.5 cm dal top -> Y = 0.3650
-      const l09BottomY = bottomYPos + 0.0050;    // Poco sopra la base -> Y = -0.4950
+      const l09CenterX = - (planeWidth / 2) + (boxRegionWidth / 2); // X = -0.4000
+      const l09CenterZ = zFront - (boxRegionDepth / 2);              // Z = 0.8107
+
+      // 3. Coordinate verticali Y (10 cm = metà altezza del piano da 20 cm)
+      const l09TopY    = 0.0000;              // 10 cm dall'alto (metà esatta) -> Y = 0.0000
+      const l09MiddleY = -0.1750;             // 13.5 cm dall'alto -> Y = -0.1750
+      const l09BottomY = bottomYPos + 0.005;  // Pochissimo sopra il fondo -> Y = -0.4950
 
       // ------------------------------------------
-      // 1. LAYER 09 BOTTOM (5.0 cm x 5.0 cm)
+      // 1. LAYER 09 BOTTOM (5.0 cm)
       // ------------------------------------------
       const l09BottomPlane = document.createElement("a-plane");
-      l09BottomPlane.setAttribute("width", l09BottomSize);
-      l09BottomPlane.setAttribute("height", l09BottomSize);
+      l09BottomPlane.setAttribute("width", l09BottomWidth.toFixed(4));
+      l09BottomPlane.setAttribute("height", l09BottomDepth.toFixed(4));
       l09BottomPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
       l09BottomPlane.setAttribute("rotation", "-90 0 0");
       l09BottomPlane.setAttribute("fix-png-alpha", "");
@@ -266,11 +271,11 @@
       targetEntity.appendChild(l09BottomPlane);
 
       // ------------------------------------------
-      // 2. LAYER 09 MIDDLE (6.5 cm x 6.5 cm)
+      // 2. LAYER 09 MIDDLE (6.5 cm)
       // ------------------------------------------
       const l09MiddlePlane = document.createElement("a-plane");
-      l09MiddlePlane.setAttribute("width", l09MiddleSize);
-      l09MiddlePlane.setAttribute("height", l09MiddleSize);
+      l09MiddlePlane.setAttribute("width", l09MiddleWidth.toFixed(4));
+      l09MiddlePlane.setAttribute("height", l09MiddleDepth.toFixed(4));
       l09MiddlePlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09MiddleY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
       l09MiddlePlane.setAttribute("rotation", "-90 0 0");
       l09MiddlePlane.setAttribute("fix-png-alpha", "");
@@ -279,11 +284,11 @@
       targetEntity.appendChild(l09MiddlePlane);
 
       // ------------------------------------------
-      // 3. LAYER 09 TOP (7.5 cm x 7.5 cm)
+      // 3. LAYER 09 TOP (7.5 cm)
       // ------------------------------------------
       const l09TopPlane = document.createElement("a-plane");
-      l09TopPlane.setAttribute("width", l09TopSize);
-      l09TopPlane.setAttribute("height", l09TopSize);
+      l09TopPlane.setAttribute("width", l09TopWidth.toFixed(4));
+      l09TopPlane.setAttribute("height", l09TopDepth.toFixed(4));
       l09TopPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09TopY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
       l09TopPlane.setAttribute("rotation", "-90 0 0");
       l09TopPlane.setAttribute("fix-png-alpha", "");
