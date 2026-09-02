@@ -44,32 +44,6 @@
       }
     });
 
-    // Componente Beccheggio e Galleggiamento Barca (Verticale)
-    AFRAME.registerComponent('boat-sway', {
-      init: function () {
-        this.initialY = this.el.object3D.position.y;
-      },
-      tick: function (time) {
-        if (!time) return;
-        const tSec = time / 1000;
-
-        // 1. Galleggiamento Y: ciclo completo ogni 2000ms (0.010m di escursione su/giù)
-        const floatRange = 0.010; 
-        const freqY = (Math.PI * 2) / 2.0; 
-        const yOffset = (Math.sin(tSec * freqY) * 0.5 + 0.5) * floatRange;
-        this.el.object3D.position.y = this.initialY + yOffset;
-
-        // 2. Inclinazione Z: beccheggio laterale ogni 2400ms (da -2.5° a +2.5°)
-        const rotDeg = 2.5; 
-        const freqZ = (Math.PI * 2) / 2.4;
-        const rotZ = Math.sin(tSec * freqZ) * THREE.MathUtils.degToRad(rotDeg);
-
-        this.el.object3D.rotation.x = 0;
-        this.el.object3D.rotation.y = 0;
-        this.el.object3D.rotation.z = rotZ;
-      }
-    });
-
     // Componente Particelle Cadenti
     AFRAME.registerComponent('falling-particles', {
       schema: {
@@ -191,7 +165,7 @@
       const targetEntity = document.querySelector("#ar-target");
 
       const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
-      const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+      const overlayMat    = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
       const planeWidth = 1.0;    
       const planeHeight = 1.0;   
@@ -261,7 +235,6 @@
       // LAYER 09 (TOP, MIDDLE, BOTTOM) - CALCOLO SU 20 cm
       // ==========================================
 
-      // 1. Dimensioni proporzionate al piano da 20 cm
       const l09TopWidth    = (7.5 / 20) * planeWidth;  // 0.3750
       const l09MiddleWidth = (6.5 / 20) * planeWidth;  // 0.3250
       const l09BottomWidth = (5.0 / 20) * planeWidth;  // 0.2500
@@ -270,20 +243,16 @@
       const l09MiddleDepth = (6.5 / 20) * bottomLengthExact; // 0.2901
       const l09BottomDepth = (5.0 / 20) * bottomLengthExact; // 0.2231
 
-      // 2. Centro concentrico nell'angolo in basso a sinistra
       const boxRegionDepth = (4 / 20) * bottomLengthExact;  // 0.1785
 
-      const l09CenterX = -0.340; // X impostata manualmente
+      const l09CenterX = -0.340; 
       const l09CenterZ = zFront - (boxRegionDepth / 2);      // Z = 0.8107
 
-      // 3. Coordinate verticali Y
-      const l09TopY    = 0.0000;              // Metà esatta -> Y = 0.0000
-      const l09MiddleY = -0.1750;             // Y = -0.1750
-      const l09BottomY = bottomYPos + 0.005;  // Y = -0.4950
+      const l09TopY    = 0.0000;              
+      const l09MiddleY = -0.1750;             
+      const l09BottomY = bottomYPos + 0.005;  
 
-      // ------------------------------------------
-      // 1. LAYER 09 BOTTOM (5.0 cm) - Piano Orizzontale
-      // ------------------------------------------
+      // 1. LAYER 09 BOTTOM
       const l09BottomPlane = document.createElement("a-plane");
       l09BottomPlane.setAttribute("width", l09BottomWidth.toFixed(4));
       l09BottomPlane.setAttribute("height", l09BottomDepth.toFixed(4));
@@ -294,9 +263,7 @@
       l09BottomPlane.setAttribute("render-order", 20);
       targetEntity.appendChild(l09BottomPlane);
 
-      // ------------------------------------------
-      // 2. LAYER 09 MIDDLE (6.5 cm) - Piano Orizzontale (Livello Mare)
-      // ------------------------------------------
+      // 2. LAYER 09 MIDDLE (Mare)
       const l09MiddlePlane = document.createElement("a-plane");
       l09MiddlePlane.setAttribute("width", l09MiddleWidth.toFixed(4));
       l09MiddlePlane.setAttribute("height", l09MiddleDepth.toFixed(4));
@@ -308,34 +275,47 @@
       targetEntity.appendChild(l09MiddlePlane);
 
       // ------------------------------------------
-      // BARCA DI CARTA (Verticale, perpendicolare al mare)
+      // BARCA DI CARTA (Logica estratta dal tuo file di riferimento)
       // ------------------------------------------
-      const boatPlane = document.createElement("a-plane");
+      const boatWidth = 0.22;
+      const boatHeight = 0.18;
+      const floatRange = 0.010;
+      const startY = l09MiddleY + (boatHeight / 2) - 0.020;
+      const boatZPos = l09CenterZ + 0.005;
+
+      const boatElement = document.createElement("a-plane");
+      boatElement.setAttribute("width", boatWidth);
+      boatElement.setAttribute("height", boatHeight);
+      boatElement.setAttribute("position", `${l09CenterX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`);
+      boatElement.setAttribute("fix-png-alpha", "");
+      boatElement.setAttribute("material", `src: url(./images/paper_boat.png); ${overlayMat} side: double;`);
       
-      // Dimensioni della silhouette della barca
-      const boatWidth = l09MiddleWidth * 0.5;   // ~0.16m di larghezza
-      const boatHeight = l09MiddleWidth * 0.35; // ~0.11m di altezza
+      // FORZATO render-order: 85 (superiore ai layer di fondo e ai mari)
+      boatElement.setAttribute("render-order", 85);
 
-      boatPlane.setAttribute("width", boatWidth.toFixed(4));
-      boatPlane.setAttribute("height", boatHeight.toFixed(4));
+      boatElement.setAttribute("animation__float", {
+        property: "position",
+        from: `${l09CenterX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`,
+        to: `${l09CenterX.toFixed(4)} ${(startY + floatRange).toFixed(4)} ${boatZPos.toFixed(4)}`,
+        dir: "alternate",
+        dur: 2000,
+        easing: "easeInOutSine",
+        loop: true
+      });
 
-      // Posizionata con il bordo inferiore che tocca l09MiddleY (livello del mare)
-      const boatY = l09MiddleY + (boatHeight / 2); 
+      boatElement.setAttribute("animation__rock", {
+        property: "rotation",
+        from: "0 0 -2.5",
+        to: "0 0 2.5",
+        dir: "alternate",
+        dur: 2400,
+        easing: "easeInOutSine",
+        loop: true
+      });
 
-      // Posizione Z leggermente avanzata rispetto al centro del piano mare per evitare intersezioni
-      boatPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${boatY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
-      
-      // Verticale (parallela allo schermo e ai layer verticali)
-      boatPlane.setAttribute("rotation", "0 0 0"); 
-      boatPlane.setAttribute("fix-png-alpha", "");
-      boatPlane.setAttribute("material", `src: url(./images/paper_boat.png); ${overlayMat} side: double;`);
-      boatPlane.setAttribute("boat-sway", ""); 
-      boatPlane.setAttribute("render-order", 35); // Render-order intermedio prima dei layer frontali
-      targetEntity.appendChild(boatPlane);
+      targetEntity.appendChild(boatElement);
 
-      // ------------------------------------------
-      // 3. LAYER 09 TOP (7.5 cm) - Piano Orizzontale
-      // ------------------------------------------
+      // 3. LAYER 09 TOP
       const l09TopPlane = document.createElement("a-plane");
       l09TopPlane.setAttribute("width", l09TopWidth.toFixed(4));
       l09TopPlane.setAttribute("height", l09TopDepth.toFixed(4));
