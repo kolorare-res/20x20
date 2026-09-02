@@ -275,16 +275,16 @@
       targetEntity.appendChild(l09MiddlePlane);
 
 // ------------------------------------------
-// BARCA DI CARTA (Proporzioni 1:1 Originali + Sovrapposizione Corretta)
+// BARCA DI CARTA (Larghezza Forzata a 0.225 + Altezza Proporzionale)
 // ------------------------------------------
-const boatZPos = l09CenterZ + 0.005; // Spostata leggermente in avanti rispetto al centro mare
-const boatYBase = l09MiddleY;        // La base del contenitore appoggia sul mare
+const forcedWidth = 0.225; // 4.5 cm proporzionati alla scena
+const boatZPos = l09CenterZ + 0.005; 
+const boatYBase = l09MiddleY;
 
-// Contenitore principale per posizionamento e animazione
+// Contenitore principale per posizionamento e animazioni
 const boatContainer = document.createElement("a-entity");
 boatContainer.setAttribute("position", `${l09CenterX.toFixed(4)} ${boatYBase.toFixed(4)} ${boatZPos.toFixed(4)}`);
 
-// Animazioni native sul contenitore
 boatContainer.setAttribute("animation__float", {
   property: "position",
   from: `${l09CenterX.toFixed(4)} ${boatYBase.toFixed(4)} ${boatZPos.toFixed(4)}`,
@@ -305,19 +305,31 @@ boatContainer.setAttribute("animation__rock", {
   loop: true
 });
 
-// Piano grafico 1x1 con offset verticale per far partire il disegno dal pelo dell'acqua
+// Piano grafico per la barca
 const boatElement = document.createElement("a-plane");
-boatElement.setAttribute("width", "1.0");
-boatElement.setAttribute("height", "1.0");
-boatElement.setAttribute("position", "0 0.5 0"); // Sposta il centro dell'immagine in alto di metà altezza
 boatElement.setAttribute("fix-png-alpha", "");
-
-// Materiale solido per coprire lo sfondo + render-order alto per stare sopra il mare
 boatElement.setAttribute("material", `src: url(./images/paper_boat.png); ${cleanAlphaMat} side: double;`);
 boatElement.setAttribute("render-order", 50);
 
+// Calcolo automatico dell'altezza basato sulla larghezza forzata (0.225)
+boatElement.addEventListener("materialtextureloaded", (e) => {
+  const img = e.detail.texture.image;
+  if (img) {
+    const aspectRatio = img.height / img.width;
+    const autoHeight = forcedWidth * aspectRatio;
+
+    // Imposta la larghezza fissa e l'altezza proporzionale risultante
+    boatElement.setAttribute("width", forcedWidth);
+    boatElement.setAttribute("height", autoHeight);
+
+    // Mantiene la base della barca perfettamente poggiata sul mare
+    boatElement.setAttribute("position", `0 ${(autoHeight / 2).toFixed(4)} 0`);
+  }
+});
+
 boatContainer.appendChild(boatElement);
 targetEntity.appendChild(boatContainer);
+      
       // 3. LAYER 09 TOP
       const l09TopPlane = document.createElement("a-plane");
       l09TopPlane.setAttribute("width", l09TopWidth.toFixed(4));
