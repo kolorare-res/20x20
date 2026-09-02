@@ -274,46 +274,48 @@
       l09MiddlePlane.setAttribute("render-order", 21);
       targetEntity.appendChild(l09MiddlePlane);
 
-      // ------------------------------------------
-      // BARCA DI CARTA (Logica estratta dal tuo file di riferimento)
-      // ------------------------------------------
-      const boatWidth = 0.22;
-      const boatHeight = 0.18;
-      const floatRange = 0.010;
-      const startY = l09MiddleY + (boatHeight / 2) - 0.020;
-      const boatZPos = l09CenterZ + 0.005;
+// ------------------------------------------
+// BARCA DI CARTA (Solida sui layer dietro)
+// ------------------------------------------
+const boatWidth = 0.22;
+const boatHeight = 0.18;
+const floatRange = 0.010;
+const startY = l09MiddleY + (boatHeight / 2) - 0.020;
+const boatZPos = l09CenterZ + 0.005;
 
-      const boatElement = document.createElement("a-plane");
-      boatElement.setAttribute("width", boatWidth);
-      boatElement.setAttribute("height", boatHeight);
-      boatElement.setAttribute("position", `${l09CenterX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`);
-      boatElement.setAttribute("fix-png-alpha", "");
-      boatElement.setAttribute("material", `src: url(./images/paper_boat.png); ${overlayMat} side: double;`);
-      
-      // FORZATO render-order: 85 (superiore ai layer di fondo e ai mari)
-      boatElement.setAttribute("render-order", 85);
+const boatElement = document.createElement("a-plane");
+boatElement.setAttribute("width", boatWidth);
+boatElement.setAttribute("height", boatHeight);
+boatElement.setAttribute("position", `${l09CenterX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`);
+boatElement.setAttribute("fix-png-alpha", "");
 
-      boatElement.setAttribute("animation__float", {
-        property: "position",
-        from: `${l09CenterX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`,
-        to: `${l09CenterX.toFixed(4)} ${(startY + floatRange).toFixed(4)} ${boatZPos.toFixed(4)}`,
-        dir: "alternate",
-        dur: 2000,
-        easing: "easeInOutSine",
-        loop: true
-      });
+// USIAMO cleanAlphaMat per bloccare la trasparenza sui layer posteriori:
+boatElement.setAttribute("material", `src: url(./images/paper_boat.png); ${cleanAlphaMat} side: double;`);
 
-      boatElement.setAttribute("animation__rock", {
-        property: "rotation",
-        from: "0 0 -2.5",
-        to: "0 0 2.5",
-        dir: "alternate",
-        dur: 2400,
-        easing: "easeInOutSine",
-        loop: true
-      });
+// Un render-order alto assicura che venga calcolata sopra lo sfondo:
+boatElement.setAttribute("render-order", 50);
 
-      targetEntity.appendChild(boatElement);
+boatElement.setAttribute("animation__float", {
+  property: "position",
+  from: `${l09CenterX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`,
+  to: `${l09CenterX.toFixed(4)} ${(startY + floatRange).toFixed(4)} ${boatZPos.toFixed(4)}`,
+  dir: "alternate",
+  dur: 2000,
+  easing: "easeInOutSine",
+  loop: true
+});
+
+boatElement.setAttribute("animation__rock", {
+  property: "rotation",
+  from: "0 0 -2.5",
+  to: "0 0 2.5",
+  dir: "alternate",
+  dur: 2400,
+  easing: "easeInOutSine",
+  loop: true
+});
+
+targetEntity.appendChild(boatElement);
 
       // 3. LAYER 09 TOP
       const l09TopPlane = document.createElement("a-plane");
