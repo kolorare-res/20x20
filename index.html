@@ -1,423 +1,345 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diorama WebAR - Animazione Particelle e Barca</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Altrove</title>
 
-  <!-- Librerie A-Frame e MindAR -->
-  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+  <!-- Librerie A-Frame e MindAR -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
-  <script>
-    // Componente Smooth Tracker
-    AFRAME.registerComponent('smooth-tracker', {
-      schema: { factor: { type: 'number', default: 0.35 } },
-      init: function () {
-        this.hasTarget = false;
-        this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
-        this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
-      },
-      tick: function () {
-        if (!this.hasTarget) return;
-        const object3D = this.el.object3D;
-        if (this.prevPos) {
-          object3D.position.lerp(this.prevPos, 1 - this.data.factor);
-          object3D.quaternion.slerp(this.prevQuat, 1 - this.data.factor);
-        }
-        this.prevPos = object3D.position.clone();
-        this.prevQuat = object3D.quaternion.clone();
-      }
-    });
+  <script>
+    // Componente Smooth Tracker
+    AFRAME.registerComponent('smooth-tracker', {
+      schema: { factor: { type: 'number', default: 0.35 } },
+      init: function () {
+        this.hasTarget = false;
+        this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
+        this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
+      },
+      tick: function () {
+        if (!this.hasTarget) return;
+        const object3D = this.el.object3D;
+        if (this.prevPos) {
+          object3D.position.lerp(this.prevPos, 1 - this.data.factor);
+          object3D.quaternion.slerp(this.prevQuat, 1 - this.data.factor);
+        }
+        this.prevPos = object3D.position.clone();
+        this.prevQuat = object3D.quaternion.clone();
+      }
+    });
 
-    // Fix Trasparenza PNG
-    AFRAME.registerComponent('fix-png-alpha', {
-      init: function () {
-        this.el.addEventListener('materialtextureloaded', (e) => {
-          const texture = e.detail.texture;
-          if (texture) {
-            texture.minFilter = THREE.NearestFilter;
-            texture.generateMipmaps = false;
-            texture.needsUpdate = true;
-          }
-        });
-      }
-    });
+    // Fix Trasparenza PNG
+    AFRAME.registerComponent('fix-png-alpha', {
+      init: function () {
+        this.el.addEventListener('materialtextureloaded', (e) => {
+          const texture = e.detail.texture;
+          if (texture) {
+            texture.minFilter = THREE.NearestFilter;
+            texture.generateMipmaps = false;
+            texture.needsUpdate = true;
+          }
+        });
+      }
+    });
 
-    // ==========================================
-    // COMPONENTE PARTICELLE CADENTI
-    // ==========================================
-    AFRAME.registerComponent('falling-particles', {
-      schema: {
-        count: { type: 'int', default: 22 },
-        textures: { type: 'array', default: [] },
-        zPos: { type: 'number', default: 0.8025 },
-        baseSizeMin: { type: 'number', default: 0.010 },
-        baseSizeMax: { type: 'number', default: 0.030 },
-        fallSpeedMin: { type: 'number', default: 0.0005 },
-        fallSpeedMax: { type: 'number', default: 0.0009 },
-        swayAmp: { type: 'number', default: 0.025 },
-        enable3DRotation: { type: 'boolean', default: true }
-      },
+    // Componente Particelle Cadenti
+    AFRAME.registerComponent('falling-particles', {
+      schema: {
+        count: { type: 'int', default: 22 },
+        textures: { type: 'array', default: [] },
+        xMin: { type: 'number', default: -0.480 },
+        xMax: { type: 'number', default: -0.100 },
+        yMin: { type: 'number', default: -0.325 },
+        yMax: { type: 'number', default: 0.150 },
+        yKill: { type: 'number', default: -0.600 },
+        zMin: { type: 'number', default: 0.700 },
+        zMax: { type: 'number', default: 0.850 },
+        baseSizeMin: { type: 'number', default: 0.010 },
+        baseSizeMax: { type: 'number', default: 0.030 },
+        fallSpeedMin: { type: 'number', default: 0.0005 },
+        fallSpeedMax: { type: 'number', default: 0.0009 },
+        swayAmp: { type: 'number', default: 0.025 },
+        enable3DRotation: { type: 'boolean', default: true }
+      },
 
-      init: function () {
-        this.particles = [];
-        
-        // --- LIMITI SPAZIALI AMPLIATI ---
-        this.bounds = {
-          xMin: -0.480,  // Esteso più a sinistra
-          xMax: -0.100,  // Esteso verso il centro
-          yMin: -0.325,  // Limite inferiore visibile
-          yMax: 0.150,   // Alzato in alto
-          yKill: -0.600  // Punto di reset oltre il fondo
-        };
+      init: function () {
+        this.particles = [];
+        const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
-        const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+        for (let i = 0; i < this.data.count; i++) {
+          const pEl = document.createElement('a-plane');
+          const randTex = this.data.textures[Math.floor(Math.random() * this.data.textures.length)];
+          const size = this.data.baseSizeMin + (Math.random() * (this.data.baseSizeMax - this.data.baseSizeMin));
+          
+          pEl.setAttribute('width', size);
+          pEl.setAttribute('height', size);
+          pEl.setAttribute('fix-png-alpha', '');
+          pEl.setAttribute('material', `src: url(${randTex}); ${overlayMat} side: double;`);
+          pEl.setAttribute('render-order', 80);
 
-        for (let i = 0; i < this.data.count; i++) {
-          const pEl = document.createElement('a-plane');
-          
-          const randTex = this.data.textures[Math.floor(Math.random() * this.data.textures.length)];
-          const size = this.data.baseSizeMin + (Math.random() * (this.data.baseSizeMax - this.data.baseSizeMin));
-          
-          pEl.setAttribute('width', size);
-          pEl.setAttribute('height', size);
-          pEl.setAttribute('fix-png-alpha', '');
-          pEl.setAttribute('material', `src: url(${randTex}); ${overlayMat} side: double;`);
-          pEl.setAttribute('render-order', 45);
+          this.el.appendChild(pEl);
 
-          this.el.appendChild(pEl);
+          const pData = {
+            el: pEl,
+            xInit: this.randomRange(this.data.xMin, this.data.xMax),
+            x: 0,
+            y: this.randomRange(this.data.yMin, this.data.yMax),
+            z: this.randomRange(this.data.zMin, this.data.zMax),
+            fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
+            swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
+            swayFreq: 0.0018 + (Math.random() * 0.0015),
+            rotSpeedZ: (Math.random() - 0.5) * 1.8,
+            rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
+            rotZ: Math.random() * 360,
+            rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
+            timeOffset: Math.random() * 2000
+          };
 
-          const pData = {
-            el: pEl,
-            xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
-            x: 0,
-            y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
-            z: this.data.zPos + (Math.random() * 0.006 - 0.003),
-            fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
-            swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
-            swayFreq: 0.0018 + (Math.random() * 0.0015),
-            rotSpeedZ: (Math.random() - 0.5) * 1.8,
-            rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
-            rotZ: Math.random() * 360,
-            rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
-            timeOffset: Math.random() * 2000
-          };
+          pData.x = pData.xInit;
+          this.particles.push(pData);
+        }
+      },
 
-          pData.x = pData.xInit;
-          this.particles.push(pData);
-        }
-      },
+      randomRange: function (min, max) {
+        return min + Math.random() * (max - min);
+      },
 
-      randomRange: function (min, max) {
-        return min + Math.random() * (max - min);
-      },
+      resetParticle: function (p) {
+        p.xInit = this.randomRange(this.data.xMin, this.data.xMax);
+        p.x = p.xInit;
+        p.y = this.data.yMax;
+        p.z = this.randomRange(this.data.zMin, this.data.zMax);
+        p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
+        p.rotZ = Math.random() * 360;
+      },
 
-      resetParticle: function (p) {
-        p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
-        p.x = p.xInit;
-        p.y = this.bounds.yMax;
-        p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
-        p.rotZ = Math.random() * 360;
-      },
+      tick: function (time, timeDelta) {
+        if (!timeDelta) return;
 
-      tick: function (time, timeDelta) {
-        if (!timeDelta) return;
+        this.particles.forEach(p => {
+          p.y -= p.fallSpeed * (timeDelta / 16.6);
+          const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
+          p.x = p.xInit + sway;
 
-        this.particles.forEach(p => {
-          p.y -= p.fallSpeed * (timeDelta / 16.6);
+          p.rotZ += p.rotSpeedZ;
+          if (this.data.enable3DRotation) {
+            p.rotX += p.rotSpeedX;
+          }
 
-          const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
-          p.x = p.xInit + sway;
+          p.el.object3D.position.set(p.x, p.y, p.z);
+          p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
+          if (this.data.enable3DRotation) {
+            p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
+          }
 
-          p.rotZ += p.rotSpeedZ;
-          if (this.data.enable3DRotation) {
-            p.rotX += p.rotSpeedX;
-          }
+          if (p.y < this.data.yKill) {
+            this.resetParticle(p);
+          }
+        });
+      }
+    });
+  </script>
 
-          p.el.object3D.position.set(p.x, p.y, p.z);
-          p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
-          if (this.data.enable3DRotation) {
-            p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
-          }
-
-          if (p.y < this.bounds.yKill) {
-            this.resetParticle(p);
-          }
-        });
-      }
-    });
-  </script>
-
-  <style>
-    body { margin: 0; overflow: hidden; }
-    .a-enter-vr-button { display: none !important; }
-  </style>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    .a-enter-vr-button { display: none !important; }
+  </style>
 </head>
 <body>
 
-  <a-scene 
-    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5;" 
-    color-space="sRGB" 
-    renderer="colorManagement: true, physicallyCorrectLights; antialias: true;" 
-    vr-mode-ui="enabled: false" 
-    device-orientation-permission-ui="enabled: false">
+  <a-scene 
+    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5;" 
+    color-space="sRGB" 
+    renderer="colorManagement: true, physicallyCorrectLights; antialias: true;" 
+    vr-mode-ui="enabled: false" 
+    device-orientation-permission-ui="enabled: false">
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-    <a-entity id="ar-target" mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35"></a-entity>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity id="ar-target" mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35"></a-entity>
 
-  </a-scene>
+  </a-scene>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const targetEntity = document.querySelector("#ar-target");
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const targetEntity = document.querySelector("#ar-target");
 
-      const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
-      const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+      const cleanAlphaMat = "transparent: true; alphaTest: 0.5; depthWrite: true; depthTest: true;";
 
-      // ==========================================
-      // 1. CONFIGURAZIONE DEI LIVELLI PNG
-      // ==========================================
-      const thickness3mm = 0.015;
-      const planeWidth = 1.0;    
-      const planeHeight = 1.0;    
-      const depth4cmRel = 0.20;   
+      const planeWidth = 1.0;    
+      const planeHeight = 1.0;   
 
-      const layersConfig = [
-        { src: "./images/layer01.png", z: 0.0075 },
-        { src: "./images/layer02.png", z: 0.2000 },
-        { 
-          src: "./images/layer03.png", 
-          z: 0.3925, 
-          bottomTexture: "./images/layer03_bottom.png",
-          extraOverlay: {
-            src: "./images/layer03_extra.png",
-            offsetZ: 0.0500
-          }
-        },
-        { 
-          src: "./images/layer04.png", 
-          z: 0.5850, 
-          bottomTexture: "./images/layer04_bottom.png",
-          topTexture: "./images/layer04_top.png",
-          topYPos: -0.0500,
-          extraOverlay: {
-            src: "./images/layer04_extra.png",
-            offsetZ: 0.0750
-          }
-        },
-        { 
-          src: "./images/layer05.png", 
-          z: 0.7775, 
-          bottomTexture: "./images/layer05_bottom.png",
-          customDepth: depth4cmRel,
-          extraOverlay: {
-            src: "./images/layer05_extra.png",
-            offsetZ: 0.0500
-          },
-          // Riferimento al piano acqua layer09_middle per galleggiamento e beccheggio
-          layer09_middle: {
-            src: "./images/layer09_middle.png",
-            topYPos: -0.0500,
-            boat: {
-              src: "./images/paper_boat.png",
-              offsetZ: 0.0020,
-              startXPos: -0.325,
-              startYPos: -0.0420, // Pochissimo sopra il livello dell'acqua (-0.0500)
-              width: 1.0,
-              height: 1.0
-            }
-          }
-        },
-        { src: "./images/layer06.png", z: 0.9925 }
-      ];
+      // ==========================================
+      // CONFIGURAZIONE LIVELLI E PROFONDITÀ Z
+      // ==========================================
+      const zBack = 0.0075;
+      const zFront = 0.9000;
+      const bottomLengthExact = zFront - zBack; // 0.8925m
+      const gridUnit = bottomLengthExact / 20;  // Unità riga di griglia = 0.044625m
 
-      const bottomTexture = "./images/box_bottom.png"; 
-      const sideTexture = "./images/layer05-box_side.png"; 
+      const layersConfig = [
+        { src: "./images/layer00.png", z: 0.0005 },
+        { src: "./images/layer01.png", z: 0.0075 },
+        { src: "./images/layer02.png", z: 0.0150 },
+        { src: "./images/layer03.png", z: 0.2000 },
+        { src: "./images/layer04.png", z: 0.2800 },
+        { src: "./images/layer05.png", z: 0.3500 },
+        { src: "./images/layer06.png", z: 0.4500 },
+        { src: "./images/layer07.png", z: zFront - (5.0 * gridUnit), bottomTexture: "./images/layer07_bottom.png" }, // Verde: Z = 0.6769
+        { src: "./images/layer08.png", z: zFront - (3.0 * gridUnit) },                                             // Magenta: Z = 0.7661
+        { src: "./images/layer09.png", z: zFront - (2.5 * gridUnit) }                                              // Blu: Z = 0.7884
+      ];
 
-      // ==========================================
-      // 2. PIANO BASE GENERALE
-      // ==========================================
-      const overlapZ = -0.01; 
-      const frontMargin = 0.005; 
-      
-      const zBack = (layersConfig[0].z - thickness3mm / 2) + overlapZ; 
-      const zFront = (layersConfig[layersConfig.length - 1].z + thickness3mm / 2) + frontMargin; 
-      
-      const bottomLengthExact = zFront - zBack; 
-      const bottomCenterZExact = zBack + (bottomLengthExact / 2); 
-      const bottomYPos = -(planeHeight / 2 + 0.001);
+      const bottomTexture = "./images/box_bottom.png"; 
 
-      const bottomPlane = document.createElement("a-plane");
-      bottomPlane.setAttribute("width", planeWidth);
-      bottomPlane.setAttribute("height", bottomLengthExact);
-      bottomPlane.setAttribute("position", `0 ${bottomYPos.toFixed(4)} ${bottomCenterZExact.toFixed(4)}`);
-      bottomPlane.setAttribute("rotation", "-90 0 0");
-      bottomPlane.setAttribute("fix-png-alpha", "");
-      bottomPlane.setAttribute("material", `src: url(${bottomTexture}); ${cleanAlphaMat} side: double;`);
-      bottomPlane.setAttribute("render-order", 1);
-      targetEntity.appendChild(bottomPlane);
+      // ==========================================
+      // PIANO BASE GENERALE
+      // ==========================================
+      const bottomCenterZExact = zBack + (bottomLengthExact / 2); 
+      const bottomYPos = -(planeHeight / 2); // -0.5m
 
-      // ==========================================
-      // 3. PIANI ORIZZONTALI AUTOMATICI
-      // ==========================================
-      layersConfig.forEach((layer, idx) => {
-        const nextLayer = layersConfig[idx + 1];
+      const bottomPlane = document.createElement("a-plane");
+      bottomPlane.setAttribute("width", planeWidth);
+      bottomPlane.setAttribute("height", bottomLengthExact);
+      bottomPlane.setAttribute("position", `0 ${bottomYPos.toFixed(4)} ${bottomCenterZExact.toFixed(4)}`);
+      bottomPlane.setAttribute("rotation", "-90 0 0");
+      bottomPlane.setAttribute("fix-png-alpha", "");
+      bottomPlane.setAttribute("material", `src: url(${bottomTexture}); ${cleanAlphaMat} side: double;`);
+      bottomPlane.setAttribute("render-order", 1);
+      targetEntity.appendChild(bottomPlane);
 
-        if (layer.bottomTexture || layer.topTexture) {
-          const zCurrentFront = layer.z;
-          let stripDepth = layer.customDepth || (nextLayer ? nextLayer.z - zCurrentFront : 0.20);
-          const stripCenterZ = zCurrentFront + (stripDepth / 2);
+      // ==========================================
+      // GENERAZIONE PIANI ORIZZONTALI EXTRA
+      // ==========================================
+      layersConfig.forEach((layer, idx) => {
+        if (layer.bottomTexture) {
+          const nextLayer = layersConfig[idx + 1];
+          const stripDepth = nextLayer ? (nextLayer.z - layer.z) : 0.1;
+          const stripCenterZ = layer.z + (stripDepth / 2);
+          const yPos = bottomYPos + 0.001 + (idx * 0.0005); 
 
-          if (layer.bottomTexture) {
-            const bPlane = document.createElement("a-plane");
-            bPlane.setAttribute("width", planeWidth);
-            bPlane.setAttribute("height", stripDepth);
-            bPlane.setAttribute("position", `0 ${(bottomYPos + 0.001 + (idx * 0.0005)).toFixed(4)} ${stripCenterZ.toFixed(4)}`);
-            bPlane.setAttribute("rotation", "-90 0 0");
-            bPlane.setAttribute("fix-png-alpha", "");
-            bPlane.setAttribute("material", `src: url(${layer.bottomTexture}); ${cleanAlphaMat} side: double;`);
-            bPlane.setAttribute("render-order", 5 + idx);
-            targetEntity.appendChild(bPlane);
-          }
+          const bPlane = document.createElement("a-plane");
+          bPlane.setAttribute("width", planeWidth);
+          bPlane.setAttribute("height", stripDepth);
+          bPlane.setAttribute("position", `0 ${yPos.toFixed(4)} ${stripCenterZ.toFixed(4)}`);
+          bPlane.setAttribute("rotation", "-90 0 0");
+          bPlane.setAttribute("fix-png-alpha", "");
+          bPlane.setAttribute("material", `src: url(${layer.bottomTexture}); ${cleanAlphaMat} side: double;`);
+          bPlane.setAttribute("render-order", 5 + idx);
+          targetEntity.appendChild(bPlane);
+        }
+      });
 
-          if (layer.topTexture && layer.topYPos !== undefined) {
-            const tPlane = document.createElement("a-plane");
-            tPlane.setAttribute("width", planeWidth);
-            tPlane.setAttribute("height", stripDepth);
-            tPlane.setAttribute("position", `0 ${layer.topYPos.toFixed(4)} ${stripCenterZ.toFixed(4)}`);
-            tPlane.setAttribute("rotation", "-90 0 0");
-            tPlane.setAttribute("fix-png-alpha", "");
-            tPlane.setAttribute("material", `src: url(${layer.topTexture}); ${cleanAlphaMat} side: double;`);
-            tPlane.setAttribute("render-order", 15 + idx);
-            targetEntity.appendChild(tPlane);
-          }
-        }
-      });
+      // ==========================================
+      // LAYER 09 (TOP, MIDDLE, BOTTOM) - CALCOLO SU 20 cm
+      // ==========================================
 
-      // ==========================================
-      // 4. PARETE LATERALE PERPENDICOLARE SX
-      // ==========================================
-      const sideCenterX = -(planeWidth / 2);
-      const strip05CenterZ = layersConfig[4].z + (depth4cmRel / 2);
+      // 1. Dimensioni proporzionate al piano da 20 cm
+      // Larghezza X
+      const l09TopWidth    = (7.5 / 20) * planeWidth;  // 0.3750 (37.5% dell'ampiezza)
+      const l09MiddleWidth = (6.5 / 20) * planeWidth;  // 0.3250 (32.5% dell'ampiezza)
+      const l09BottomWidth = (5.0 / 20) * planeWidth;  // 0.2500 (25.0% dell'ampiezza)
 
-      const straightSide = document.createElement("a-plane");
-      straightSide.setAttribute("width", depth4cmRel);   
-      straightSide.setAttribute("height", planeHeight);  
-      straightSide.setAttribute("position", `${sideCenterX.toFixed(4)} 0 ${strip05CenterZ.toFixed(4)}`);
-      straightSide.setAttribute("rotation", "0 90 0");
-      straightSide.setAttribute("fix-png-alpha", "");
-      straightSide.setAttribute("material", `src: url(${sideTexture}); ${cleanAlphaMat} side: double;`);
-      straightSide.setAttribute("render-order", 30);
-      targetEntity.appendChild(straightSide);
+      // Profondità Z
+      const l09TopDepth    = (7.5 / 20) * bottomLengthExact; // 0.3347
+      const l09MiddleDepth = (6.5 / 20) * bottomLengthExact; // 0.2901
+      const l09BottomDepth = (5.0 / 20) * bottomLengthExact; // 0.2231
 
-      // ==========================================
-      // 5. GENERAZIONE LAYER DIORAMA E LAYER09_MIDDLE (CON BECCHEGGIO)
-      // ==========================================
-      layersConfig.forEach((layer, idx) => {
-        const element = document.createElement("a-plane");
-        element.setAttribute("width", planeWidth);
-        element.setAttribute("height", planeHeight);
-        element.setAttribute("position", `0 0 ${layer.z.toFixed(4)}`);
-        element.setAttribute("fix-png-alpha", "");
-        element.setAttribute("material", `src: url(${layer.src}); ${cleanAlphaMat} side: double;`);
-        element.setAttribute("render-order", 40 + (idx * 2));
-        targetEntity.appendChild(element);
+      // 2. Centro concentrico nell'angolo in basso a sinistra (settore da 4 moduli / 20 cm)
+const boxRegionWidth = (4 / 20) * planeWidth;          // 0.2000
+const boxRegionDepth = (4 / 20) * bottomLengthExact;  // 0.1785
 
-        // Overlay Extra
-        if (layer.extraOverlay) { 
-          const overlayZPos = layer.z + layer.extraOverlay.offsetZ;
-          const overlayElement = document.createElement("a-plane");
-          overlayElement.setAttribute("width", planeWidth);
-          overlayElement.setAttribute("height", planeHeight);
-          overlayElement.setAttribute("position", `0 0 ${overlayZPos.toFixed(4)}`);
-          overlayElement.setAttribute("fix-png-alpha", "");
-          overlayElement.setAttribute("material", `src: url(${layer.extraOverlay.src}); ${overlayMat} side: double;`);
-          overlayElement.setAttribute("render-order", 40 + (idx * 2) + 1);
-          targetEntity.appendChild(overlayElement);
-        }
+const l09CenterX = -0.325;                                    // X impostata a -0.325
+const l09CenterZ = zFront - (boxRegionDepth / 2);              // Z = 0.8107
 
-        // Layer 09 Middle e Animazione Barca integrati sul piano dell'acqua
-        if (layer.layer09_middle) {
-          const middleZPos = layer.z;
-          
-          // Genera il piano dell'acqua (layer09_middle)
-          const middlePlane = document.createElement("a-plane");
-          middlePlane.setAttribute("width", planeWidth);
-          middlePlane.setAttribute("height", layer.customDepth || 0.20);
-          middlePlane.setAttribute("position", `0 ${layer.layer09_middle.topYPos.toFixed(4)} ${(middleZPos + (layer.customDepth || 0.20)/2).toFixed(4)}`);
-          middlePlane.setAttribute("rotation", "-90 0 0");
-          middlePlane.setAttribute("fix-png-alpha", "");
-          middlePlane.setAttribute("material", `src: url(${layer.layer09_middle.src}); ${cleanAlphaMat} side: double;`);
-          middlePlane.setAttribute("render-order", 18);
-          targetEntity.appendChild(middlePlane);
+      // 3. Coordinate verticali Y (10 cm = metà altezza del piano da 20 cm)
+      const l09TopY    = 0.0000;              // 10 cm dall'alto (metà esatta) -> Y = 0.0000
+      const l09MiddleY = -0.1750;             // 13.5 cm dall'alto -> Y = -0.1750
+      const l09BottomY = bottomYPos + 0.005;  // Pochissimo sopra il fondo -> Y = -0.4950
 
-          // Animazione Barca associata a layer09_middle
-          if (layer.layer09_middle.boat) {
-            const boatData = layer.layer09_middle.boat;
-            const boatZPos = middleZPos + boatData.offsetZ;
-            const startX = boatData.startXPos;
-            const startY = boatData.startYPos;
-            const floatRange = 0.010;
+      // ------------------------------------------
+      // 1. LAYER 09 BOTTOM (5.0 cm)
+      // ------------------------------------------
+      const l09BottomPlane = document.createElement("a-plane");
+      l09BottomPlane.setAttribute("width", l09BottomWidth.toFixed(4));
+      l09BottomPlane.setAttribute("height", l09BottomDepth.toFixed(4));
+      l09BottomPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09BottomY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+      l09BottomPlane.setAttribute("rotation", "-90 0 0");
+      l09BottomPlane.setAttribute("fix-png-alpha", "");
+      l09BottomPlane.setAttribute("material", `src: url(./images/layer09_bottom.png); ${cleanAlphaMat} side: double;`);
+      l09BottomPlane.setAttribute("render-order", 20);
+      targetEntity.appendChild(l09BottomPlane);
 
-            const boatElement = document.createElement("a-plane");
-            boatElement.setAttribute("width", boatData.width);
-            boatElement.setAttribute("height", boatData.height);
-            boatElement.setAttribute("position", `${startX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`);
-            boatElement.setAttribute("fix-png-alpha", "");
-            boatElement.setAttribute("material", `src: url(${boatData.src}); ${overlayMat} side: double;`);
-            boatElement.setAttribute("render-order", 40 + (idx * 2) + 2);
+      // ------------------------------------------
+      // 2. LAYER 09 MIDDLE (6.5 cm)
+      // ------------------------------------------
+      const l09MiddlePlane = document.createElement("a-plane");
+      l09MiddlePlane.setAttribute("width", l09MiddleWidth.toFixed(4));
+      l09MiddlePlane.setAttribute("height", l09MiddleDepth.toFixed(4));
+      l09MiddlePlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09MiddleY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+      l09MiddlePlane.setAttribute("rotation", "-90 0 0");
+      l09MiddlePlane.setAttribute("fix-png-alpha", "");
+      l09MiddlePlane.setAttribute("material", `src: url(./images/layer09_middle.png); ${cleanAlphaMat} side: double;`);
+      l09MiddlePlane.setAttribute("render-order", 21);
+      targetEntity.appendChild(l09MiddlePlane);
 
-            // Animazione Galleggiamento (Verticale)
-            boatElement.setAttribute("animation__float", {
-              property: "position",
-              from: `${startX.toFixed(4)} ${startY.toFixed(4)} ${boatZPos.toFixed(4)}`,
-              to: `${startX.toFixed(4)} ${(startY + floatRange).toFixed(4)} ${boatZPos.toFixed(4)}`,
-              dir: "alternate",
-              dur: 2000,
-              easing: "easeInOutSine",
-              loop: true
-            });
+      // ------------------------------------------
+      // 3. LAYER 09 TOP (7.5 cm)
+      // ------------------------------------------
+      const l09TopPlane = document.createElement("a-plane");
+      l09TopPlane.setAttribute("width", l09TopWidth.toFixed(4));
+      l09TopPlane.setAttribute("height", l09TopDepth.toFixed(4));
+      l09TopPlane.setAttribute("position", `${l09CenterX.toFixed(4)} ${l09TopY.toFixed(4)} ${l09CenterZ.toFixed(4)}`);
+      l09TopPlane.setAttribute("rotation", "-90 0 0");
+      l09TopPlane.setAttribute("fix-png-alpha", "");
+      l09TopPlane.setAttribute("material", `src: url(./images/layer09_top.png); ${cleanAlphaMat} side: double;`);
+      l09TopPlane.setAttribute("render-order", 22);
+      targetEntity.appendChild(l09TopPlane);      
+      
+      // ==========================================
+      // GENERAZIONE LAYER DIORAMA VERTICALI
+      // ==========================================
+      layersConfig.forEach((layer, idx) => {
+        const element = document.createElement("a-plane");
+        element.setAttribute("width", planeWidth);
+        element.setAttribute("height", planeHeight);
+        element.setAttribute("position", `0 0 ${layer.z.toFixed(4)}`);
+        element.setAttribute("fix-png-alpha", "");
+        element.setAttribute("material", `src: url(${layer.src}); ${cleanAlphaMat} side: double;`);
+        element.setAttribute("render-order", 40 + (idx * 2));
+        targetEntity.appendChild(element);
+      });
 
-            // Animazione Beccheggio (Oscillazione)
-            boatElement.setAttribute("animation__rock", {
-              property: "rotation",
-              from: "0 0 -2.5",
-              to: "0 0 2.5",
-              dir: "alternate",
-              dur: 2400,
-              easing: "easeInOutSine",
-              loop: true
-            });
+      // ==========================================
+      // PARTICELLE
+      // ==========================================
+      const particleTextures = [];
+      for (let i = 11; i <= 28; i++) {
+        particleTextures.push(`./images/layer05-${i}.png`);
+      }
 
-            targetEntity.appendChild(boatElement);
-          }
-        }
-      });
+      const particlesContainer = document.createElement("a-entity");
+      particlesContainer.setAttribute("falling-particles", {
+        count: 22,
+        textures: particleTextures,
+        xMin: -0.480,
+        xMax: -0.100,
+        yMin: -0.325,
+        yMax: 0.150,
+        yKill: -0.600,
+        zMin: 0.700,
+        zMax: 0.850,
+        baseSizeMin: 0.010,
+        baseSizeMax: 0.030,
+        fallSpeedMin: 0.0005,
+        fallSpeedMax: 0.0009,
+        swayAmp: 0.025,
+        enable3DRotation: true
+      });
+      targetEntity.appendChild(particlesContainer);
 
-      // ==========================================
-      // 6. GENERATORE UNIFICATO PARTICELLE (Foglie e Lettere)
-      // ==========================================
-      const particleTextures = [];
-      for (let i = 11; i <= 28; i++) {
-        particleTextures.push(`./images/layer05-${i}.png`);
-      }
-
-      const particlesContainer = document.createElement("a-entity");
-      particlesContainer.setAttribute("falling-particles", {
-        count: 22,
-        textures: particleTextures,
-        zPos: 0.8025,
-        baseSizeMin: 0.010,
-        baseSizeMax: 0.030,
-        fallSpeedMin: 0.0005,
-        fallSpeedMax: 0.0009,
-        swayAmp: 0.025,
-        enable3DRotation: true
-      });
-      targetEntity.appendChild(particlesContainer);
-
-    });
-  </script>
+    });
+  </script>
 </body>
 </html>
