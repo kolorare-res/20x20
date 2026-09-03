@@ -8,31 +8,16 @@
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
-    <script>
-      // Componente Smooth Tracker leggero per stabilizzare il tracciamento
-      AFRAME.registerComponent('smooth-tracker', {
-        schema: { factor: { type: 'number', default: 0.15 } },
-        init: function () {
-          this.hasTarget = false;
-          this.targetPos = new THREE.Vector3();
-          this.targetQuat = new THREE.Quaternion();
-
-          this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
-          this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
-        },
-        tick: function () {
-          if (!this.hasTarget) return;
-          const obj = this.el.object3D;
-          obj.position.lerp(this.targetPos, this.data.factor);
-          obj.quaternion.slerp(this.targetQuat, this.data.factor);
-        }
-      });
-    </script>
-
     <style>
       body {
         margin: 0;
         overflow: hidden;
+      }
+
+      /* FIX: Rimuove forzatamente la schermata azzurra e gli overlay di MindAR */
+      .mindar-ui-loading,
+      .mindar-ui-overlay {
+        display: none !important;
       }
     </style>
   </head>
@@ -57,6 +42,7 @@
         <img id="layer6" src="./assets/layer6.png" crossorigin="anonymous" />
         <img id="layer7" src="./assets/layer7.png" crossorigin="anonymous" />
         <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
+        <img id="layer8-floor" src="./assets/layer8-floor.png" crossorigin="anonymous" />
         <img id="layer9" src="./assets/layer9.png" crossorigin="anonymous" />
         <img id="layer10" src="./assets/layer10.png" crossorigin="anonymous" />
       </a-assets>
@@ -64,7 +50,7 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <!-- TARGET ANCORAGGIO -->
-      <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.15">
+      <a-entity mindar-image-target="targetIndex: 0">
         
         <!-- BASE INFERIORE (PAVIMENTO) -->
         <a-plane 
@@ -85,7 +71,18 @@
         <a-plane src="#layer5" position="0 0 0.50" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
         <a-plane src="#layer6" position="0 0 0.60" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
         <a-plane src="#layer7" position="0 0 0.70" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        
+        <!-- LAYER 8 E RELATIVA ESTENSIONE A TERRA -->
         <a-plane src="#layer8" position="0 0 0.80" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        <a-plane 
+          src="#layer8-floor" 
+          position="0 -0.499 0.40" 
+          rotation="-90 0 0" 
+          width="1" 
+          height="0.80" 
+          material="transparent: true; alphaTest: 0.1; side: double;">
+        </a-plane>
+
         <a-plane src="#layer9" position="0 0 0.90" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
         <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
 
