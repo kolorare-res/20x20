@@ -2,14 +2,14 @@
 <html lang="it">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Altrove</title>
+    <title>Diorama AR - MindAR & A-Frame (Scala Corretta)</title>
 
     <!-- Librerie A-Frame e MindAR -->
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
-      // 1. Componente Fix Trasparenza PNG per WebGL
+      // Fix Trasparenza PNG per WebGL
       AFRAME.registerComponent('fix-png-alpha', {
         init: function () {
           const el = this.el;
@@ -36,7 +36,7 @@
         }
       });
 
-      // 2. Componente Smooth Tracker per stabilizzare l'ancoraggio AR
+      // Smooth Tracker per stabilizzare l'ancoraggio AR
       AFRAME.registerComponent('smooth-tracker', {
         schema: { factor: { type: 'number', default: 0.15 } },
         init: function () {
@@ -75,10 +75,7 @@
 
       <!-- CARICAMENTO ASSETS -->
       <a-assets>
-        <!-- Immagine di fondo inferiore -->
         <img id="base-image" src="./assets/base.png" />
-
-        <!-- I 11 layer verticali -->
         <img id="layer0" src="./assets/layer0.png" />
         <img id="layer1" src="./assets/layer1.png" />
         <img id="layer2" src="./assets/layer2.png" />
@@ -94,36 +91,43 @@
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- TARGET AR E ANCORAGGIO DIORAMA -->
+      <!-- 
+        L'immagine target di MindAR vale 1 unità in larghezza e altezza.
+        Ora width="1" e height="1" coincidono esattamente coi 20 cm reali dell'immagine stampata.
+      -->
       <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.15">
         
         <!-- 
-          BASE INFERIORE (PAVIMENTO DEL DIORAMA 20x20 cm):
-          - Ruotata di -90deg sull'asse X per essere orizzontale
-          - Abbassata di Y = -0.1 m (coincide con la base dei layer verticali)
-          - Centrata a Z = 0.1 m per coprire l'intera profondità da 0 a 0.2 m
+          BASE INFERIORE:
+          - Il bordo inferiore del target si trova a Y = -0.5
+          - La profondità totale equivale alla larghezza dell'immagine (Z = 1.0)
+          - Centrata a Z = 0.5 per coprire l'intera profondità (da Z=0 a Z=1)
         -->
         <a-plane 
           src="#base-image" 
-          position="0 -0.1 0.1" 
+          position="0 -0.5 0.5" 
           rotation="-90 0 0" 
-          width="0.2" 
-          height="0.2" 
+          width="1" 
+          height="1" 
           fix-png-alpha>
         </a-plane>
 
-        <!-- LAYER VERTICALI (Da Z = 0.002 m a Z = 0.20 m) -->
-        <a-plane src="#layer0" position="0 0 0.002" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer1" position="0 0 0.02" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer2" position="0 0 0.04" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer3" position="0 0 0.06" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer4" position="0 0 0.08" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer5" position="0 0 0.10" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer6" position="0 0 0.12" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer7" position="0 0 0.14" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer8" position="0 0 0.16" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer9" position="0 0 0.18" width="0.2" height="0.2" fix-png-alpha></a-plane>
-        <a-plane src="#layer10" position="0 0 0.20" width="0.2" height="0.2" fix-png-alpha></a-plane>
+        <!-- 
+          LAYER VERTICALI:
+          - width="1" e height="1" per coprire al 100% l'immagine target.
+          - Z varia da 0.01 a 1.0 (passi da 0.1, ovvero 10% della profondità totale ciascuno).
+        -->
+        <a-plane src="#layer0" position="0 0 0.01" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer1" position="0 0 0.10" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer2" position="0 0 0.20" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer3" position="0 0 0.30" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer4" position="0 0 0.40" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer5" position="0 0 0.50" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer6" position="0 0 0.60" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer7" position="0 0 0.70" width="0.1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer8" position="0 0 0.80" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer9" position="0 0 0.90" width="1" height="1" fix-png-alpha></a-plane>
+        <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" fix-png-alpha></a-plane>
 
       </a-entity>
     </a-scene>
