@@ -95,22 +95,23 @@ AFRAME.registerComponent('eye-movement', {
 
     
 // 2. PALPEBRA: Movimento di battito / scorrimento
+// 2. PALPEBRA (Immagine sorgente CHIUSA, occhio prevalentemente APERTO)
 AFRAME.registerComponent('eyelid-blink', {
   schema: {
-    openDuration: { type: 'number', default: 1200 },  // Tempo di apertura lenta (1.2s)
-    holdOpen: { type: 'number', default: 2000 },      // Tempo in cui l'occhio RESTA APERTO (2s)
-    closeDuration: { type: 'number', default: 1000 }, // Tempo di chiusura lenta (1s)
-    minPause: { type: 'number', default: 7000 },     // Tempo minimo con OCCHIO CHIUSO (7s)
-    maxPause: { type: 'number', default: 14000 },    // Tempo massimo con OCCHIO CHIUSO (14s)
-    blinkDistanceX: { type: 'number', default: 0.15 } // Spostamento su X (metri) per mostrare l'occhio
+    closeDuration: { type: 'number', default: 150 },  // Scatto di chiusura rapido (ms)
+    holdClosed: { type: 'number', default: 200 },     // Tempo ad occhio chiuso durante il battito (ms)
+    openDuration: { type: 'number', default: 250 },   // Riapertura rapida (ms)
+    minPause: { type: 'number', default: 4000 },      // Tempo minimo ad OCCHIO APERTO (4s)
+    maxPause: { type: 'number', default: 9000 },      // Tempo massimo ad OCCHIO APERTO (9s)
+    blinkDistanceX: { type: 'number', default: 0.15 } // Traslazione per scoprire l'occhio (m)
   },
 
   init: function () {
     this.baseX = this.el.object3D.position.x;
-    // Parte dalla posizione CHIUSA (traslata su X)
+    // Imposta la posizione iniziale ad OCCHIO APERTO (traslato su X)
     this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
     
-    this.state = 'CLOSED'; // Stati: CLOSED, OPENING, HOLD_OPEN, CLOSING
+    this.state = 'OPEN'; // Stati: OPEN, CLOSING, HOLD_CLOSED, OPENING
     this.timer = 0;
     this.pauseDuration = this.getRandomPause();
   },
@@ -123,49 +124,49 @@ AFRAME.registerComponent('eyelid-blink', {
     if (!dt) return;
 
     switch (this.state) {
-      case 'CLOSED':
-        // L'occhio rimane CHIUSO per la maggior parte del tempo
+      case 'OPEN':
+        // L'occhio rimane APERTO (traslato) per la maggior parte del tempo (4-9s)
         this.timer += dt;
         if (this.timer >= this.pauseDuration) {
-          this.state = 'OPENING';
-          this.timer = 0;
-        }
-        break;
-
-      case 'OPENING':
-        // Apertura lenta: la palpebra si sposta per svelare l'iride sotto
-        this.timer += dt;
-        const openProgress = Math.min(this.timer / this.data.openDuration, 1);
-        const easeOpen = 0.5 - Math.cos(openProgress * Math.PI) / 2;
-        
-        this.el.object3D.position.x = (this.baseX + this.data.blinkDistanceX) - (this.data.blinkDistanceX * easeOpen);
-
-        if (openProgress >= 1) {
-          this.state = 'HOLD_OPEN';
-          this.timer = 0;
-        }
-        break;
-
-      case 'HOLD_OPEN':
-        // Breve intervallo in cui l'occhio guarda in giro
-        this.timer += dt;
-        if (this.timer >= this.data.holdOpen) {
           this.state = 'CLOSING';
           this.timer = 0;
         }
         break;
 
       case 'CLOSING':
-        // Chiusura graduale tornando alla posizione coperta
+        // La palpebra torna alla posizione base (copre l'iride per chiudere)
         this.timer += dt;
         const closeProgress = Math.min(this.timer / this.data.closeDuration, 1);
         const easeClose = 0.5 - Math.cos(closeProgress * Math.PI) / 2;
-
-        this.el.object3D.position.x = this.baseX + (this.data.blinkDistanceX * easeClose);
+        
+        this.el.object3D.position.x = (this.baseX + this.data.blinkDistanceX) - (this.data.blinkDistanceX * easeClose);
 
         if (closeProgress >= 1) {
+          this.state = 'HOLD_CLOSED';
+          this.timer = 0;
+        }
+        break;
+
+      case 'HOLD_CLOSED':
+        // Breve pausa a palpebra chiusa
+        this.timer += dt;
+        if (this.timer >= this.data.holdClosed) {
+          this.state = 'OPENING';
+          this.timer = 0;
+        }
+        break;
+
+      case 'OPENING':
+        // Si sposta di nuovo via per riaprire l'occhio
+        this.timer += dt;
+        const openProgress = Math.min(this.timer / this.data.openDuration, 1);
+        const easeOpen = 0.5 - Math.cos(openProgress * Math.PI) / 2;
+
+        this.el.object3D.position.x = this.baseX + (this.data.blinkDistanceX * easeOpen);
+
+        if (openProgress >= 1) {
           this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
-          this.state = 'CLOSED';
+          this.state = 'OPEN';
           this.timer = 0;
           this.pauseDuration = this.getRandomPause();
         }
@@ -378,7 +379,7 @@ AFRAME.registerComponent('eyelid-blink', {
   rotation="-90 0 0" 
   width="1" height="0.30" 
   material="transparent: true; alphaTest: 0.1; side: double;"
-  eyelid-blink="blinkDistanceX: 0.15; minPause: 2000; maxPause: 5000; holdOpen: 1200; openDuration: 250; closeDuration: 200;">
+  eyelid-blink="blinkDistanceX: 0.15; minPause: 4000; maxPause: 9000; closeDuration: 150; holdClosed: 100; openDuration: 200;">
 </a-plane>
       
        <a-plane 
