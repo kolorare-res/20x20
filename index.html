@@ -308,6 +308,118 @@ AFRAME.registerComponent('butterfly-3d-flight', {
 });
     
 // FINE FARFALLA
+
+// 6. FOGLIE
+AFRAME.registerComponent('falling-particles', {
+  schema: {
+    count: { type: 'int', default: 22 },
+    zPos: { type: 'number', default: 0.60 },        // Ancorato al Layer 6
+    zVariance: { type: 'number', default: 0.01 },
+    baseSizeMin: { type: 'number', default: 0.010 },
+    baseSizeMax: { type: 'number', default: 0.030 },
+    fallSpeedMin: { type: 'number', default: 0.0005 },
+    fallSpeedMax: { type: 'number', default: 0.0009 },
+    swayAmp: { type: 'number', default: 0.025 },
+    enable3DRotation: { type: 'boolean', default: true },
+    // Configurazione cartella e numerazione asset
+    assetFolder: { type: 'string', default: './assets/foglie/' },
+    assetPrefix: { type: 'string', default: 'layer6-' },
+    assetStart: { type: 'int', default: 11 },
+    assetEnd: { type: 'int', default: 28 }
+  },
+
+  init: function () {
+    this.particles = [];
+    
+    // Genera l'array di percorsi delle immagini (es. ./assets/foglie/layer6-11.png ... layer6-28.png)
+    this.textureUrls = [];
+    for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
+      this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${i}.png`);
+    }
+
+    this.bounds = {
+      xMin: -0.480,
+      xMax: -0.100,
+      yMin: -0.325,
+      yMax: 0.150,
+      yKill: -0.600
+    };
+
+    const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+
+    for (let i = 0; i < this.data.count; i++) {
+      const pEl = document.createElement('a-plane');
+      
+      // Sceglie una texture a caso tra quelle generate
+      const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
+      const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
+      
+      pEl.setAttribute('width', size);
+      pEl.setAttribute('height', size);
+      pEl.setAttribute('material', `src: url(${randTexUrl}); ${overlayMat} side: double;`);
+
+      this.el.appendChild(pEl);
+
+      const pData = {
+        el: pEl,
+        xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
+        x: 0,
+        y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
+        z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
+        fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
+        swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
+        swayFreq: 0.0018 + (Math.random() * 0.0015),
+        rotSpeedZ: (Math.random() - 0.5) * 1.8,
+        rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
+        rotZ: Math.random() * 360,
+        rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
+        timeOffset: Math.random() * 2000
+      };
+
+      pData.x = pData.xInit;
+      this.particles.push(pData);
+    }
+  },
+
+  randomRange: function (min, max) {
+    return min + Math.random() * (max - min);
+  },
+
+  resetParticle: function (p) {
+    p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
+    p.x = p.xInit;
+    p.y = this.bounds.yMax;
+    p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
+    p.rotZ = Math.random() * 360;
+  },
+
+  tick: function (time, timeDelta) {
+    if (!timeDelta) return;
+
+    this.particles.forEach(p => {
+      p.y -= p.fallSpeed * (timeDelta / 16.6);
+
+      const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
+      p.x = p.xInit + sway;
+
+      p.rotZ += p.rotSpeedZ;
+      if (this.data.enable3DRotation) {
+        p.rotX += p.rotSpeedX;
+      }
+
+      p.el.object3D.position.set(p.x, p.y, p.z);
+      p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
+      if (this.data.enable3DRotation) {
+        p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
+      }
+
+      if (p.y < this.bounds.yKill) {
+        this.resetParticle(p);
+      }
+    });
+  }
+});
+// FINE FOGLIE
     
   </script>
 
