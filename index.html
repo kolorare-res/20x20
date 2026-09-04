@@ -29,128 +29,132 @@
         this.prevQuat = object3D.quaternion.clone();
       }
     });
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
+  </script>
 
-    </style>
-  </head>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
 
-  <body>
-      
-   <a-scene 
-    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5;" 
+    /* Rimuove la schermata/overlay azzurro di MindAR */
+    .mindar-ui-loading,
+    .mindar-ui-overlay {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <a-scene 
+    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; uiLoading: no;" 
     color-space="sRGB" 
-    renderer="colorManagement: true, physicallyCorrectLights; antialias: true;" 
+    renderer="colorManagement: true, physicallyCorrectLights: true; antialias: true;" 
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false">
 
+    <!-- CARICAMENTO ASSETS -->
+    <a-assets>
+      <img id="base-image" src="./assets/base.png" crossorigin="anonymous" />
+      <img id="layer0" src="./assets/layer0.png" crossorigin="anonymous" />
+      <img id="layer1" src="./assets/layer1.png" crossorigin="anonymous" />
+      <img id="layer2" src="./assets/layer2.png" crossorigin="anonymous" />
+      <img id="layer3" src="./assets/layer3.png" crossorigin="anonymous" />
+      <img id="layer4" src="./assets/layer4.png" crossorigin="anonymous" />
+      <img id="layer5" src="./assets/layer5.png" crossorigin="anonymous" />
+      <img id="layer6" src="./assets/layer6.png" crossorigin="anonymous" />
+      <img id="layer7" src="./assets/layer7.png" crossorigin="anonymous" />
+      <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
+      <img id="layer8-floor" src="./assets/layer8-floor.png" crossorigin="anonymous" />
+      <img id="layer9" src="./assets/layer9.png" crossorigin="anonymous" />
+      <img id="layer9-barca" src="./assets/layer9-barca.png" crossorigin="anonymous" />
+      <img id="layer9-over" src="./assets/layer9-over.png" crossorigin="anonymous" />
+      <img id="layer9-floor" src="./assets/layer9-floor.png" crossorigin="anonymous" />
+      <img id="layer9-middle" src="./assets/layer9-middle.png" crossorigin="anonymous" />
+      <img id="layer9-top" src="./assets/layer9-top.png" crossorigin="anonymous" />
+      <img id="layer10" src="./assets/layer10.png" crossorigin="anonymous" />
+    </a-assets>
+
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-    <a-entity id="ar-target" mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35"></a-entity>
 
-  </a-scene>
+    <!-- TARGET ANCORAGGIO -->
+    <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
+      
+      <!-- BASE INFERIORE (PAVIMENTO) -->
+      <a-plane 
+        src="#base-image" 
+        position="0 -0.5 0.5" 
+        rotation="-90 0 0" 
+        width="1" 
+        height="1" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
 
-      <!-- CARICAMENTO ASSETS -->
-      <a-assets>
-        <img id="base-image" src="./assets/base.png" crossorigin="anonymous" />
-        <img id="layer0" src="./assets/layer0.png" crossorigin="anonymous" />
-        <img id="layer1" src="./assets/layer1.png" crossorigin="anonymous" />
-        <img id="layer2" src="./assets/layer2.png" crossorigin="anonymous" />
-        <img id="layer3" src="./assets/layer3.png" crossorigin="anonymous" />
-        <img id="layer4" src="./assets/layer4.png" crossorigin="anonymous" />
-        <img id="layer5" src="./assets/layer5.png" crossorigin="anonymous" />
-        <img id="layer6" src="./assets/layer6.png" crossorigin="anonymous" />
-        <img id="layer7" src="./assets/layer7.png" crossorigin="anonymous" />
-        <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
-            <img id="layer8-floor" src="./assets/layer8-floor.png" crossorigin="anonymous" />
-        <img id="layer9" src="./assets/layer9.png" crossorigin="anonymous" />
-            <img id="layer9-barca" src="./assets/layer9-barca.png" crossorigin="anonymous" />
-            <img id="layer9-over" src="./assets/layer9-over.png" crossorigin="anonymous" />
-            <img id="layer9-floor" src="./assets/layer9-floor.png" crossorigin="anonymous" />
-            <img id="layer9-middle" src="./assets/layer9-middle.png" crossorigin="anonymous" />
-            <img id="layer9-top" src="./assets/layer9-top.png" crossorigin="anonymous" />
-        <img id="layer10" src="./assets/layer10.png" crossorigin="anonymous" />
-      </a-assets>
-
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <!-- TARGET ANCORAGGIO -->
-      <a-entity mindar-image-target="targetIndex: 0">
-        
-        <!-- BASE INFERIORE (PAVIMENTO) -->
-        <a-plane 
-          src="#base-image" 
-          position="0 -0.5 0.5" 
-          rotation="-90 0 0" 
-          width="1" 
-          height="1" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
-
-        <!-- 11 LAYER VERTICALI -->
-        <a-plane src="#layer0" position="0 0 0.01" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane src="#layer1" position="0 0 0.10" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane src="#layer2" position="0 0 0.20" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane src="#layer3" position="0 0 0.30" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane src="#layer4" position="0 0 0.40" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane src="#layer5" position="0 0 0.50" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane src="#layer6" position="0 0 0.60" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane src="#layer7" position="0 0 0.70" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        
+      <!-- 11 LAYER VERTICALI E MENSELE -->
+      <a-plane src="#layer0" position="0 0 0.01" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer1" position="0 0 0.10" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer2" position="0 0 0.20" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer3" position="0 0 0.30" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer4" position="0 0 0.40" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer5" position="0 0 0.50" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer6" position="0 0 0.60" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer7" position="0 0 0.70" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      
+      <!-- LAYER 8 -->
       <a-plane src="#layer8" position="0 0 0.80" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-plane 
-          src="#layer8-floor" 
-          position="0 -0.499 0.90" 
-          rotation="-90 0 0" 
-          width="1" 
-          height="0.20" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
+      <a-plane 
+        src="#layer8-floor" 
+        position="0 -0.499 0.90" 
+        rotation="-90 0 0" 
+        width="1" 
+        height="0.20" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
 
-        <a-plane src="#layer9" position="0 0 0.90" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-                <a-plane src="#layer9-over" position="0 0 0.92" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <!-- LAYER 9 E MENSELE -->
+      <a-plane src="#layer9" position="0 0 0.90" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer9-over" position="0 0 0.92" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      
+      <a-plane 
+        src="#layer9-top" 
+        position="0 0.094 0.90" 
+        rotation="-90 0 0" 
+        width="1" 
+        height="0.45" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
+
+      <a-plane 
+        src="#layer9-middle" 
+        position="0 -0.11 0.90" 
+        rotation="-90 0 0" 
+        width="1" 
+        height="0.35" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
+
+      <a-plane 
+        src="#layer9-barca" 
+        position="0 -0.12 0.90" 
+        rotation="0 0 0" 
+        width="1" 
+        height="1" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
         
-        <a-plane 
-          src="#layer9-top" 
-           position="0 0.094 0.90" 
-          rotation="-90 0 0" 
-          width="1" 
-          height="0.45" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
+      <a-plane 
+        src="#layer9-floor" 
+        position="0 -0.499 0.90" 
+        rotation="-90 0 0" 
+        width="1" 
+        height="0.30" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
+      
+      <!-- LAYER 10 -->
+      <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
 
-        <a-plane 
-          src="#layer9-middle" 
-           position="0 -0.11 0.90" 
-          rotation="-90 0 0" 
-          width="1" 
-          height="0.35" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
-
-        <a-plane 
-          src="#layer9-barca" 
-           position="0 -0.12 0.90" 
-          rotation="0 0 0" 
-          width="1" 
-          height="1" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
-            
-        <a-plane 
-          src="#layer9-floor" 
-           position="0 -0.499 0.90" 
-          rotation="-90 0 0" 
-          width="1" 
-          height="0.30" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
-        
-        <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-
-      </a-entity>
-    </a-scene>
-  </body>
+    </a-entity>
+  </a-scene>
+</body>
 </html>
