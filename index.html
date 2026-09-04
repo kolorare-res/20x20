@@ -177,31 +177,46 @@ AFRAME.registerComponent('eyelid-blink', {
     // FINE MOVIMENTO OCCHI MOSTRO
 
 // 3. MONGOLFIERA (Oscillazione verticale morbida)
+// MONGOLFIERA (Fluttuazione Y da 0 a 0.16m + Dondolio su X e Rotazione Z)
 AFRAME.registerComponent('balloon-float', {
   schema: {
-    distanceY: { type: 'number', default: 0.16 }, // Escursione massima di 16 cm (0.16 m)
-    speed: { type: 'number', default: 0.0015 }     // Velocità dell'oscillazione
+    minY: { type: 'number', default: 0.0 },       // Quota Y minima (0 m)
+    maxY: { type: 'number', default: 0.16 },      // Quota Y massima (16 cm)
+    rangeX: { type: 'number', default: 0.02 },    // Oscillazione laterale su X (±2 cm)
+    rangeRotZ: { type: 'number', default: 1.5 },  // Dondolio in gradi (±1.5°)
+    speedY: { type: 'number', default: 0.0012 },  // Velocità salita/discesa
+    speedX: { type: 'number', default: 0.0008 }   // Velocità dondolio (sfalsata per naturalezza)
   },
 
   init: function () {
-    // Memorizza la posizione Y di partenza (centro base)
-    this.baseY = this.el.object3D.position.y;
-    this.time = 0;
+    this.baseX = this.el.object3D.position.x;
+    this.timeY = 0;
+    this.timeX = 0;
   },
 
   tick: function (t, dt) {
     if (!dt) return;
 
-    this.time += dt * this.data.speed;
+    this.timeY += dt * this.data.speedY;
+    this.timeX += dt * this.data.speedX;
 
-    // Movimento armonico sinusoidale tra baseY e (baseY + distanceY)
-    // usiamo (Math.sin() + 1) / 2 per oscillare tra 0 e 1 invece che tra -1 e 1
-    const offset = ((Math.sin(this.time) + 1) / 2) * this.data.distanceY;
+    // 1. Salita e discesa verticale tra minY (0) e maxY (0.16)
+    const factorY = (Math.sin(this.timeY) + 1) / 2;
+    const currentY = this.data.minY + factorY * (this.data.maxY - this.data.minY);
 
-    // Applica il nuovo valore Y lasciando invariate X e Z
-    this.el.object3D.position.y = this.baseY + offset;
+    // 2. Dondolio armonico laterale su X (±rangeX)
+    const offsetX = Math.sin(this.timeX) * this.data.rangeX;
+
+    // 3. Leggera inclinazione del pallone (Rotazione su Z in gradi)
+    const tiltZ = Math.cos(this.timeX) * this.data.rangeRotZ;
+
+    // Applicazione di posizione e rotazione
+    this.el.object3D.position.y = currentY;
+    this.el.object3D.position.x = this.baseX + offsetX;
+    this.el.object3D.rotation.z = THREE.MathUtils.degToRad(tiltZ);
   }
 });
+    // FINE MONGOLFIERA 
     
   </script>
 
@@ -291,11 +306,11 @@ AFRAME.registerComponent('balloon-float', {
      
 <a-plane 
   src="#layer1-mongolfiera" 
-  position="0 -0.49 0.10" 
-  rotation="-90 0 0" 
-  width="1" height="0.30" 
+  position="0 0 0.03" 
+  width="1" 
+  height="1" 
   material="transparent: true; alphaTest: 0.1; side: double;"
-  balloon-float="distanceY: 0.16; speed: 0.0015;">
+  balloon-float="minY: 0.0; maxY: 0.16; rangeX: 0.025; rangeRotZ: 2; speedY: 0.0012; speedX: 0.0009;">
 </a-plane>
 
       
