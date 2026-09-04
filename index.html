@@ -94,18 +94,19 @@ AFRAME.registerComponent('eye-movement', {
 // 2. PALPEBRA: Movimento di battito / scorrimento
 AFRAME.registerComponent('eyelid-blink', {
   schema: {
-    blinkDuration: { type: 'number', default: 160 }, // Durata della chiusura/riapertura (ms)
-    minPause: { type: 'number', default: 2000 },     // Pausa min tra battiti (ms)
-    maxPause: { type: 'number', default: 5500 },     // Pausa max tra battiti (ms)
-    blinkDistance: { type: 'number', default: 0.06 } // Escursione lungo Z della palpebra (meters)
+    closeDuration: { type: 'number', default: 1200 }, // Tempo di chiusura lento (1.2s)
+    holdClosed: { type: 'number', default: 300 },     // Tempo in cui resta chiusa (0.3s)
+    openDuration: { type: 'number', default: 1000 },  // Tempo di riapertura lento (1s)
+    minPause: { type: 'number', default: 6000 },     // Tempo minimo con OCCHIO APERTO (6s)
+    maxPause: { type: 'number', default: 12000 },    // Tempo massimo con OCCHIO APERTO (12s)
+    blinkDistanceX: { type: 'number', default: 0.15 } // Traslazione su X per coprire l'iride (metri)
   },
 
   init: function () {
-    this.baseZ = this.el.object3D.position.z;
-    this.isBlinking = false;
+    this.baseX = this.el.object3D.position.x;
+    this.state = 'OPEN'; // Stati: OPEN, CLOSING, HOLD, OPENING
     this.timer = 0;
-    this.blinkTimer = 0;
-    this.nextBlink = this.getRandomPause();
+    this.pauseDuration = this.getRandomPause();
   },
 
   getRandomPause: function () {
@@ -115,26 +116,55 @@ AFRAME.registerComponent('eyelid-blink', {
   tick: function (t, dt) {
     if (!dt) return;
 
-    if (!this.isBlinking) {
-      this.timer += dt;
-      if (this.timer >= this.nextBlink) {
-        this.isBlinking = true;
-        this.timer = 0;
-        this.blinkTimer = 0;
-      }
-    } else {
-      this.blinkTimer += dt;
-      const progress = this.blinkTimer / this.data.blinkDuration;
+    switch (this.state) {
+      case 'OPEN':
+        // L'occhio rimane completamente aperto per la maggior parte del tempo
+        this.timer += dt;
+        if (this.timer >= this.pauseDuration) {
+          this.state = 'CLOSING';
+          this.timer = 0;
+        }
+        break;
 
-      if (progress <= 1) {
-        // Avanza e torna indietro fluidamente con un'onda sinusoidale
-        const offset = Math.sin(progress * Math.PI) * this.data.blinkDistance;
-        this.el.object3D.position.z = this.baseZ + offset;
-      } else {
-        this.el.object3D.position.z = this.baseZ;
-        this.isBlinking = false;
-        this.nextBlink = this.getRandomPause();
-      }
+      case 'CLOSING':
+        // Chiusura lenta e graduale lungo l'asse X
+        this.timer += dt;
+        const closeProgress = Math.min(this.timer / this.data.closeDuration, 1);
+        // Easing morbido (Ease-In-Out)
+        const easeClose = 0.5 - Math.cos(closeProgress * Math.PI) / 2;
+        
+        this.el.object3D.position.x = this.baseX + (this.data.blinkDistanceX * easeClose);
+
+        if (closeProgress >= 1) {
+          this.state = 'HOLD';
+          this.timer = 0;
+        }
+        break;
+
+      case 'HOLD':
+        // Breve sosta ad occhio chiuso
+        this.timer += dt;
+        if (this.timer >= this.data.holdClosed) {
+          this.state = 'OPENING';
+          this.timer = 0;
+        }
+        break;
+
+      case 'OPENING':
+        // Riapertura graduale tornando alla posizione base X
+        this.timer += dt;
+        const openProgress = Math.min(this.timer / this.data.openDuration, 1);
+        const easeOpen = 0.5 - Math.cos(openProgress * Math.PI) / 2;
+
+        this.el.object3D.position.x = (this.baseX + this.data.blinkDistanceX) - (this.data.blinkDistanceX * easeOpen);
+
+        if (openProgress >= 1) {
+          this.el.object3D.position.x = this.baseX;
+          this.state = 'OPEN';
+          this.timer = 0;
+          this.pauseDuration = this.getRandomPause();
+        }
+        break;
     }
   }
 });
@@ -338,14 +368,13 @@ AFRAME.registerComponent('eyelid-blink', {
   material="transparent: true; alphaTest: 0.1; side: double;">
 </a-plane>
       
-      
 <a-plane 
   src="#layer-mostro-palpebra" 
   position="0 -0.495 0.35" 
   rotation="-90 0 0" 
   width="1" height="0.30" 
   material="transparent: true; alphaTest: 0.1; side: double;"
-  eyelid-blink="minPause: 2500; maxPause: 6000;">
+  eyelid-blink="blinkDistanceX: 0.15; minPause: 6000; maxPause: 12000; closeDuration: 1200; openDuration: 1000;">
 </a-plane>
       
        <a-plane 
