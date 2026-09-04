@@ -336,14 +336,14 @@ AFRAME.registerComponent('falling-particles', {
     for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
       this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${i}.png`);
     }
-
-    this.bounds = {
-      xMin: -0.480,
-      xMax: -0.100,
-      yMin: -0.325,
-      yMax: 0.150,
-      yKill: -0.600
-    };
+// NUOVI VALORI (Centrati su X = 0):
+this.bounds = {
+  xMin: -0.250,  // Esteso a sinistra del centro
+  xMax:  0.250,  // Esteso a destra del centro
+  yMin: -0.325,
+  yMax:  0.200,  // Un piccolo bonus: alzato leggermente il punto di spunto in alto
+  yKill: -0.600
+};
 
     const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
