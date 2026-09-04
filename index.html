@@ -66,6 +66,8 @@
         <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
             <img id="layer8-floor" src="./assets/layer8-floor.png" crossorigin="anonymous" />
         <img id="layer9" src="./assets/layer9.png" crossorigin="anonymous" />
+            <img id="layer9-barca" src="./assets/layer9-barca.png" crossorigin="anonymous" />
+            <img id="layer9-over" src="./assets/layer9-over.png" crossorigin="anonymous" />
             <img id="layer9-floor" src="./assets/layer9-floor.png" crossorigin="anonymous" />
             <img id="layer9-middle" src="./assets/layer9-middle.png" crossorigin="anonymous" />
             <img id="layer9-top" src="./assets/layer9-top.png" crossorigin="anonymous" />
@@ -108,6 +110,7 @@
         </a-plane>
 
         <a-plane src="#layer9" position="0 0 0.90" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+                <a-plane src="#layer9-over" position="0 0 0.92" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
         
         <a-plane 
           src="#layer9-top" 
@@ -126,7 +129,16 @@
           height="0.35" 
           material="transparent: true; alphaTest: 0.1; side: double;">
         </a-plane>
-        
+
+        <a-plane 
+          src="#layer9-barca" 
+           position="0 -0.12 0.90" 
+          rotation="0 0 0" 
+          width="1" 
+          height="1" 
+          material="transparent: true; alphaTest: 0.1; side: double;">
+        </a-plane>
+            
         <a-plane 
           src="#layer9-floor" 
            position="0 -0.499 0.90" 
