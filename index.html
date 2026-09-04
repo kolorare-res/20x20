@@ -1,24 +1,40 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Diorama AR - MindAR</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diorama WebAR - Animazione Particelle (Foglie e Lettere)</title>
 
-    <!-- Librerie A-Frame e MindAR -->
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+  <!-- Librerie A-Frame e MindAR -->
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
+  <script>
+    // Componente Smooth Tracker
+    AFRAME.registerComponent('smooth-tracker', {
+      schema: { factor: { type: 'number', default: 0.35 } },
+      init: function () {
+        this.hasTarget = false;
+        this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
+        this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
+      },
+      tick: function () {
+        if (!this.hasTarget) return;
+        const object3D = this.el.object3D;
+        if (this.prevPos) {
+          object3D.position.lerp(this.prevPos, 1 - this.data.factor);
+          object3D.quaternion.slerp(this.prevQuat, 1 - this.data.factor);
+        }
+        this.prevPos = object3D.position.clone();
+        this.prevQuat = object3D.quaternion.clone();
+      }
+    });
     <style>
       body {
         margin: 0;
         overflow: hidden;
       }
 
-      /* FIX: Rimuove forzatamente la schermata azzurra e gli overlay di MindAR */
-      .mindar-ui-loading,
-      .mindar-ui-overlay {
-        display: none !important;
-      }
     </style>
   </head>
 
