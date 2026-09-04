@@ -39,12 +39,18 @@
   </head>
 
   <body>
-    <a-scene
-      mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no;"
-      color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights: true"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false">
+      
+   <a-scene 
+    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5;" 
+    color-space="sRGB" 
+    renderer="colorManagement: true, physicallyCorrectLights; antialias: true;" 
+    vr-mode-ui="enabled: false" 
+    device-orientation-permission-ui="enabled: false">
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity id="ar-target" mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35"></a-entity>
+
+  </a-scene>
 
       <!-- CARICAMENTO ASSETS -->
       <a-assets>
