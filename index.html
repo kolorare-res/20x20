@@ -492,9 +492,9 @@ AFRAME.registerComponent('butterfly-3d-flight', {
 </a-plane> 
 
       <!-- FARFALLA 3D -->
-<!-- FARFALLA 3D (Y alzato a -0.15, ali ravvicinate al centro) -->
+<!-- FARFALLA 3D (Y alzato a 0.05 per sorvolare i fiori) -->
 <a-entity 
-  position="0.28 -0.15 1.05" 
+  position="0.28 0.05 1.05" 
   butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 50; flapSpeed: 0.012; flightSpeed: 0.001;">
   
   <!-- CORPO CENTRALE -->
@@ -505,7 +505,7 @@ AFRAME.registerComponent('butterfly-3d-flight', {
     material="transparent: true; alphaTest: 0.1; side: double;">
   </a-plane>
 
-  <!-- ALA SINISTRA (Accostata al centro) -->
+  <!-- ALA SINISTRA -->
   <a-entity class="wing-left" position="-0.002 0 0.001">
     <a-plane 
       src="#butterfly-wing-left" 
@@ -515,7 +515,7 @@ AFRAME.registerComponent('butterfly-3d-flight', {
     </a-plane>
   </a-entity>
 
-  <!-- ALA DESTRA (Accostata al centro e leggermente sfalsata su Z) -->
+  <!-- ALA DESTRA -->
   <a-entity class="wing-right" position="0.002 0 0.002">
     <a-plane 
       src="#butterfly-wing-right" 
@@ -525,6 +525,7 @@ AFRAME.registerComponent('butterfly-3d-flight', {
     </a-plane>
   </a-entity>
 
+</a-entity>
 </a-entity>
 
       
