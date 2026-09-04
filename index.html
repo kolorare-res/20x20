@@ -37,15 +37,25 @@
       overflow: hidden;
     }
 
-    /* Rimuove la schermata/overlay azzurro di MindAR */
-    .mindar-ui-loading,
-    .mindar-ui-overlay {
+    /* Rimuove lo spinner e la schermata azzurra di caricamento di MindAR */
+    .mindar-ui-loading, 
+    div[class*="mindar-ui-loading"] {
       display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    /* Forza la trasparenza su tutti gli elementi overlay e contenitori MindAR per evitare il fondo azzurro */
+    .mindar-ui-overlay, 
+    div[class*="mindar-ui"] {
+      background: transparent !important;
+      background-color: transparent !important;
     }
   </style>
 </head>
 
 <body>
+  <!-- uiLoading: no disabilita il caricamento nativo HTML di MindAR -->
   <a-scene 
     mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; uiLoading: no;" 
     color-space="sRGB" 
