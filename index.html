@@ -177,15 +177,15 @@ AFRAME.registerComponent('eyelid-blink', {
     // FINE MOVIMENTO OCCHI MOSTRO
 
 // 3. MONGOLFIERA (Oscillazione verticale morbida)
-// MONGOLFIERA (Fluttuazione Y da 0 a 0.16m + Dondolio su X e Rotazione Z)
+// MONGOLFIERA (Fluttuazione impercettibile e maestosa)
 AFRAME.registerComponent('balloon-float', {
   schema: {
     minY: { type: 'number', default: 0.0 },       // Quota Y minima (0 m)
     maxY: { type: 'number', default: 0.16 },      // Quota Y massima (16 cm)
-    rangeX: { type: 'number', default: 0.02 },    // Oscillazione laterale su X (±2 cm)
-    rangeRotZ: { type: 'number', default: 1.5 },  // Dondolio in gradi (±1.5°)
-    speedY: { type: 'number', default: 0.0012 },  // Velocità salita/discesa
-    speedX: { type: 'number', default: 0.0008 }   // Velocità dondolio (sfalsata per naturalezza)
+    rangeX: { type: 'number', default: 0.015 },   // Micro-spostamento laterale su X (±1.5 cm)
+    rangeRotZ: { type: 'number', default: 0.8 },  // Inclinazione quasi impercettibile (±0.8°)
+    speedY: { type: 'number', default: 0.00025 }, // Salita/discesa ultra-lenta (~25 secondi per ciclo)
+    speedX: { type: 'number', default: 0.00018 }  // Dondolio armonico su tempi lunghi
   },
 
   init: function () {
@@ -200,22 +200,23 @@ AFRAME.registerComponent('balloon-float', {
     this.timeY += dt * this.data.speedY;
     this.timeX += dt * this.data.speedX;
 
-    // 1. Salita e discesa verticale tra minY (0) e maxY (0.16)
+    // 1. Salita e discesa verticale da 0 a 0.16m
     const factorY = (Math.sin(this.timeY) + 1) / 2;
     const currentY = this.data.minY + factorY * (this.data.maxY - this.data.minY);
 
-    // 2. Dondolio armonico laterale su X (±rangeX)
+    // 2. Fluttuazione orizzontale impercettibile su X
     const offsetX = Math.sin(this.timeX) * this.data.rangeX;
 
-    // 3. Leggera inclinazione del pallone (Rotazione su Z in gradi)
+    // 3. Inclinazione minima e morbida su Z
     const tiltZ = Math.cos(this.timeX) * this.data.rangeRotZ;
 
-    // Applicazione di posizione e rotazione
+    // Applica le trasformazioni
     this.el.object3D.position.y = currentY;
     this.el.object3D.position.x = this.baseX + offsetX;
     this.el.object3D.rotation.z = THREE.MathUtils.degToRad(tiltZ);
   }
 });
+    
     // FINE MONGOLFIERA 
 
 // 4. BARCA: Beccheggio e galleggiamento sull'acqua
@@ -340,7 +341,7 @@ AFRAME.registerComponent('boat-pitch', {
   width="1" 
   height="1" 
   material="transparent: true; alphaTest: 0.1; side: double;"
-  balloon-float="minY: 0.0; maxY: 0.16; rangeX: 0.025; rangeRotZ: 2; speedY: 0.0012; speedX: 0.0009;">
+  balloon-float="minY: 0.0; maxY: 0.2; rangeX: 0.015; rangeRotZ: 0.8; speedY: 0.00025; speedX: 0.00018;">
 </a-plane>
 
       
