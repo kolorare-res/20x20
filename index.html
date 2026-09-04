@@ -310,10 +310,13 @@ AFRAME.registerComponent('butterfly-3d-flight', {
 // FINE FARFALLA
 
 // 6. FOGLIE
+// ==========================================
+// COMPONENTE PARTICELLE CADENTI (Layer 6)
+// ==========================================
 AFRAME.registerComponent('falling-particles', {
   schema: {
     count: { type: 'int', default: 22 },
-    zPos: { type: 'number', default: 0.60 },        // Ancorato al Layer 6
+    zPos: { type: 'number', default: 0.60 },
     zVariance: { type: 'number', default: 0.01 },
     baseSizeMin: { type: 'number', default: 0.010 },
     baseSizeMax: { type: 'number', default: 0.030 },
@@ -321,36 +324,36 @@ AFRAME.registerComponent('falling-particles', {
     fallSpeedMax: { type: 'number', default: 0.0009 },
     swayAmp: { type: 'number', default: 0.025 },
     enable3DRotation: { type: 'boolean', default: true },
-    // Configurazione cartella e numerazione asset
+    // Configurazione aggiornata cartella e file
     assetFolder: { type: 'string', default: './assets/foglie/' },
-    assetPrefix: { type: 'string', default: 'layer6-' },
-    assetStart: { type: 'int', default: 11 },
-    assetEnd: { type: 'int', default: 28 }
+    assetPrefix: { type: 'string', default: 'layer6-foglie-' },
+    assetStart: { type: 'int', default: 1 },
+    assetEnd: { type: 'int', default: 18 }
   },
 
   init: function () {
     this.particles = [];
     
-    // Genera l'array di percorsi delle immagini (es. ./assets/foglie/layer6-11.png ... layer6-28.png)
+    // Genera l'array di percorsi: ./assets/foglie/layer6-foglie-01.png ... layer6-foglie-18.png
     this.textureUrls = [];
     for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
-      this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${i}.png`);
+      const numStr = i.toString().padStart(2, '0'); // Trasforma 1 in "01", 2 in "02", ecc.
+      this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
     }
-// NUOVI VALORI (Centrati su X = 0):
-this.bounds = {
-  xMin: -0.250,  // Esteso a sinistra del centro
-  xMax:  0.250,  // Esteso a destra del centro
-  yMin: -0.325,
-  yMax:  0.200,  // Un piccolo bonus: alzato leggermente il punto di spunto in alto
-  yKill: -0.600
-};
+
+    this.bounds = {
+      xMin: -0.250,
+      xMax:  0.250,
+      yMin: -0.325,
+      yMax:  0.200,
+      yKill: -0.600
+    };
 
     const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
     for (let i = 0; i < this.data.count; i++) {
       const pEl = document.createElement('a-plane');
       
-      // Sceglie una texture a caso tra quelle generate
       const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
       const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
       
@@ -419,6 +422,7 @@ this.bounds = {
     });
   }
 });
+    
 // FINE FOGLIE
     
   </script>
