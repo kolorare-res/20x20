@@ -29,14 +29,15 @@
         this.prevQuat = object3D.quaternion.clone();
       }
     });
-      // MOVIMENTO OCCHI MOSTRO
-// 1. IRIDE: Movimento biologico iper-scattante (saccadi reali)
+     // MOVIMENTO OCCHI MOSTRO
+// 1. IRIDE: Movimento biologico iper-scattante con bilanciamento verso l'utente
 AFRAME.registerComponent('eye-movement', {
   schema: {
     rangeZ: { type: 'number', default: 0.0065 },    // Escursione di 1.3 cm totali (±0.65 cm dal centro)
     minPause: { type: 'number', default: 400 },      // Pausa minima tra le occhiate (0.4s)
     maxPause: { type: 'number', default: 1800 },     // Pausa massima tra le occhiate (1.8s)
-    moveDuration: { type: 'number', default: 90 }    // Scatto ultra-rapido (90 ms per un effetto fulmineo)
+    moveDuration: { type: 'number', default: 90 },    // Scatto ultra-rapido (90 ms)
+    userBias: { type: 'number', default: 0.6 }       // 60% di priorità a guardare in avanti (spettatore)
   },
 
   init: function () {
@@ -55,8 +56,10 @@ AFRAME.registerComponent('eye-movement', {
   },
 
   getRandomTargetZ: function () {
-    const randomOffset = (Math.random() * 2 - 1) * this.data.rangeZ;
-    return this.baseZ + randomOffset;
+    // Bilancia la direzione per spingere l'iride verso lo spettatore (Z > 0.35)
+    const direction = Math.random() < this.data.userBias ? 1 : -1;
+    const intensity = Math.random() * this.data.rangeZ;
+    return this.baseZ + (direction * intensity);
   },
 
   tick: function (t, dt) {
@@ -66,7 +69,7 @@ AFRAME.registerComponent('eye-movement', {
       this.moveTimer += dt;
       const progress = Math.min(this.moveTimer / this.data.moveDuration, 1);
       
-      // Funzione di easing "Expo Out" per un arresto immediato e deciso
+      // Funzione di easing "Expo Out" per arresto immediato
       const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       
       const newZ = this.currentZ + (this.targetZ - this.currentZ) * easeProgress;
@@ -88,9 +91,9 @@ AFRAME.registerComponent('eye-movement', {
       }
     }
   }
-});   
+});
 
-
+    
 // 2. PALPEBRA: Movimento di battito / scorrimento
 AFRAME.registerComponent('eyelid-blink', {
   schema: {
