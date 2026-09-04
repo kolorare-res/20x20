@@ -252,15 +252,14 @@ AFRAME.registerComponent('boat-pitch', {
 // 5. FARFALLA 3D: Battito ali incernierato + Traiettoria organica
 AFRAME.registerComponent('butterfly-3d-flight', {
   schema: {
-    radiusX: { type: 'number', default: 0.12 },     // Raggio di volo attorno ai fiori
-    radiusY: { type: 'number', default: 0.08 },
+    radiusX: { type: 'number', default: 0.14 },
+    radiusY: { type: 'number', default: 0.09 },
     flapAngle: { type: 'number', default: 50 },
-    flapSpeed: { type: 'number', default: 0.02 },
+    flapSpeed: { type: 'number', default: 0.012 }, // Rallentato per un battito più naturale
     flightSpeed: { type: 'number', default: 0.001 }
   },
 
   init: function () {
-    // Origine ancorata sulla zona fiori
     this.centerX = this.el.object3D.position.x;
     this.centerY = this.el.object3D.position.y;
     this.centerZ = this.el.object3D.position.z;
@@ -270,7 +269,6 @@ AFRAME.registerComponent('butterfly-3d-flight', {
 
     this.timeFlight = 0;
     this.timeFlap = 0;
-    this.prevPos = new THREE.Vector3();
   },
 
   tick: function (t, dt) {
@@ -279,10 +277,10 @@ AFRAME.registerComponent('butterfly-3d-flight', {
     this.timeFlight += dt * this.data.flightSpeed;
     this.timeFlap += dt * this.data.flapSpeed;
 
-    // 1. Traiettoria sfasata attorno ai fiori + escursione su Z verso l'utente
+    // Traiettoria attorno ai fiori + avanzamento su Z
     const offsetX = Math.sin(this.timeFlight) * this.data.radiusX;
     const offsetY = Math.sin(this.timeFlight * 2) * this.data.radiusY;
-    const offsetZ = Math.cos(this.timeFlight * 1.5) * 0.06; // Esce fino a Z = 1.11
+    const offsetZ = Math.cos(this.timeFlight * 1.5) * 0.06;
 
     const currentPos = new THREE.Vector3(
       this.centerX + offsetX,
@@ -290,19 +288,17 @@ AFRAME.registerComponent('butterfly-3d-flight', {
       this.centerZ + offsetZ
     );
 
-    // 2. Orientamento tridimensionale del corpo lungo la direzione di volo
+    // Orientamento del corpo lungo il vettore di spostamento
     const dir = new THREE.Vector3().subVectors(currentPos, this.el.object3D.position);
     if (dir.lengthSq() > 0.00001) {
-      // Orienta la testa verso la direzione di spostamento
       const angleZ = Math.atan2(dir.y, dir.x) - Math.PI / 2;
       this.el.object3D.rotation.z = angleZ;
-      // Inclinazione dinamica su X basata sulla salita/discesa
       this.el.object3D.rotation.x = dir.z * 5;
     }
 
     this.el.object3D.position.copy(currentPos);
 
-    // 3. Battito d'ali 3D
+    // Battito d'ali 3D
     if (this.leftWing && this.rightWing) {
       const flapRad = THREE.MathUtils.degToRad(Math.sin(this.timeFlap) * this.data.flapAngle);
       this.leftWing.object3D.rotation.y = flapRad;
@@ -496,10 +492,10 @@ AFRAME.registerComponent('butterfly-3d-flight', {
 </a-plane> 
 
       <!-- FARFALLA 3D -->
-<!-- FARFALLA 3D ANCORATA AI FIORI (X: 0.28, Y: -0.25, Z: 1.05) -->
+<!-- FARFALLA 3D (Y alzato a -0.15, ali ravvicinate al centro) -->
 <a-entity 
-  position="0.28 -0.25 1.05" 
-  butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 55; flapSpeed: 0.022; flightSpeed: 0.0012;">
+  position="0.28 -0.15 1.05" 
+  butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 50; flapSpeed: 0.012; flightSpeed: 0.001;">
   
   <!-- CORPO CENTRALE -->
   <a-plane 
@@ -509,8 +505,8 @@ AFRAME.registerComponent('butterfly-3d-flight', {
     material="transparent: true; alphaTest: 0.1; side: double;">
   </a-plane>
 
-  <!-- ALA SINISTRA (Incernierata sul bordo destro dell'immagine) -->
-  <a-entity class="wing-left" position="-0.01 0 0.001">
+  <!-- ALA SINISTRA (Accostata al centro) -->
+  <a-entity class="wing-left" position="-0.002 0 0.001">
     <a-plane 
       src="#butterfly-wing-left" 
       position="-0.035 0 0" 
@@ -519,8 +515,8 @@ AFRAME.registerComponent('butterfly-3d-flight', {
     </a-plane>
   </a-entity>
 
-  <!-- ALA DESTRA (Incernierata sul bordo sinistro dell'immagine) -->
-  <a-entity class="wing-right" position="0.01 0 0.001">
+  <!-- ALA DESTRA (Accostata al centro e leggermente sfalsata su Z) -->
+  <a-entity class="wing-right" position="0.002 0 0.002">
     <a-plane 
       src="#butterfly-wing-right" 
       position="0.035 0 0" 
