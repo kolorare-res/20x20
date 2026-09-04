@@ -175,6 +175,33 @@ AFRAME.registerComponent('eyelid-blink', {
   }
 });
     // FINE MOVIMENTO OCCHI MOSTRO
+
+// 3. MONGOLFIERA (Oscillazione verticale morbida)
+AFRAME.registerComponent('balloon-float', {
+  schema: {
+    distanceY: { type: 'number', default: 0.16 }, // Escursione massima di 16 cm (0.16 m)
+    speed: { type: 'number', default: 0.0015 }     // Velocità dell'oscillazione
+  },
+
+  init: function () {
+    // Memorizza la posizione Y di partenza (centro base)
+    this.baseY = this.el.object3D.position.y;
+    this.time = 0;
+  },
+
+  tick: function (t, dt) {
+    if (!dt) return;
+
+    this.time += dt * this.data.speed;
+
+    // Movimento armonico sinusoidale tra baseY e (baseY + distanceY)
+    // usiamo (Math.sin() + 1) / 2 per oscillare tra 0 e 1 invece che tra -1 e 1
+    const offset = ((Math.sin(this.time) + 1) / 2) * this.data.distanceY;
+
+    // Applica il nuovo valore Y lasciando invariate X e Z
+    this.el.object3D.position.y = this.baseY + offset;
+  }
+});
     
   </script>
 
@@ -262,8 +289,16 @@ AFRAME.registerComponent('eyelid-blink', {
       <!-- 11 LAYER VERTICALI E MENSELE -->
       <a-plane src="#layer0" position="0 0 0.01" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
      
-      <a-plane src="#layer1-mongolfiera" position="0 0 0.03" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+<a-plane 
+  src="#layer1-mongolfiera" 
+  position="0 -0.49 0.10" 
+  rotation="-90 0 0" 
+  width="1" height="0.30" 
+  material="transparent: true; alphaTest: 0.1; side: double;"
+  balloon-float="distanceY: 0.16; speed: 0.0015;">
+</a-plane>
 
+      
       <a-plane src="#layer1" position="0 0 0.05" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane 
   src="#layer1-floor" 
