@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Composizione con PNG Assets</title>
+  <title>Test Composizione Assets</title>
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <style>
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #111; }
@@ -11,10 +11,9 @@
 </head>
 <body>
 
+  <!-- timeout="1000" forza la scena a caricarsi anche se un'immagine manca -->
   <a-scene vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-    
-    <!-- Caricamento delle Asset PNG dal tuo repository -->
-    <a-assets>
+    <a-assets timeout="1000">
       <img id="img-base" src="assets/base.png">
       <img id="img-lago" src="assets/layer9-middle.png">
       <img id="img-barca" src="assets/layer9-barca.png">
@@ -25,15 +24,13 @@
 
     <a-entity id="opera" position="0 0 0">
       
-      <!-- 1. SFONDO: Sfondo base della stampa (Piano Z: 0) -->
+      <!-- 1. SFONDO BASE -->
       <a-plane position="0 0 0" width="0.8" height="0.8" src="#img-base" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
 
-      <!-- 2. LAMPIONE + CONO DI LUCE (Piano Z: 0.08) -->
+      <!-- 2. LAMPIONE + CONO DI LUCE -->
       <a-entity id="gruppo-lampione" position="0.18 0.05 0.08">
-        <!-- Asset Lampione -->
         <a-plane width="0.4" height="0.6" src="#img-lampione" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
         
-        <!-- Cono di Luce (Semi-trasparente, depthWrite: false per non coprire gli elementi dietro) -->
         <a-cone 
           position="-0.12 -0.1 0.02" 
           radius-bottom="0.2" 
@@ -44,12 +41,10 @@
         </a-cone>
       </a-entity>
 
-      <!-- 3. BASE LAGO + BARCA (Piano Z: 0.12 - 0.15) -->
+      <!-- 3. BASE LAGO + BARCA -->
       <a-entity id="gruppo-acqua" position="-0.18 -0.2 0.12">
-        <!-- Asset Lago/Middle Base -->
         <a-plane width="0.4" height="0.3" src="#img-lago" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
         
-        <!-- Asset Barca con galleggiamento animato -->
         <a-plane 
           id="barca" 
           width="0.2" 
@@ -61,7 +56,7 @@
         </a-plane>
       </a-entity>
 
-      <!-- 4. PARTICELE / LETTERE FLUTTUANTI -->
+      <!-- 4. LETTERE FLUTTUANTI -->
       <a-text value="A" position="0.1 0.2 0.1" scale="0.15 0.15 0.15" color="#1a1a1a"
               animation="property: position; to: -0.1 -0.15 0.1; dur: 4500; loop: true; easing: linear">
       </a-text>
