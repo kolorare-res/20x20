@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove - Rendering Diretto</title>
+  <title>Altrove - Test Base64</title>
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <style>
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #111; }
@@ -11,43 +11,42 @@
 </head>
 <body>
 
-  <!-- loading-screen="enabled: false" rimuove fisicamente la schermata azzurra con i 3 puntini -->
   <a-scene embedded loading-screen="enabled: false" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
     
     <a-camera position="0 0 1.2" look-controls="enabled: true" wasd-controls="enabled: false"></a-camera>
 
     <a-entity id="opera" position="0 0 0">
       
-      <!-- 1. BASE: Sfondo -->
+      <!-- 1. BASE: Sfondo di prova con Shader Flat (Verifica visibilità immediata) -->
       <a-plane 
         position="0 0 0" 
         width="0.8" 
         height="0.8" 
-        material="shader: flat; src: url(assets/base.png); transparent: true; alphaTest: 0.1; side: double">
+        material="shader: flat; color: #222222; side: double">
       </a-plane>
 
-      <!-- 2. VEGETAZIONE -->
+      <!-- 2. VEGETAZIONE: Placeholder visivo trasparente -->
       <a-plane 
         position="-0.22 0.15 0.05" 
         width="0.45" 
         height="0.45" 
-        material="shader: flat; src: url(assets/layer6.png); transparent: true; alphaTest: 0.1; side: double">
+        material="shader: flat; color: #2e5a3c; transparent: true; opacity: 0.6; side: double">
       </a-plane>
 
-      <!-- 3. LAMPIONE CON FASCIO DI LUCE -->
+      <!-- 3. LAMPIONE CON FASCIO DI LUCE: Placeholder visivo -->
       <a-plane 
         position="0.12 0.02 0.08" 
         width="0.55" 
         height="0.55" 
-        material="shader: flat; src: url(assets/layer8.png); transparent: true; alphaTest: 0.1; side: double">
+        material="shader: flat; color: #d1b838; transparent: true; opacity: 0.6; side: double">
       </a-plane>
 
-      <!-- 4. LAGO E BARCA -->
+      <!-- 4. LAGO E BARCA: Placeholder visivo -->
       <a-entity id="gruppo-viaggio" position="-0.15 -0.18 0.12">
         <a-plane 
           width="0.45" 
           height="0.45" 
-          material="shader: flat; src: url(assets/layer9-middle.png); transparent: true; alphaTest: 0.1; side: double">
+          material="shader: flat; color: #326485; transparent: true; opacity: 0.6; side: double">
         </a-plane>
         
         <a-plane 
@@ -55,17 +54,17 @@
           width="0.25" 
           height="0.25" 
           position="-0.02 0.01 0.03" 
-          material="shader: flat; src: url(assets/layer9-barca.png); transparent: true; alphaTest: 0.1; side: double"
+          material="shader: flat; color: #e6e6e6; transparent: true; opacity: 0.8; side: double"
           animation="property: position; to: -0.02 0.025 0.03; dir: alternate; dur: 2400; loop: true; easing: sine">
         </a-plane>
       </a-entity>
 
       <!-- 5. LETTERE FLUTTUANTI -->
-      <a-text value="A" position="0.08 0.15 0.1" scale="0.12 0.12 0.12" color="#1a1a1a"
+      <a-text value="A" position="0.08 0.15 0.1" scale="0.12 0.12 0.12" color="#ffffff"
               animation="property: position; to: -0.08 -0.12 0.1; dur: 4800; loop: true; easing: linear">
       </a-text>
 
-      <a-text value="M" position="-0.02 0.2 0.09" scale="0.11 0.11 0.11" color="#1a1a1a"
+      <a-text value="M" position="-0.02 0.2 0.09" scale="0.11 0.11 0.11" color="#ffffff"
               animation="property: position; to: -0.18 -0.1 0.09; dur: 5800; loop: true; easing: linear; delay: 900">
       </a-text>
 
