@@ -145,6 +145,7 @@
 
       <img id="layer6" src="./assets/layer6.png" crossorigin="anonymous" />
       <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
+      <img id="layer8" src="./assets/layer8-floor.png" crossorigin="anonymous" />
       
       <!-- Asset Layer 9 -->
       <img id="layer9" src="./assets/layer9.png" crossorigin="anonymous" />
@@ -174,8 +175,8 @@
       <a-plane opt-plane id="LAYER-0" src="#layer0" position="0.000 0.000 0.010" rotation="0.0 0.0 0.0" width="1" height="1"></a-plane>
      
       <!-- LAYER 3 e 4 -->
-      <a-plane src="#layer3" position="0.325 0 0.10" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer4" position="-0.485 0 0.20" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer3" position="0.325 0 0.05" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer4" position="-0.5 0 0.10" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
 
       
       <!-- GRUPPO LAYER 6 + FOGLIE IN AVANTI -->
@@ -186,7 +187,14 @@
 
       <!-- LAYER 8 -->
       <a-plane opt-plane id="LAYER-8" src="#layer8" position="0.000 0.000 0.620" rotation="0.0 45.0 0.0" width="1" height="1"></a-plane>
-
+<a-plane 
+        src="#layer8-floor" 
+        position="0 -0.499 0.620" 
+        rotation="-90 45.0 0" 
+        width="1" height="0.20" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
+      
       <!-- GRUPPO LAYER 9 -->
       <a-entity id="GROUP-LAYER-9" position="0.000 0.000 0.530" rotation="0.0 -30.5 0.0">
         <a-plane opt-plane src="#layer9" position="0 0 0" width="1" height="1"></a-plane>
@@ -199,8 +207,8 @@
       </a-entity>
 
       <!-- GRUPPO LAYER 10 -->
-      <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer10-back" position="0 0 0.98" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer10" position="0 0 0.8" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer10-back" position="0 0 0.88" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane 
         src="#layer10-floor" 
         position="0 -0.499 0.935" 
