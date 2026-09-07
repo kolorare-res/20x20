@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <script>
-    // Componente Smooth Tracker
+    // 1. SMOOTH TRACKER
     AFRAME.registerComponent('smooth-tracker', {
       schema: { factor: { type: 'number', default: 0.35 } },
       init: function () {
@@ -29,394 +29,305 @@
         this.prevQuat = object3D.quaternion.clone();
       }
     });
-     // MOVIMENTO OCCHI MOSTRO
-// 1. IRIDE: Movimento biologico iper-scattante con bilanciamento verso l'utente
-AFRAME.registerComponent('eye-movement', {
-  schema: {
-    rangeZ: { type: 'number', default: 0.0065 },    // Escursione di 1.3 cm totali (±0.65 cm dal centro)
-    minPause: { type: 'number', default: 400 },      // Pausa minima tra le occhiate (0.4s)
-    maxPause: { type: 'number', default: 1800 },     // Pausa massima tra le occhiate (1.8s)
-    moveDuration: { type: 'number', default: 90 },    // Scatto ultra-rapido (90 ms)
-    userBias: { type: 'number', default: 0.6 }       // 60% di priorità a guardare in avanti (spettatore)
-  },
 
-  init: function () {
-    this.baseZ = this.el.object3D.position.z;
-    this.currentZ = this.baseZ;
-    this.targetZ = this.baseZ;
-    
-    this.isMoving = false;
-    this.moveTimer = 0;
-    this.pauseTimer = 0;
-    this.pauseDuration = this.getRandomPause();
-  },
-
-  getRandomPause: function () {
-    return Math.random() * (this.data.maxPause - this.data.minPause) + this.data.minPause;
-  },
-
-  getRandomTargetZ: function () {
-    // Bilancia la direzione per spingere l'iride verso lo spettatore (Z > 0.35)
-    const direction = Math.random() < this.data.userBias ? 1 : -1;
-    const intensity = Math.random() * this.data.rangeZ;
-    return this.baseZ + (direction * intensity);
-  },
-
-  tick: function (t, dt) {
-    if (!dt) return;
-
-    if (this.isMoving) {
-      this.moveTimer += dt;
-      const progress = Math.min(this.moveTimer / this.data.moveDuration, 1);
-      
-      // Funzione di easing "Expo Out" per arresto immediato
-      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      
-      const newZ = this.currentZ + (this.targetZ - this.currentZ) * easeProgress;
-      this.el.object3D.position.z = newZ;
-
-      if (progress >= 1) {
+    // 2. MOVIMENTO OCCHI MOSTRO (IRIDE)
+    AFRAME.registerComponent('eye-movement', {
+      schema: {
+        rangeZ: { type: 'number', default: 0.0065 },
+        minPause: { type: 'number', default: 400 },
+        maxPause: { type: 'number', default: 1800 },
+        moveDuration: { type: 'number', default: 90 },
+        userBias: { type: 'number', default: 0.6 }
+      },
+      init: function () {
+        this.baseZ = this.el.object3D.position.z;
+        this.currentZ = this.baseZ;
+        this.targetZ = this.baseZ;
         this.isMoving = false;
-        this.currentZ = this.targetZ;
+        this.moveTimer = 0;
         this.pauseTimer = 0;
         this.pauseDuration = this.getRandomPause();
-      }
-    } else {
-      this.pauseTimer += dt;
-      
-      if (this.pauseTimer >= this.pauseDuration) {
-        this.targetZ = this.getRandomTargetZ();
-        this.isMoving = true;
-        this.moveTimer = 0;
-      }
-    }
-  }
-});
-
-    
-// 2. PALPEBRA: Movimento di battito / scorrimento
-// 2. PALPEBRA (Immagine sorgente CHIUSA, occhio prevalentemente APERTO)
-AFRAME.registerComponent('eyelid-blink', {
-  schema: {
-    closeDuration: { type: 'number', default: 150 },  // Scatto di chiusura rapido (ms)
-    holdClosed: { type: 'number', default: 200 },     // Tempo ad occhio chiuso durante il battito (ms)
-    openDuration: { type: 'number', default: 250 },   // Riapertura rapida (ms)
-    minPause: { type: 'number', default: 4000 },      // Tempo minimo ad OCCHIO APERTO (4s)
-    maxPause: { type: 'number', default: 9000 },      // Tempo massimo ad OCCHIO APERTO (9s)
-    blinkDistanceX: { type: 'number', default: 0.15 } // Traslazione per scoprire l'occhio (m)
-  },
-
-  init: function () {
-    this.baseX = this.el.object3D.position.x;
-    // Imposta la posizione iniziale ad OCCHIO APERTO (traslato su X)
-    this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
-    
-    this.state = 'OPEN'; // Stati: OPEN, CLOSING, HOLD_CLOSED, OPENING
-    this.timer = 0;
-    this.pauseDuration = this.getRandomPause();
-  },
-
-  getRandomPause: function () {
-    return Math.random() * (this.data.maxPause - this.data.minPause) + this.data.minPause;
-  },
-
-  tick: function (t, dt) {
-    if (!dt) return;
-
-    switch (this.state) {
-      case 'OPEN':
-        // L'occhio rimane APERTO (traslato) per la maggior parte del tempo (4-9s)
-        this.timer += dt;
-        if (this.timer >= this.pauseDuration) {
-          this.state = 'CLOSING';
-          this.timer = 0;
+      },
+      getRandomPause: function () {
+        return Math.random() * (this.data.maxPause - this.data.minPause) + this.data.minPause;
+      },
+      getRandomTargetZ: function () {
+        const direction = Math.random() < this.data.userBias ? 1 : -1;
+        const intensity = Math.random() * this.data.rangeZ;
+        return this.baseZ + (direction * intensity);
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        if (this.isMoving) {
+          this.moveTimer += dt;
+          const progress = Math.min(this.moveTimer / this.data.moveDuration, 1);
+          const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+          const newZ = this.currentZ + (this.targetZ - this.currentZ) * easeProgress;
+          this.el.object3D.position.z = newZ;
+          if (progress >= 1) {
+            this.isMoving = false;
+            this.currentZ = this.targetZ;
+            this.pauseTimer = 0;
+            this.pauseDuration = this.getRandomPause();
+          }
+        } else {
+          this.pauseTimer += dt;
+          if (this.pauseTimer >= this.pauseDuration) {
+            this.targetZ = this.getRandomTargetZ();
+            this.isMoving = true;
+            this.moveTimer = 0;
+          }
         }
-        break;
-
-      case 'CLOSING':
-        // La palpebra torna alla posizione base (copre l'iride per chiudere)
-        this.timer += dt;
-        const closeProgress = Math.min(this.timer / this.data.closeDuration, 1);
-        const easeClose = 0.5 - Math.cos(closeProgress * Math.PI) / 2;
-        
-        this.el.object3D.position.x = (this.baseX + this.data.blinkDistanceX) - (this.data.blinkDistanceX * easeClose);
-
-        if (closeProgress >= 1) {
-          this.state = 'HOLD_CLOSED';
-          this.timer = 0;
-        }
-        break;
-
-      case 'HOLD_CLOSED':
-        // Breve pausa a palpebra chiusa
-        this.timer += dt;
-        if (this.timer >= this.data.holdClosed) {
-          this.state = 'OPENING';
-          this.timer = 0;
-        }
-        break;
-
-      case 'OPENING':
-        // Si sposta di nuovo via per riaprire l'occhio
-        this.timer += dt;
-        const openProgress = Math.min(this.timer / this.data.openDuration, 1);
-        const easeOpen = 0.5 - Math.cos(openProgress * Math.PI) / 2;
-
-        this.el.object3D.position.x = this.baseX + (this.data.blinkDistanceX * easeOpen);
-
-        if (openProgress >= 1) {
-          this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
-          this.state = 'OPEN';
-          this.timer = 0;
-          this.pauseDuration = this.getRandomPause();
-        }
-        break;
-    }
-  }
-});
-    // FINE MOVIMENTO OCCHI MOSTRO
-
-// 3. MONGOLFIERA (Oscillazione verticale morbida)
-// MONGOLFIERA (Fluttuazione impercettibile e maestosa)
-AFRAME.registerComponent('balloon-float', {
-  schema: {
-    minY: { type: 'number', default: 0.0 },       // Quota Y minima (0 m)
-    maxY: { type: 'number', default: 0.16 },      // Quota Y massima (16 cm)
-    rangeX: { type: 'number', default: 0.015 },   // Micro-spostamento laterale su X (±1.5 cm)
-    rangeRotZ: { type: 'number', default: 0.8 },  // Inclinazione quasi impercettibile (±0.8°)
-    speedY: { type: 'number', default: 0.00025 }, // Salita/discesa ultra-lenta (~25 secondi per ciclo)
-    speedX: { type: 'number', default: 0.00018 }  // Dondolio armonico su tempi lunghi
-  },
-
-  init: function () {
-    this.baseX = this.el.object3D.position.x;
-    this.timeY = 0;
-    this.timeX = 0;
-  },
-
-  tick: function (t, dt) {
-    if (!dt) return;
-
-    this.timeY += dt * this.data.speedY;
-    this.timeX += dt * this.data.speedX;
-
-    // 1. Salita e discesa verticale da 0 a 0.16m
-    const factorY = (Math.sin(this.timeY) + 1) / 2;
-    const currentY = this.data.minY + factorY * (this.data.maxY - this.data.minY);
-
-    // 2. Fluttuazione orizzontale impercettibile su X
-    const offsetX = Math.sin(this.timeX) * this.data.rangeX;
-
-    // 3. Inclinazione minima e morbida su Z
-    const tiltZ = Math.cos(this.timeX) * this.data.rangeRotZ;
-
-    // Applica le trasformazioni
-    this.el.object3D.position.y = currentY;
-    this.el.object3D.position.x = this.baseX + offsetX;
-    this.el.object3D.rotation.z = THREE.MathUtils.degToRad(tiltZ);
-  }
-});
-    
-    // FINE MONGOLFIERA 
-
-// 4. BARCA: Beccheggio e galleggiamento sull'acqua
-AFRAME.registerComponent('boat-pitch', {
-  schema: {
-    pitchDeg: { type: 'number', default: 3.5 },   // Inclinazione massima di beccheggio (±3.5°)
-    bobY: { type: 'number', default: 0.008 },      // Galleggiamento verticale su Y (±8 mm)
-    speed: { type: 'number', default: 0.002 }      // Velocità delle onde
-  },
-
-  init: function () {
-    this.baseY = this.el.object3D.position.y;
-    this.time = 0;
-  },
-
-  tick: function (t, dt) {
-    if (!dt) return;
-
-    this.time += dt * this.data.speed;
-
-    // 1. Oscillazione di galleggiamento verticale (Y)
-    const offsetY = Math.sin(this.time) * this.data.bobY;
-    this.el.object3D.position.y = this.baseY + offsetY;
-
-    // 2. Beccheggio (Inclinazione su Z, sfasata di 90° per seguire la cresta dell'onda)
-    const pitchAngle = Math.cos(this.time) * this.data.pitchDeg;
-    this.el.object3D.rotation.z = THREE.MathUtils.degToRad(pitchAngle);
-  }
-});
-
-// FINE BARCA
-    
-// FARFALLE 
-<!-- FARFALLA 1 (Principale) -->
-      <a-entity 
-        position="0.28 0.05 1.05" 
-        butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 50; flapSpeed: 0.012; flightSpeed: 0.001;">
-        
-        <a-plane src="#butterfly-body" position="0 0 0" width="0.02" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-
-        <a-entity class="wing-left" position="-0.002 0 0.001">
-          <a-plane src="#butterfly-wing-left" position="-0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        </a-entity>
-
-        <a-entity class="wing-right" position="0.002 0 0.002">
-          <a-plane src="#butterfly-wing-right" position="0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        </a-entity>
-      </a-entity>
-
-      <!-- FARFALLA 2 (Piccola, sulla base con volo ad ellisse) -->
-      <a-entity 
-        position="-0.10 -0.30 0.95" 
-        butterfly-3d-flight="radiusX: 0.20; radiusY: 0.04; flapAngle: 45; flapSpeed: 0.016; flightSpeed: 0.0012;">
-        
-        <!-- CORPO DIMEZZATO -->
-        <a-plane 
-          src="#butterfly-body" 
-          position="0 0 0" 
-          width="0.01" height="0.035" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
-
-        <!-- ALA SINISTRA DIMEZZATA -->
-        <a-entity class="wing-left" position="-0.001 0 0.001">
-          <a-plane 
-            src="#butterfly-wing-left" 
-            position="-0.0175 0 0" 
-            width="0.035" height="0.035" 
-            material="transparent: true; alphaTest: 0.1; side: double;">
-          </a-plane>
-        </a-entity>
-
-        <!-- ALA DESTRA DIMEZZATA -->
-        <a-entity class="wing-right" position="0.001 0 0.002">
-          <a-plane 
-            src="#butterfly-wing-right" 
-            position="0.0175 0 0" 
-            width="0.035" height="0.035" 
-            material="transparent: true; alphaTest: 0.1; side: double;">
-          </a-plane>
-        </a-entity>
-      </a-entity>
-    
-// FINE FARFALLA
-
-// 6. FOGLIE
-// ==========================================
-// COMPONENTE PARTICELLE CADENTI (Ingrandite e spostate a sinistra)
-// ==========================================
-AFRAME.registerComponent('falling-particles', {
-  schema: {
-    count: { type: 'int', default: 22 },
-    zPos: { type: 'number', default: 0.60 },
-    zVariance: { type: 'number', default: 0.01 },
-    baseSizeMin: { type: 'number', default: 0.025 }, // Ingrandite (da 0.010 a 0.025)
-    baseSizeMax: { type: 'number', default: 0.060 }, // Ingrandite (da 0.030 a 0.060)
-    fallSpeedMin: { type: 'number', default: 0.0005 },
-    fallSpeedMax: { type: 'number', default: 0.0009 },
-    swayAmp: { type: 'number', default: 0.025 },
-    enable3DRotation: { type: 'boolean', default: true },
-    assetFolder: { type: 'string', default: './assets/foglie/' },
-    assetPrefix: { type: 'string', default: 'layer6-foglie-' },
-    assetStart: { type: 'int', default: 1 },
-    assetEnd: { type: 'int', default: 18 }
-  },
-
-  init: function () {
-    this.particles = [];
-    
-    this.textureUrls = [];
-    for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
-      const numStr = i.toString().padStart(2, '0');
-      this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
-    }
-
-    // --- LIMITI SPOSTATI PIÙ A SINISTRA ---
-    this.bounds = {
-      xMin: -0.400,  // Esteso decisamente a sinistra
-      xMax:  0.100,  // Ridotto il margine destro
-      yMin: -0.325,
-      yMax:  0.200,
-      yKill: -0.600
-    };
-
-    const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
-
-    for (let i = 0; i < this.data.count; i++) {
-      const pEl = document.createElement('a-plane');
-      
-      const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
-      const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
-      
-      pEl.setAttribute('width', size);
-      pEl.setAttribute('height', size);
-      pEl.setAttribute('material', `src: url(${randTexUrl}); ${overlayMat} side: double;`);
-
-      this.el.appendChild(pEl);
-
-      const pData = {
-        el: pEl,
-        xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
-        x: 0,
-        y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
-        z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
-        fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
-        swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
-        swayFreq: 0.0018 + (Math.random() * 0.0015),
-        rotSpeedZ: (Math.random() - 0.5) * 1.8,
-        rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
-        rotZ: Math.random() * 360,
-        rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
-        timeOffset: Math.random() * 2000
-      };
-
-      pData.x = pData.xInit;
-      this.particles.push(pData);
-    }
-  },
-
-  randomRange: function (min, max) {
-    return min + Math.random() * (max - min);
-  },
-
-  resetParticle: function (p) {
-    p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
-    p.x = p.xInit;
-    p.y = this.bounds.yMax;
-    p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
-    p.rotZ = Math.random() * 360;
-  },
-
-  tick: function (time, timeDelta) {
-    if (!timeDelta) return;
-
-    this.particles.forEach(p => {
-      p.y -= p.fallSpeed * (timeDelta / 16.6);
-
-      const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
-      p.x = p.xInit + sway;
-
-      p.rotZ += p.rotSpeedZ;
-      if (this.data.enable3DRotation) {
-        p.rotX += p.rotSpeedX;
-      }
-
-      p.el.object3D.position.set(p.x, p.y, p.z);
-      p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
-      if (this.data.enable3DRotation) {
-        p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
-      }
-
-      if (p.y < this.bounds.yKill) {
-        this.resetParticle(p);
       }
     });
-  }
-});
-    
-// FINE FOGLIE
-    
+
+    // 3. PALPEBRA MOSTRO
+    AFRAME.registerComponent('eyelid-blink', {
+      schema: {
+        closeDuration: { type: 'number', default: 150 },
+        holdClosed: { type: 'number', default: 200 },
+        openDuration: { type: 'number', default: 250 },
+        minPause: { type: 'number', default: 4000 },
+        maxPause: { type: 'number', default: 9000 },
+        blinkDistanceX: { type: 'number', default: 0.15 }
+      },
+      init: function () {
+        this.baseX = this.el.object3D.position.x;
+        this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
+        this.state = 'OPEN';
+        this.timer = 0;
+        this.pauseDuration = this.getRandomPause();
+      },
+      getRandomPause: function () {
+        return Math.random() * (this.data.maxPause - this.data.minPause) + this.data.minPause;
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        switch (this.state) {
+          case 'OPEN':
+            this.timer += dt;
+            if (this.timer >= this.pauseDuration) {
+              this.state = 'CLOSING';
+              this.timer = 0;
+            }
+            break;
+          case 'CLOSING':
+            this.timer += dt;
+            const closeProgress = Math.min(this.timer / this.data.closeDuration, 1);
+            const easeClose = 0.5 - Math.cos(closeProgress * Math.PI) / 2;
+            this.el.object3D.position.x = (this.baseX + this.data.blinkDistanceX) - (this.data.blinkDistanceX * easeClose);
+            if (closeProgress >= 1) {
+              this.state = 'HOLD_CLOSED';
+              this.timer = 0;
+            }
+            break;
+          case 'HOLD_CLOSED':
+            this.timer += dt;
+            if (this.timer >= this.data.holdClosed) {
+              this.state = 'OPENING';
+              this.timer = 0;
+            }
+            break;
+          case 'OPENING':
+            this.timer += dt;
+            const openProgress = Math.min(this.timer / this.data.openDuration, 1);
+            const easeOpen = 0.5 - Math.cos(openProgress * Math.PI) / 2;
+            this.el.object3D.position.x = this.baseX + (this.data.blinkDistanceX * easeOpen);
+            if (openProgress >= 1) {
+              this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
+              this.state = 'OPEN';
+              this.timer = 0;
+              this.pauseDuration = this.getRandomPause();
+            }
+            break;
+        }
+      }
+    });
+
+    // 4. MONGOLFIERA
+    AFRAME.registerComponent('balloon-float', {
+      schema: {
+        minY: { type: 'number', default: 0.0 },
+        maxY: { type: 'number', default: 0.16 },
+        rangeX: { type: 'number', default: 0.015 },
+        rangeRotZ: { type: 'number', default: 0.8 },
+        speedY: { type: 'number', default: 0.00025 },
+        speedX: { type: 'number', default: 0.00018 }
+      },
+      init: function () {
+        this.baseX = this.el.object3D.position.x;
+        this.timeY = 0;
+        this.timeX = 0;
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        this.timeY += dt * this.data.speedY;
+        this.timeX += dt * this.data.speedX;
+        const factorY = (Math.sin(this.timeY) + 1) / 2;
+        const currentY = this.data.minY + factorY * (this.data.maxY - this.data.minY);
+        const offsetX = Math.sin(this.timeX) * this.data.rangeX;
+        const tiltZ = Math.cos(this.timeX) * this.data.rangeRotZ;
+        this.el.object3D.position.y = currentY;
+        this.el.object3D.position.x = this.baseX + offsetX;
+        this.el.object3D.rotation.z = THREE.MathUtils.degToRad(tiltZ);
+      }
+    });
+
+    // 5. BARCA
+    AFRAME.registerComponent('boat-pitch', {
+      schema: {
+        pitchDeg: { type: 'number', default: 3.5 },
+        bobY: { type: 'number', default: 0.008 },
+        speed: { type: 'number', default: 0.002 }
+      },
+      init: function () {
+        this.baseY = this.el.object3D.position.y;
+        this.time = 0;
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        this.time += dt * this.data.speed;
+        const offsetY = Math.sin(this.time) * this.data.bobY;
+        this.el.object3D.position.y = this.baseY + offsetY;
+        const pitchAngle = Math.cos(this.time) * this.data.pitchDeg;
+        this.el.object3D.rotation.z = THREE.MathUtils.degToRad(pitchAngle);
+      }
+    });
+
+    // 6. FARFALLA 3D (VOLO E BATTITO)
+    AFRAME.registerComponent('butterfly-3d-flight', {
+      schema: {
+        radiusX: { type: 'number', default: 0.14 },
+        radiusY: { type: 'number', default: 0.09 },
+        flapAngle: { type: 'number', default: 50 },
+        flapSpeed: { type: 'number', default: 0.012 },
+        flightSpeed: { type: 'number', default: 0.001 }
+      },
+      init: function () {
+        this.baseX = this.el.object3D.position.x;
+        this.baseY = this.el.object3D.position.y;
+        this.timeFlight = 0;
+        this.timeFlap = Math.random() * 100;
+        this.wingLeft = this.el.querySelector('.wing-left');
+        this.wingRight = this.el.querySelector('.wing-right');
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        this.timeFlight += dt * this.data.flightSpeed;
+        this.timeFlap += dt * this.data.flapSpeed;
+
+        const offsetX = Math.sin(this.timeFlight) * this.data.radiusX;
+        const offsetY = Math.cos(this.timeFlight * 0.7) * this.data.radiusY;
+        this.el.object3D.position.x = this.baseX + offsetX;
+        this.el.object3D.position.y = this.baseY + offsetY;
+
+        const currentFlap = Math.sin(this.timeFlap) * this.data.flapAngle;
+        if (this.wingLeft) this.wingLeft.object3D.rotation.y = THREE.MathUtils.degToRad(currentFlap);
+        if (this.wingRight) this.wingRight.object3D.rotation.y = THREE.MathUtils.degToRad(-currentFlap);
+
+        const heading = Math.atan2(
+          Math.cos(this.timeFlight * 0.7) * this.data.radiusY * 0.7,
+          Math.cos(this.timeFlight) * this.data.radiusX
+        );
+        this.el.object3D.rotation.z = heading - Math.PI / 2;
+      }
+    });
+
+    // 7. FOGLIE CADENTI (Layer 6)
+    AFRAME.registerComponent('falling-particles', {
+      schema: {
+        count: { type: 'int', default: 22 },
+        zPos: { type: 'number', default: 0.60 },
+        zVariance: { type: 'number', default: 0.01 },
+        baseSizeMin: { type: 'number', default: 0.025 },
+        baseSizeMax: { type: 'number', default: 0.060 },
+        fallSpeedMin: { type: 'number', default: 0.0005 },
+        fallSpeedMax: { type: 'number', default: 0.0009 },
+        swayAmp: { type: 'number', default: 0.025 },
+        enable3DRotation: { type: 'boolean', default: true },
+        assetFolder: { type: 'string', default: './assets/foglie/' },
+        assetPrefix: { type: 'string', default: 'layer6-foglie-' },
+        assetStart: { type: 'int', default: 1 },
+        assetEnd: { type: 'int', default: 18 }
+      },
+      init: function () {
+        this.particles = [];
+        this.textureUrls = [];
+        for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
+          const numStr = i.toString().padStart(2, '0');
+          this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
+        }
+
+        this.bounds = {
+          xMin: -0.400,
+          xMax:  0.100,
+          yMin: -0.325,
+          yMax:  0.200,
+          yKill: -0.600
+        };
+
+        const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+
+        for (let i = 0; i < this.data.count; i++) {
+          const pEl = document.createElement('a-plane');
+          const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
+          const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
+          
+          pEl.setAttribute('width', size);
+          pEl.setAttribute('height', size);
+          pEl.setAttribute('material', `src: url(${randTexUrl}); ${overlayMat} side: double;`);
+
+          this.el.appendChild(pEl);
+
+          const pData = {
+            el: pEl,
+            xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
+            x: 0,
+            y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
+            z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
+            fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
+            swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
+            swayFreq: 0.0018 + (Math.random() * 0.0015),
+            rotSpeedZ: (Math.random() - 0.5) * 1.8,
+            rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
+            rotZ: Math.random() * 360,
+            rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
+            timeOffset: Math.random() * 2000
+          };
+
+          pData.x = pData.xInit;
+          this.particles.push(pData);
+        }
+      },
+      randomRange: function (min, max) {
+        return min + Math.random() * (max - min);
+      },
+      resetParticle: function (p) {
+        p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
+        p.x = p.xInit;
+        p.y = this.bounds.yMax;
+        p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
+        p.rotZ = Math.random() * 360;
+      },
+      tick: function (time, timeDelta) {
+        if (!timeDelta) return;
+        this.particles.forEach(p => {
+          p.y -= p.fallSpeed * (timeDelta / 16.6);
+          const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
+          p.x = p.xInit + sway;
+          p.rotZ += p.rotSpeedZ;
+          if (this.data.enable3DRotation) p.rotX += p.rotSpeedX;
+
+          p.el.object3D.position.set(p.x, p.y, p.z);
+          p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
+          if (this.data.enable3DRotation) {
+            p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
+          }
+
+          if (p.y < this.bounds.yKill) this.resetParticle(p);
+        });
+      }
+    });
   </script>
 
   <style>
@@ -424,16 +335,12 @@ AFRAME.registerComponent('falling-particles', {
       margin: 0;
       overflow: hidden;
     }
-
-    /* Rimuove lo spinner e la schermata azzurra di caricamento di MindAR */
     .mindar-ui-loading, 
     div[class*="mindar-ui-loading"] {
       display: none !important;
       opacity: 0 !important;
       visibility: hidden !important;
     }
-
-    /* Forza la trasparenza su tutti gli elementi overlay e contenitori MindAR per evitare il fondo azzurro */
     .mindar-ui-overlay, 
     div[class*="mindar-ui"] {
       background: transparent !important;
@@ -443,7 +350,6 @@ AFRAME.registerComponent('falling-particles', {
 </head>
 
 <body>
-  <!-- uiLoading: no disabilita il caricamento nativo HTML di MindAR -->
   <a-scene 
     mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; uiLoading: no;" 
     color-space="sRGB" 
@@ -475,18 +381,16 @@ AFRAME.registerComponent('falling-particles', {
       <img id="layer10" src="./assets/layer10.png" crossorigin="anonymous" />
       <img id="layer10-floor" src="./assets/layer10-floor.png" crossorigin="anonymous" />
       <img id="layer10-back" src="./assets/layer10-back.png" crossorigin="anonymous" />
-       
+        
       <img id="layer-mostro_01" src="./assets/layer-mostro_01.png" crossorigin="anonymous" />
       <img id="layer-mostro-palpebra" src="./assets/layer-mostro-palpebra.png" crossorigin="anonymous" />
       <img id="layer-mostro_02-bianco" src="./assets/layer-mostro_02-bianco.png" crossorigin="anonymous" />
       <img id="layer-mostro_02" src="./assets/layer-mostro_02.png" crossorigin="anonymous" />
       <img id="layer-mostro_03" src="./assets/layer-mostro_03.png" crossorigin="anonymous" />
 
-  <img id="butterfly-body" src="./assets/butterfly-body.png" crossorigin="anonymous" />
-  <img id="butterfly-wing-left" src="./assets/butterfly-wing-left.png" crossorigin="anonymous" />
-  <img id="butterfly-wing-right" src="./assets/butterfly-wing-right.png" crossorigin="anonymous" />
-
-
+      <img id="butterfly-body" src="./assets/butterfly-body.png" crossorigin="anonymous" />
+      <img id="butterfly-wing-left" src="./assets/butterfly-wing-left.png" crossorigin="anonymous" />
+      <img id="butterfly-wing-right" src="./assets/butterfly-wing-right.png" crossorigin="anonymous" />
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -499,140 +403,123 @@ AFRAME.registerComponent('falling-particles', {
         src="#base-image" 
         position="0 -0.5 0.5" 
         rotation="-90 0 0" 
-        width="1" 
-        height="1" 
+        width="1" height="1" 
         material="transparent: true; alphaTest: 0.1; side: double;">
       </a-plane>
 
-      <!-- 11 LAYER VERTICALI E MENSELE -->
+      <!-- LAYER VERTICALI -->
       <a-plane src="#layer0" position="0 0 0.01" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
      
-<a-plane 
-  src="#layer1-mongolfiera" 
-  position="0 0 0.03" 
-  width="1" 
-  height="1" 
-  material="transparent: true; alphaTest: 0.1; side: double;"
-  balloon-float="minY: 0.0; maxY: 0.2; rangeX: 0.015; rangeRotZ: 0.8; speedY: 0.00025; speedX: 0.00018;">
-</a-plane>
-
-      
-      <a-plane src="#layer1" position="0 0 0.05" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane 
-  src="#layer1-floor" 
-  position="0 -0.499 0.075" 
-  rotation="-90 0 0" 
-  width="1" 
-  height="0.05" 
-  material="transparent: true; alphaTest: 0.1; side: double;">
-</a-plane>
+        src="#layer1-mongolfiera" 
+        position="0 0 0.03" 
+        width="1" height="1" 
+        material="transparent: true; alphaTest: 0.1; side: double;"
+        balloon-float="minY: 0.0; maxY: 0.2; rangeX: 0.015; rangeRotZ: 0.8; speedY: 0.00025; speedX: 0.00018;">
+      </a-plane>
+
+      <a-plane src="#layer1" position="0 0 0.05" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      
+      <a-plane 
+        src="#layer1-floor" 
+        position="0 -0.499 0.075" 
+        rotation="-90 0 0" 
+        width="1" height="0.05" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
       
       <a-plane src="#layer2" position="0 0 0.10" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane src="#layer3" position="0 0 0.20" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane src="#layer4" position="0 0 0.30" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane src="#layer5" position="0 0 0.45" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane src="#layer6" position="0 0 0.50" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-<!-- FOGLIE -->
-<a-entity falling-particles="count: 22; zPos: 0.50;"></a-entity>
+
+      <!-- FOGLIE CADENTI -->
+      <a-entity falling-particles="count: 22; zPos: 0.50;"></a-entity>
       
       <a-plane src="#layer7" position="0 0 0.70" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       
-     <!-- LAYER 8 -->
-<a-plane src="#layer8" position="0 0 0.620" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <!-- LAYER 8 -->
+      <a-plane src="#layer8" position="0 0 0.620" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane 
+        src="#layer8-floor" 
+        position="0 -0.499 0.720" 
+        rotation="-90 0 0" 
+        width="1" height="0.20" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
 
-<a-plane 
-  src="#layer8-floor" 
-  position="0 -0.499 0.720" 
-  rotation="-90 0 0" 
-  width="1" 
-  height="0.20" 
-  material="transparent: true; alphaTest: 0.1; side: double;">
-</a-plane>
+      <!-- LAYER 9 -->
+      <a-plane src="#layer9" position="0 0 0.845" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer9-over" position="0 0 0.895" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
 
-<!-- LAYER 9 -->
-<a-plane src="#layer9" position="0 0 0.845" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-<a-plane src="#layer9-over" position="0 0 0.895" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane 
+        src="#layer9-top" 
+        position="0 0.094 0.845" 
+        rotation="-90 0 0" 
+        width="1" height="0.45" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
 
-<a-plane 
-  src="#layer9-top" 
-  position="0 0.094 0.845" 
-  rotation="-90 0 0" 
-  width="1" 
-  height="0.45" 
-  material="transparent: true; alphaTest: 0.1; side: double;">
-</a-plane>
+      <a-plane 
+        src="#layer9-middle" 
+        position="0 -0.11 0.845" 
+        rotation="-90 0 0" 
+        width="1" height="0.35" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>
 
-<a-plane 
-  src="#layer9-middle" 
-  position="0 -0.11 0.845" 
-  rotation="-90 0 0" 
-  width="1" 
-  height="0.35" 
-  material="transparent: true; alphaTest: 0.1; side: double;">
-</a-plane>
+      <a-plane 
+        src="#layer9-barca" 
+        position="0 0 0.865" 
+        rotation="0 0 0" 
+        width="1" height="1" 
+        material="transparent: true; alphaTest: 0.1; side: double;"
+        boat-pitch="pitchDeg: 4; bobY: 0.008; speed: 0.0018;">
+      </a-plane>
 
-<a-plane 
-  src="#layer9-barca" 
-  position="0 0 0.865" 
-  rotation="0 0 0" 
-  width="1" 
-  height="1" 
-  material="transparent: true; alphaTest: 0.1; side: double;"
-  boat-pitch="pitchDeg: 4; bobY: 0.008; speed: 0.0018;">
-</a-plane>
-
-<a-plane 
-  src="#layer9-floor" 
-  position="0 -0.499 0.845" 
-  rotation="-90 0 0" 
-  width="1" 
-  height="0.30" 
-  material="transparent: true; alphaTest: 0.1; side: double;">
-</a-plane>      
+      <a-plane 
+        src="#layer9-floor" 
+        position="0 -0.499 0.845" 
+        rotation="-90 0 0" 
+        width="1" height="0.30" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane>      
       
       <!-- LAYER 10 -->
       <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
       <a-plane src="#layer10-back" position="0 0 0.98" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-<a-plane 
-  src="#layer10-floor" 
-  position="0 -0.499 0.935" 
-  rotation="-90 0 0" 
-  width="1" 
-  height="0.12" 
-  material="transparent: true; alphaTest: 0.1; side: double;">
-</a-plane> 
+      <a-plane 
+        src="#layer10-floor" 
+        position="0 -0.499 0.935" 
+        rotation="-90 0 0" 
+        width="1" height="0.12" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane> 
 
-    <!-- FARFALLA 3D (Y alzato a 0.05 per sorvolare i fiori) -->
+      <!-- FARFALLA 1 (Principale) -->
       <a-entity 
         position="0.28 0.05 1.05" 
         butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 50; flapSpeed: 0.012; flightSpeed: 0.001;">
-        
-        <!-- CORPO CENTRALE -->
-        <a-plane 
-          src="#butterfly-body" 
-          position="0 0 0" 
-          width="0.02" height="0.07" 
-          material="transparent: true; alphaTest: 0.1; side: double;">
-        </a-plane>
-
-        <!-- ALA SINISTRA -->
+        <a-plane src="#butterfly-body" position="0 0 0" width="0.02" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
         <a-entity class="wing-left" position="-0.002 0 0.001">
-          <a-plane 
-            src="#butterfly-wing-left" 
-            position="-0.035 0 0" 
-            width="0.07" height="0.07" 
-            material="transparent: true; alphaTest: 0.1; side: double;">
-          </a-plane>
+          <a-plane src="#butterfly-wing-left" position="-0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
         </a-entity>
-
-        <!-- ALA DESTRA -->
         <a-entity class="wing-right" position="0.002 0 0.002">
-          <a-plane 
-            src="#butterfly-wing-right" 
-            position="0.035 0 0" 
-            width="0.07" height="0.07" 
-            material="transparent: true; alphaTest: 0.1; side: double;">
-          </a-plane>
+          <a-plane src="#butterfly-wing-right" position="0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
+      </a-entity>
+
+      <!-- FARFALLA 2 (Piccola, sulla base con volo ad ellisse) -->
+      <a-entity 
+        position="-0.10 -0.30 0.95" 
+        butterfly-3d-flight="radiusX: 0.20; radiusY: 0.04; flapAngle: 45; flapSpeed: 0.016; flightSpeed: 0.0012;">
+        <a-plane src="#butterfly-body" position="0 0 0" width="0.01" height="0.035" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        <a-entity class="wing-left" position="-0.001 0 0.001">
+          <a-plane src="#butterfly-wing-left" position="-0.0175 0 0" width="0.035" height="0.035" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
+        <a-entity class="wing-right" position="0.001 0 0.002">
+          <a-plane src="#butterfly-wing-right" position="0.0175 0 0" width="0.035" height="0.035" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
         </a-entity>
       </a-entity>
 
@@ -641,8 +528,7 @@ AFRAME.registerComponent('falling-particles', {
         src="#layer-mostro_03" 
         position="0 -0.499 0.35" 
         rotation="-90 0 0" 
-        width="1" 
-        height="0.30" 
+        width="1" height="0.30" 
         material="transparent: true; alphaTest: 0.1; side: double;">
       </a-plane>
 
@@ -676,12 +562,11 @@ AFRAME.registerComponent('falling-particles', {
         src="#layer-mostro_01" 
         position="0 -0.493 0.35" 
         rotation="-90 0 0" 
-        width="1" 
-        height="0.30" 
+        width="1" height="0.30" 
         material="transparent: true; alphaTest: 0.1; side: double;">
       </a-plane>
 
-    </a-entity> <!-- Chiusura target AR principale -->
+    </a-entity>
   </a-scene>
 </body>
 </html>
