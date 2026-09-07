@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Composizione Assets</title>
+  <title>Test Composizione Assets Diretti</title>
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <style>
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #111; }
@@ -11,25 +11,18 @@
 </head>
 <body>
 
-  <!-- timeout="1000" forza la scena a caricarsi anche se un'immagine manca -->
   <a-scene vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-    <a-assets timeout="1000">
-      <img id="img-base" src="assets/base.png">
-      <img id="img-lago" src="assets/layer9-middle.png">
-      <img id="img-barca" src="assets/layer9-barca.png">
-      <img id="img-lampione" src="assets/layer8.png">
-    </a-assets>
-
+    
     <a-camera position="0 0 1.2" look-controls="enabled: true" wasd-controls="enabled: false"></a-camera>
 
     <a-entity id="opera" position="0 0 0">
       
       <!-- 1. SFONDO BASE -->
-      <a-plane position="0 0 0" width="0.8" height="0.8" src="#img-base" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
+      <a-plane position="0 0 0" width="0.8" height="0.8" src="assets/base.png" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
 
       <!-- 2. LAMPIONE + CONO DI LUCE -->
       <a-entity id="gruppo-lampione" position="0.18 0.05 0.08">
-        <a-plane width="0.4" height="0.6" src="#img-lampione" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
+        <a-plane width="0.4" height="0.6" src="assets/layer8.png" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
         
         <a-cone 
           position="-0.12 -0.1 0.02" 
@@ -43,13 +36,13 @@
 
       <!-- 3. BASE LAGO + BARCA -->
       <a-entity id="gruppo-acqua" position="-0.18 -0.2 0.12">
-        <a-plane width="0.4" height="0.3" src="#img-lago" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
+        <a-plane width="0.4" height="0.3" src="assets/layer9-middle.png" material="transparent: true; alphaTest: 0.5; side: double"></a-plane>
         
         <a-plane 
           id="barca" 
           width="0.2" 
           height="0.15" 
-          src="#img-barca" 
+          src="assets/layer9-barca.png" 
           position="0 0.02 0.03" 
           material="transparent: true; alphaTest: 0.5; side: double"
           animation="property: position; to: 0 0.035 0.03; dir: alternate; dur: 2200; loop: true; easing: sine">
