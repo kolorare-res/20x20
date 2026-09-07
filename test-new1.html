@@ -1,26 +1,41 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test 3D Composizione</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
-      body { margin: 0; overflow: hidden; background-color: #111; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #111111;
+      }
+      a-scene {
+        width: 100%;
+        height: 100%;
+      }
     </style>
   </head>
   <body>
-    <!-- Scena 3D standard senza MindAR per testare la composizione -->
-    <a-scene embedded vr-mode-ui="enabled: false">
+    <a-scene vr-mode-ui="enabled: false">
       
-      <!-- L'utente controlla la camera muovendosi attorno all'opera -->
+      <!-- Illuminazione Esplicita -->
+      <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
+      <a-light type="directional" position="-1 2 1" intensity="0.5"></a-light>
+
+      <!-- Telecamera fissa puntata al centro -->
       <a-camera position="0 0 1.2" look-controls="enabled: true" wasd-controls="enabled: false"></a-camera>
 
       <!-- Gruppo Unico dell'Opera -->
       <a-entity id="opera" position="0 0 0">
         
-        <!-- 1. BASE: Foglio/Sfondo (20x20 simmetrici) -->
-        <a-plane position="0 0 0" width="0.8" height="0.8" material="color: #f4f1ea; opacity: 0.95; side: Double"></a-plane>
+        <!-- Sfondo della stampa -->
+        <a-plane position="0 0 0" width="0.8" height="0.8" material="color: #f4f1ea; side: Double"></a-plane>
 
-        <!-- 2. IL LAMPIONE E IL CONO DI LUCE -->
         <!-- Palo del Lampione -->
         <a-cylinder position="0.25 0.1 0.1" radius="0.008" height="0.5" color="#1a1a1a" rotation="0 0 -15"></a-cylinder>
         
@@ -31,20 +46,18 @@
           radius-top="0.01" 
           height="0.5" 
           rotation="0 0 35" 
-          material="color: #fbd532; transparent: true; opacity: 0.4; depthWrite: false; side: Double">
+          material="color: #fbd532; transparent: true; opacity: 0.5; depthWrite: false; side: Double">
         </a-cone>
 
-        <!-- 3. IL VIAGGIO: Bacino d'acqua e Barca -->
         <!-- Piano Acqua -->
         <a-cylinder position="-0.18 -0.2 0.1" radius="0.16" height="0.015" material="color: #2b5c8f; transparent: true; opacity: 0.85;"></a-cylinder>
         
-        <!-- Scafo Barca -->
+        <!-- Scafo Barca animato -->
         <a-entity id="barca" position="-0.18 -0.18 0.12" animation="property: position; to: -0.18 -0.16 0.12; dir: alternate; dur: 2500; loop: true; easing: sine">
           <a-cone radius-bottom="0.04" radius-top="0" height="0.03" rotation="0 0 180" scale="1 1 2" material="color: #3e2723;"></a-cone>
           <a-triangle vertex-a="0 0.06 0" vertex-b="-0.03 0 0" vertex-c="0.03 0 0" material="color: #f4f1ea; side: Double" position="0 0.03 0"></a-triangle>
         </a-entity>
 
-        <!-- 4. MOVIMENTO ATMOSFERICO: Lettere e Foglia -->
         <!-- Lettera 'A' -->
         <a-text value="A" position="0.15 0.25 0.18" scale="0.15 0.15 0.15" color="#1a1a1a"
                 animation="property: position; to: -0.05 -0.2 0.18; dur: 4500; loop: true; easing: linear; delay: 200"
