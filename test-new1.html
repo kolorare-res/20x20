@@ -3,43 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove - Layer Inspector UI</title>
+  <title>Altrove - Layer Inspector Test</title>
 
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    body { margin: 0; overflow: hidden; font-family: monospace; }
     
-    /* pannello overlay UI */
     #ui-panel {
       position: absolute;
       top: 10px;
       right: 10px;
-      width: 280px;
+      width: 290px;
       max-height: 90vh;
-      background: rgba(15, 15, 20, 0.85);
+      background: rgba(12, 14, 20, 0.9);
       backdrop-filter: blur(8px);
-      color: #fff;
-      padding: 15px;
+      color: #e0e0e0;
+      padding: 14px;
       border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      border: 1px solid #2a2d3d;
       z-index: 9999;
       overflow-y: auto;
-      font-size: 12px;
+      font-size: 11px;
     }
-    #ui-panel h3 { margin: 0 0 10px 0; font-size: 14px; color: #00d2ff; }
+    #ui-panel h3 { margin: 0 0 10px 0; font-size: 13px; color: #00d2ff; text-transform: uppercase; }
     .control-group { margin-bottom: 8px; }
-    .control-group label { display: block; margin-bottom: 2px; color: #ccc; }
-    .control-group input[type="range"] { width: 100%; margin: 0; }
-    .val-display { float: right; color: #00ffcc; font-family: monospace; }
-    select { width: 100%; padding: 5px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; margin-bottom: 12px; }
-    button { width: 100%; padding: 8px; background: #00d2ff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    .control-group label { display: flex; justify-content: space-between; margin-bottom: 2px; color: #aaa; }
+    .control-group input[type="range"] { width: 100%; margin: 0; cursor: pointer; }
+    .val-display { color: #00ffcc; font-weight: bold; }
+    select { width: 100%; padding: 6px; background: #181a24; color: #00d2ff; border: 1px solid #3a3d52; border-radius: 4px; margin-bottom: 12px; font-weight: bold; }
+    button { width: 100%; padding: 8px; background: #00d2ff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
     button:hover { background: #00a2c7; }
   </style>
 
   <script>
-    // Componente custom per gestire l'UI ed estrarre le coordinate
     AFRAME.registerComponent('scene-inspector', {
       init: function () {
         this.selectedEl = null;
@@ -49,12 +48,11 @@
         const select = document.getElementById('layer-select');
         const layers = document.querySelectorAll('.inspectable');
 
-        // Popola la Select con tutti gli elementi dotati della classe 'inspectable'
         layers.forEach((el, index) => {
-          const id = el.getAttribute('id') || el.getAttribute('src') || `Layer ${index + 1}`;
+          const id = el.getAttribute('id') || `Layer ${index + 1}`;
           const opt = document.createElement('option');
           opt.value = index;
-          opt.textContent = id.replace('#', '');
+          opt.textContent = id;
           select.appendChild(opt);
         });
 
@@ -63,19 +61,15 @@
           this.updateSlidersFromElement();
         });
 
-        // Seleziona il primo per default
         if (layers.length > 0) {
           this.selectedEl = layers[0];
           this.updateSlidersFromElement();
         }
 
-        // Event listener sugli slider
-        const inputs = ['posX', 'posY', 'posZ', 'rotX', 'rotY', 'rotZ'];
-        inputs.forEach(id => {
+        ['posX', 'posY', 'posZ', 'rotX', 'rotY', 'rotZ'].forEach(id => {
           document.getElementById(id).addEventListener('input', () => this.applyTransform());
         });
 
-        // Bottone esportazione coordinate
         document.getElementById('export-btn').addEventListener('click', () => this.exportConfig());
       },
       updateSlidersFromElement: function () {
@@ -105,11 +99,9 @@
         const ry = parseFloat(document.getElementById('rotY').value);
         const rz = parseFloat(document.getElementById('rotZ').value);
 
-        // Aggiorna posizioni e rotazioni a schermo
         this.selectedEl.setAttribute('position', { x: px, y: py, z: pz });
         this.selectedEl.setAttribute('rotation', { x: rx, y: ry, z: rz });
 
-        // Aggiorna testi UI
         document.getElementById('posX-val').textContent = px.toFixed(3);
         document.getElementById('posY-val').textContent = py.toFixed(3);
         document.getElementById('posZ-val').textContent = pz.toFixed(3);
@@ -118,42 +110,42 @@
         document.getElementById('rotZ-val').textContent = rz.toFixed(1);
       },
       exportConfig: function () {
-        let output = "=== NUOVE TRASFORMAZIONI ===\n";
+        let output = "\n=== COORDINATE ESPORTATE ===\n\n";
         document.querySelectorAll('.inspectable').forEach(el => {
-          const id = el.getAttribute('id') || el.getAttribute('src');
+          const id = el.getAttribute('id');
           const pos = el.getAttribute('position');
           const rot = el.getAttribute('rotation');
-          output += `${id}:\n  position="${pos.x.toFixed(3)} ${pos.y.toFixed(3)} ${pos.z.toFixed(3)}"\n  rotation="${rot.x.toFixed(1)} ${rot.y.toFixed(1)} ${rot.z.toFixed(1)}"\n\n`;
+          output += `<a-plane id="${id}" position="${pos.x.toFixed(3)} ${pos.y.toFixed(3)} ${pos.z.toFixed(3)}" rotation="${rot.x.toFixed(1)} ${rot.y.toFixed(1)} ${rot.z.toFixed(1)}"></a-plane>\n`;
         });
         console.log(output);
-        alert("Configurazione stampata nella Console del Browser (F12)!");
+        alert("Coordinate copiate nella Console (F12)!");
       }
     });
   </script>
 </head>
 
 <body>
-  <!-- Pannello di Controllo UI -->
+  <!-- PANNELLO DI CONTROLLO -->
   <div id="ui-panel">
-    <h3>Layer Inspector</h3>
+    <h3>Inspector Layer</h3>
     
-    <label for="layer-select">Seleziona Layer:</label>
+    <label for="layer-select">Seleziona elemento:</label>
     <select id="layer-select"></select>
 
     <div class="control-group">
       <label>Position X <span id="posX-val" class="val-display">0</span></label>
-      <input type="range" id="posX" min="-2" max="2" step="0.005" value="0">
+      <input type="range" id="posX" min="-1.5" max="1.5" step="0.005" value="0">
     </div>
     <div class="control-group">
       <label>Position Y <span id="posY-val" class="val-display">0</span></label>
-      <input type="range" id="posY" min="-2" max="2" step="0.005" value="0">
+      <input type="range" id="posY" min="-1.5" max="1.5" step="0.005" value="0">
     </div>
     <div class="control-group">
       <label>Position Z <span id="posZ-val" class="val-display">0</span></label>
-      <input type="range" id="posZ" min="-1" max="2" step="0.005" value="0">
+      <input type="range" id="posZ" min="-0.5" max="1.5" step="0.005" value="0">
     </div>
 
-    <hr style="border-color: #333; margin: 12px 0;">
+    <hr style="border-color: #2a2d3d; margin: 12px 0;">
 
     <div class="control-group">
       <label>Rotation X <span id="rotX-val" class="val-display">0</span></label>
@@ -168,10 +160,9 @@
       <input type="range" id="rotZ" min="-180" max="180" step="0.5" value="0">
     </div>
 
-    <button id="export-btn">Esporta in Console</button>
+    <button id="export-btn">Esporta HTML in Console</button>
   </div>
 
-  <!-- Scena A-Frame -->
   <a-scene 
     scene-inspector
     mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no;" 
@@ -182,21 +173,21 @@
     <a-assets>
       <img id="base-image" src="./assets/base.png" crossorigin="anonymous" />
       <img id="layer0" src="./assets/layer0.png" crossorigin="anonymous" />
-      <img id="layer1" src="./assets/layer1.png" crossorigin="anonymous" />
-      <img id="layer2" src="./assets/layer2.png" crossorigin="anonymous" />
-      <img id="layer3" src="./assets/layer3.png" crossorigin="anonymous" />
+      <img id="layer6" src="./assets/layer6.png" crossorigin="anonymous" />
+      <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
+      <img id="layer9" src="./assets/layer9.png" crossorigin="anonymous" />
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
     <a-entity mindar-image-target="targetIndex: 0">
       
-      <!-- NOTA: Aggiungi la classe 'inspectable' a qualsiasi elemento vuoi controllare dall'UI -->
-      <a-plane class="inspectable" id="BASE" src="#base-image" position="0 -0.5 0.5" rotation="-90 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane class="inspectable" id="L0" src="#layer0" position="0 0 0.01" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane class="inspectable" id="L1" src="#layer1" position="0 0 0.05" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane class="inspectable" id="L2" src="#layer2" position="0 0 0.10" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane class="inspectable" id="L3" src="#layer3" position="0 0 0.20" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <!-- LAYER ISPEZIONABILI -->
+      <a-plane class="inspectable" id="BASE-PAVIMENTO" src="#base-image" position="0 -0.5 0.5" rotation="-90 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="LAYER-0" src="#layer0" position="0 0 0.01" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="LAYER-6" src="#layer6" position="0 0 0.50" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="LAYER-8" src="#layer8" position="0 0 0.62" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="LAYER-9" src="#layer9" position="0 0 0.84" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
 
     </a-entity>
   </a-scene>
