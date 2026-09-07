@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Altrove - Apertura Pagina</title>
+  <style>
+    body { margin: 0; overflow: hidden; background-color: #0d0d0d; font-family: sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; }
+    #ui {
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      z-index: 10;
+    }
+    button {
+      background: #fff; border: none; padding: 12px 24px; font-size: 16px;
+      font-weight: bold; cursor: pointer; border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s;
+    }
+    button:hover { transform: scale(1.05); }
+  </style>
+  <!-- Three.js via CDN pulito e leggero -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- GSAP per animazioni fluide -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+  <div id="ui">
+    <button id="btn-open">Apri Pagina</button>
+  </div>
+
+  <script>
+    // 1. SCENA, CAMERA E RENDERER
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, -0.2, 3.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const textureLoader = new THREE.TextureLoader();
+
+    // 2. GRUPPO LIBRO / PAGINA (Perno di rotazione sul margine sinistro)
+    const bookGroup = new THREE.Group();
+    scene.add(bookGroup);
+
+    // Margine di piega (Pivot Point)
+    const pagePivot = new THREE.Group();
+    pagePivot.position.set(-0.8, 0, 0); // Perno a sinistra
+    bookGroup.add(pagePivot);
+
+    // Corpo della pagina (Contenitore interno traslato per ruotare dal bordo)
+    const pageContent = new THREE.Group();
+    pageContent.position.set(0.8, 0, 0);
+    pagePivot.add(pageContent);
+
+    // 3. SFONDO BASE (base.png)
+    const baseGeo = new THREE.PlaneGeometry(1.6, 1.6);
+    const baseMat = new THREE.MeshBasicMaterial({
+      map: textureLoader.load('assets/base.png'),
+      transparent: true,
+      side: THREE.DoubleSide
+    });
+    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    pageContent.add(baseMesh);
+
+    // 4. LAYER POP-UP (Esempio con Lettore layer3.png)
+    const layer3Geo = new THREE.PlaneGeometry(1.6, 1.6);
+    const layer3Mat = new THREE.MeshBasicMaterial({
+      map: textureLoader.load('assets/layer3.png'),
+      transparent: true,
+      depthWrite: false
+    });
+    const layer3Mesh = new THREE.Mesh(layer3Geo, layer3Mat);
+    layer3Mesh.position.set(0, 0, 0.01); // Parte adeso alla pagina
+    pageContent.add(layer3Mesh);
+
+    // Stato dell'animazione
+    let isOpen = false;
+
+    // 5. ANIMAZIONE DI APERTURA
+    document.getElementById('btn-open').addEventListener('click', () => {
+      if (!isOpen) {
+        // Apri la pagina (Ruota sul perno)
+        gsap.to(pagePivot.rotation, { y: -Math.PI * 0.45, duration: 2, ease: "power2.inOut" });
+        // Inclina leggermente la vista generale
+        gsap.to(bookGroup.rotation, { x: 0.2, y: 0.3, duration: 2, ease: "power2.inOut" });
+        // Fai uscire il layer3 in 3D (Pop-up)
+        gsap.to(layer3Mesh.position, { z: 0.25, duration: 1.8, delay: 0.3, ease: "back.out(1.2)" });
+        
+        document.getElementById('btn-open').innerText = "Chiudi Pagina";
+        isOpen = true;
+      } else {
+        // Chiudi
+        gsap.to(pagePivot.rotation, { y: 0, duration: 1.5, ease: "power2.inOut" });
+        gsap.to(bookGroup.rotation, { x: 0, y: 0, duration: 1.5, ease: "power2.inOut" });
+        gsap.to(layer3Mesh.position, { z: 0.01, duration: 1.2, ease: "power2.in" });
+        
+        document.getElementById('btn-open').innerText = "Apri Pagina";
+        isOpen = false;
+      }
+    });
+
+    // Render loop & Resize
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
