@@ -3,20 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove - Apertura Verticale</title>
+  <title>Altrove - Test Apertura</title>
   <style>
-    body { margin: 0; overflow: hidden; background-color: #0d0d0d; font-family: sans-serif; }
+    body { margin: 0; overflow: hidden; background: #111; font-family: sans-serif; }
     #canvas-container { width: 100vw; height: 100vh; }
-    #ui {
-      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-      z-index: 10;
-    }
-    button {
-      background: #fff; border: none; padding: 12px 24px; font-size: 16px;
-      font-weight: bold; cursor: pointer; border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s;
-    }
-    button:hover { transform: scale(1.05); }
+    #ui { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; }
+    button { background: #fff; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 20px; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -24,94 +16,59 @@
 <body>
 
   <div id="canvas-container"></div>
-  <div id="ui">
-    <button id="btn-open">Apri Album</button>
-  </div>
+  <div id="ui"><button id="btn-open">Apri Album</button></div>
 
   <script>
-    const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    
-    // Telecamera inclinata per osservare l'apertura dall'alto
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, -1.2, 2.8);
+    camera.position.set(0, -0.8, 2.5);
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    const textureLoader = new THREE.TextureLoader();
-
-    // GRUPPO PRINCIPALE
     const albumGroup = new THREE.Group();
     scene.add(albumGroup);
 
-    // 1. PAGINA INFERIORE (FISSA - Base)
-    const bottomPageGeo = new THREE.PlaneGeometry(1.6, 1.0);
-    const bottomPageMat = new THREE.MeshBasicMaterial({
-      map: textureLoader.load('assets/base.png'),
-      transparent: true,
-      side: THREE.DoubleSide
-    });
-    const bottomPage = new THREE.Mesh(bottomPageGeo, bottomPageMat);
-    bottomPage.position.set(0, -0.5, 0);
+    // Pagina Inferiore (Base)
+    const bottomGeo = new THREE.PlaneGeometry(1.2, 0.8);
+    const bottomMat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
+    const bottomPage = new THREE.Mesh(bottomGeo, bottomMat);
+    bottomPage.position.set(0, -0.4, 0);
     albumGroup.add(bottomPage);
 
-    // 2. CERNIERA ORIZZONTALE (Pivot al centro Y=0)
+    // Cerniera centrale
     const topPivot = new THREE.Group();
-    topPivot.position.set(0, 0, 0); 
+    topPivot.position.set(0, 0, 0);
     albumGroup.add(topPivot);
 
-    // 3. PAGINA SUPERIORE (MOBILE - Si ribalta verso l'alto)
-    const topPageGeo = new THREE.PlaneGeometry(1.6, 1.0);
-    const topPageMat = new THREE.MeshBasicMaterial({
-      color: #eaeaea,
-      side: THREE.DoubleSide
-    });
-    const topPage = new THREE.Mesh(topPageGeo, topPageMat);
-    topPage.position.set(0, 0.5, 0); // Posizionata sopra la cerniera
+    // Pagina Superiore (Mobile)
+    const topGeo = new THREE.PlaneGeometry(1.2, 0.8);
+    const topMat = new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
+    const topPage = new THREE.Mesh(topGeo, topMat);
+    topPage.position.set(0, 0.4, 0);
     topPivot.add(topPage);
 
-    // Chiusa in partenza (ribaltata verso il basso sulla pagina inferiore)
-    topPivot.rotation.x = Math.PI; 
+    // Chiusa in partenza
+    topPivot.rotation.x = Math.PI;
 
-    // 4. LAYER POP-UP (Ancorati sulla pagina inferiore)
-    const popupGroup = new THREE.Group();
-    bottomPage.add(popupGroup);
+    // Pop-up di prova
+    const popupGeo = new THREE.PlaneGeometry(0.4, 0.4);
+    const popupMat = new THREE.MeshBasicMaterial({ color: 0x4caf50, side: THREE.DoubleSide });
+    const popup = new THREE.Mesh(popupGeo, popupMat);
+    popup.position.set(0, 0, 0.01);
+    bottomPage.add(popup);
 
-    const layer3Geo = new THREE.PlaneGeometry(1.6, 1.0);
-    const layer3Mat = new THREE.MeshBasicMaterial({
-      map: textureLoader.load('assets/layer3.png'),
-      transparent: true,
-      depthWrite: false
-    });
-    const layer3Mesh = new THREE.Mesh(layer3Geo, layer3Mat);
-    layer3Mesh.position.set(0, 0, 0.01);
-    popupGroup.add(layer3Mesh);
-
-    // STATO ANIMAZIONE
     let isOpen = false;
-
     document.getElementById('btn-open').addEventListener('click', () => {
       if (!isOpen) {
-        // Apri la pagina verso l'alto (Rotazione X a 0)
-        gsap.to(topPivot.rotation, { x: 0, duration: 2, ease: "power2.inOut" });
-        // Inclinazione d'impatto della telecamera
-        gsap.to(albumGroup.rotation, { x: 0.3, duration: 2, ease: "power2.inOut" });
-        // Sollevamento dei layer Pop-up in verticale
-        gsap.to(layer3Mesh.position, { z: 0.25, duration: 1.8, delay: 0.4, ease: "back.out(1.2)" });
-        
-        document.getElementById('btn-open').innerText = "Chiudi Album";
+        gsap.to(topPivot.rotation, { x: 0, duration: 1.5, ease: "power2.inOut" });
+        gsap.to(popup.position, { z: 0.3, duration: 1.2, delay: 0.3 });
         isOpen = true;
       } else {
-        // Chiudi
         gsap.to(topPivot.rotation, { x: Math.PI, duration: 1.5, ease: "power2.inOut" });
-        gsap.to(albumGroup.rotation, { x: 0, duration: 1.5, ease: "power2.inOut" });
-        gsap.to(layer3Mesh.position, { z: 0.01, duration: 1.2, ease: "power2.in" });
-        
-        document.getElementById('btn-open').innerText = "Apri Album";
+        gsap.to(popup.position, { z: 0.01, duration: 1 });
         isOpen = false;
       }
     });
@@ -121,12 +78,6 @@
       renderer.render(scene, camera);
     }
     animate();
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
   </script>
 </body>
 </html>
