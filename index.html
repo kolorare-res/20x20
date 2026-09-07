@@ -247,84 +247,76 @@ AFRAME.registerComponent('boat-pitch', {
   }
 });
 
-// FINE BARCA 
+// FINE BARCA
+    
+// FARFALLE 
+<!-- FARFALLA 1 (Principale) -->
+      <a-entity 
+        position="0.28 0.05 1.05" 
+        butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 50; flapSpeed: 0.012; flightSpeed: 0.001;">
+        
+        <a-plane src="#butterfly-body" position="0 0 0" width="0.02" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
 
-// 5. FARFALLA 3D: Battito ali incernierato + Traiettoria organica
-AFRAME.registerComponent('butterfly-3d-flight', {
-  schema: {
-    radiusX: { type: 'number', default: 0.14 },
-    radiusY: { type: 'number', default: 0.09 },
-    flapAngle: { type: 'number', default: 50 },
-    flapSpeed: { type: 'number', default: 0.012 }, // Rallentato per un battito più naturale
-    flightSpeed: { type: 'number', default: 0.001 }
-  },
+        <a-entity class="wing-left" position="-0.002 0 0.001">
+          <a-plane src="#butterfly-wing-left" position="-0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
 
-  init: function () {
-    this.centerX = this.el.object3D.position.x;
-    this.centerY = this.el.object3D.position.y;
-    this.centerZ = this.el.object3D.position.z;
+        <a-entity class="wing-right" position="0.002 0 0.002">
+          <a-plane src="#butterfly-wing-right" position="0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
+      </a-entity>
 
-    this.leftWing = this.el.querySelector('.wing-left');
-    this.rightWing = this.el.querySelector('.wing-right');
+      <!-- FARFALLA 2 (Piccola, sulla base con volo ad ellisse) -->
+      <a-entity 
+        position="-0.10 -0.30 0.95" 
+        butterfly-3d-flight="radiusX: 0.20; radiusY: 0.04; flapAngle: 45; flapSpeed: 0.016; flightSpeed: 0.0012;">
+        
+        <!-- CORPO DIMEZZATO -->
+        <a-plane 
+          src="#butterfly-body" 
+          position="0 0 0" 
+          width="0.01" height="0.035" 
+          material="transparent: true; alphaTest: 0.1; side: double;">
+        </a-plane>
 
-    this.timeFlight = 0;
-    this.timeFlap = 0;
-  },
+        <!-- ALA SINISTRA DIMEZZATA -->
+        <a-entity class="wing-left" position="-0.001 0 0.001">
+          <a-plane 
+            src="#butterfly-wing-left" 
+            position="-0.0175 0 0" 
+            width="0.035" height="0.035" 
+            material="transparent: true; alphaTest: 0.1; side: double;">
+          </a-plane>
+        </a-entity>
 
-  tick: function (t, dt) {
-    if (!dt) return;
-
-    this.timeFlight += dt * this.data.flightSpeed;
-    this.timeFlap += dt * this.data.flapSpeed;
-
-    // Traiettoria attorno ai fiori + avanzamento su Z
-    const offsetX = Math.sin(this.timeFlight) * this.data.radiusX;
-    const offsetY = Math.sin(this.timeFlight * 2) * this.data.radiusY;
-    const offsetZ = Math.cos(this.timeFlight * 1.5) * 0.06;
-
-    const currentPos = new THREE.Vector3(
-      this.centerX + offsetX,
-      this.centerY + offsetY,
-      this.centerZ + offsetZ
-    );
-
-    // Orientamento del corpo lungo il vettore di spostamento
-    const dir = new THREE.Vector3().subVectors(currentPos, this.el.object3D.position);
-    if (dir.lengthSq() > 0.00001) {
-      const angleZ = Math.atan2(dir.y, dir.x) - Math.PI / 2;
-      this.el.object3D.rotation.z = angleZ;
-      this.el.object3D.rotation.x = dir.z * 5;
-    }
-
-    this.el.object3D.position.copy(currentPos);
-
-    // Battito d'ali 3D
-    if (this.leftWing && this.rightWing) {
-      const flapRad = THREE.MathUtils.degToRad(Math.sin(this.timeFlap) * this.data.flapAngle);
-      this.leftWing.object3D.rotation.y = flapRad;
-      this.rightWing.object3D.rotation.y = -flapRad;
-    }
-  }
-});
+        <!-- ALA DESTRA DIMEZZATA -->
+        <a-entity class="wing-right" position="0.001 0 0.002">
+          <a-plane 
+            src="#butterfly-wing-right" 
+            position="0.0175 0 0" 
+            width="0.035" height="0.035" 
+            material="transparent: true; alphaTest: 0.1; side: double;">
+          </a-plane>
+        </a-entity>
+      </a-entity>
     
 // FINE FARFALLA
 
 // 6. FOGLIE
 // ==========================================
-// COMPONENTE PARTICELLE CADENTI (Layer 6)
+// COMPONENTE PARTICELLE CADENTI (Ingrandite e spostate a sinistra)
 // ==========================================
 AFRAME.registerComponent('falling-particles', {
   schema: {
     count: { type: 'int', default: 22 },
     zPos: { type: 'number', default: 0.60 },
     zVariance: { type: 'number', default: 0.01 },
-    baseSizeMin: { type: 'number', default: 0.010 },
-    baseSizeMax: { type: 'number', default: 0.030 },
+    baseSizeMin: { type: 'number', default: 0.025 }, // Ingrandite (da 0.010 a 0.025)
+    baseSizeMax: { type: 'number', default: 0.060 }, // Ingrandite (da 0.030 a 0.060)
     fallSpeedMin: { type: 'number', default: 0.0005 },
     fallSpeedMax: { type: 'number', default: 0.0009 },
     swayAmp: { type: 'number', default: 0.025 },
     enable3DRotation: { type: 'boolean', default: true },
-    // Configurazione aggiornata cartella e file
     assetFolder: { type: 'string', default: './assets/foglie/' },
     assetPrefix: { type: 'string', default: 'layer6-foglie-' },
     assetStart: { type: 'int', default: 1 },
@@ -334,16 +326,16 @@ AFRAME.registerComponent('falling-particles', {
   init: function () {
     this.particles = [];
     
-    // Genera l'array di percorsi: ./assets/foglie/layer6-foglie-01.png ... layer6-foglie-18.png
     this.textureUrls = [];
     for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
-      const numStr = i.toString().padStart(2, '0'); // Trasforma 1 in "01", 2 in "02", ecc.
+      const numStr = i.toString().padStart(2, '0');
       this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
     }
 
+    // --- LIMITI SPOSTATI PIÙ A SINISTRA ---
     this.bounds = {
-      xMin: -0.250,
-      xMax:  0.250,
+      xMin: -0.400,  // Esteso decisamente a sinistra
+      xMax:  0.100,  // Ridotto il margine destro
       yMin: -0.325,
       yMax:  0.200,
       yKill: -0.600
