@@ -86,6 +86,46 @@
         });
       }
     });
+
+// 6. FARFALLA 3D (VOLO E BATTITO)
+    AFRAME.registerComponent('butterfly-3d-flight', {
+      schema: {
+        radiusX: { type: 'number', default: 0.14 },
+        radiusY: { type: 'number', default: 0.09 },
+        flapAngle: { type: 'number', default: 50 },
+        flapSpeed: { type: 'number', default: 0.012 },
+        flightSpeed: { type: 'number', default: 0.001 }
+      },
+      init: function () {
+        this.baseX = this.el.object3D.position.x;
+        this.baseY = this.el.object3D.position.y;
+        this.timeFlight = 0;
+        this.timeFlap = Math.random() * 100;
+        this.wingLeft = this.el.querySelector('.wing-left');
+        this.wingRight = this.el.querySelector('.wing-right');
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        this.timeFlight += dt * this.data.flightSpeed;
+        this.timeFlap += dt * this.data.flapSpeed;
+
+        const offsetX = Math.sin(this.timeFlight) * this.data.radiusX;
+        const offsetY = Math.cos(this.timeFlight * 0.7) * this.data.radiusY;
+        this.el.object3D.position.x = this.baseX + offsetX;
+        this.el.object3D.position.y = this.baseY + offsetY;
+
+        const currentFlap = Math.sin(this.timeFlap) * this.data.flapAngle;
+        if (this.wingLeft) this.wingLeft.object3D.rotation.y = THREE.MathUtils.degToRad(currentFlap);
+        if (this.wingRight) this.wingRight.object3D.rotation.y = THREE.MathUtils.degToRad(-currentFlap);
+
+        const heading = Math.atan2(
+          Math.cos(this.timeFlight * 0.7) * this.data.radiusY * 0.7,
+          Math.cos(this.timeFlight) * this.data.radiusX
+        );
+        this.el.object3D.rotation.z = heading - Math.PI / 2;
+      }
+    });
+    
   </script>
 </head>
 
@@ -99,6 +139,10 @@
     <a-assets>
       <img id="base-image" src="./assets/base.png" crossorigin="anonymous" />
       <img id="layer0" src="./assets/layer0.png" crossorigin="anonymous" />
+      <img id="layer3" src="./assets/layer3.png" crossorigin="anonymous" />
+
+      <img id="layer4" src="./assets/layer4.png" crossorigin="anonymous" />
+
       <img id="layer6" src="./assets/layer6.png" crossorigin="anonymous" />
       <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
       
@@ -109,6 +153,16 @@
       <img id="layer9-floor" src="./assets/layer9-floor.png" crossorigin="anonymous" />
       <img id="layer9-middle" src="./assets/layer9-middle.png" crossorigin="anonymous" />
       <img id="layer9-top" src="./assets/layer9-top.png" crossorigin="anonymous" />
+
+      <!-- Asset Layer 10 -->
+      <img id="layer10" src="./assets/layer10.png" crossorigin="anonymous" />
+      <img id="layer10-floor" src="./assets/layer10-floor.png" crossorigin="anonymous" />
+      <img id="layer10-back" src="./assets/layer10-back.png" crossorigin="anonymous" />
+
+      <img id="butterfly-body" src="./assets/butterfly-body.png" crossorigin="anonymous" />
+      <img id="butterfly-wing-left" src="./assets/butterfly-wing-left.png" crossorigin="anonymous" />
+      <img id="butterfly-wing-right" src="./assets/butterfly-wing-right.png" crossorigin="anonymous" />
+      
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -119,6 +173,10 @@
       <a-plane opt-plane id="BASE-PAVIMENTO" src="#base-image" position="0.000 -0.500 0.500" rotation="-90.0 0.0 0.0" width="1" height="1"></a-plane>
       <a-plane opt-plane id="LAYER-0" src="#layer0" position="0.000 0.000 0.010" rotation="0.0 0.0 0.0" width="1" height="1"></a-plane>
 
+      <a-plane src="#layer3" position="0.325 0 0.20" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer4" position="-0.425 0 0.30" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+
+      
       <!-- GRUPPO LAYER 6 + FOGLIE IN AVANTI -->
       <a-entity id="GROUP-LAYER-6" position="0.475 0.000 0.500" rotation="0.0 -30.5 0.0">
         <a-plane opt-plane src="#layer6" position="0 0 0" width="1" height="1"></a-plane>
@@ -137,6 +195,30 @@
         <a-plane opt-plane src="#layer9-top" position="0 0.094 0.005" rotation="-90 0 0" width="1" height="0.45"></a-plane>
         <a-plane opt-plane src="#layer9-middle" position="0 -0.11 0.005" rotation="-90 0 0" width="1" height="0.35"></a-plane>
         <a-plane opt-plane src="#layer9-floor" position="0 -0.499 0.005" rotation="-90 0 0" width="1" height="0.30"></a-plane>
+      </a-entity>
+
+      <!-- GRUPPO LAYER 10 -->
+      <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane src="#layer10-back" position="0 0 0.98" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane 
+        src="#layer10-floor" 
+        position="0 -0.499 0.935" 
+        rotation="-90 0 0" 
+        width="1" height="0.12" 
+        material="transparent: true; alphaTest: 0.1; side: double;">
+      </a-plane> 
+
+      <!-- FARFALLA 1 (Principale, in alto a destra) -->
+      <a-entity 
+        position="0.28 0.05 1.05" 
+        butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 50; flapSpeed: 0.012; flightSpeed: 0.001;">
+        <a-plane src="#butterfly-body" position="0 0 0" width="0.02" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        <a-entity class="wing-left" position="-0.002 0 0.001">
+          <a-plane src="#butterfly-wing-left" position="-0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
+        <a-entity class="wing-right" position="0.002 0 0.002">
+          <a-plane src="#butterfly-wing-right" position="0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
       </a-entity>
 
     </a-entity>
