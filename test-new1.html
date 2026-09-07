@@ -3,105 +3,202 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove - Composizione 3D Completa</title>
+  <title>Altrove - Layer Inspector UI</title>
+
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      width: 100vw; height: 100vh;
-      background: #111;
-      overflow: hidden;
-      display: flex; justify-content: center; align-items: center;
-      perspective: 1200px;
-    }
-
-    #stage {
-      width: 500px; height: 500px;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 0.1s ease-out;
-    }
-
-    .layer {
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    
+    /* pannello overlay UI */
+    #ui-panel {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: contain;
-      pointer-events: none;
+      top: 10px;
+      right: 10px;
+      width: 280px;
+      max-height: 90vh;
+      background: rgba(15, 15, 20, 0.85);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      z-index: 9999;
+      overflow-y: auto;
+      font-size: 12px;
     }
-
-    /* 1. SFONDO BASE (Z: 0px) */
-    #base { 
-      transform: translateZ(0px); 
-    }
-
-    /* 2. ALBERO (Z: 30px) */
-    #albero { 
-      transform: translate3d(-18%, -4%, 30px) scale(0.85); 
-    }
-
-    /* 3. LAMPIONE E LUCE (Z: 60px) */
-    #lampione { 
-      transform: translate3d(12%, -2%, 60px) scale(0.85); 
-      mix-blend-mode: screen; 
-    }
-
-    /* 4. LETTORE / PERSONAGGIO (Z: 80px - In basso a sinistra) */
-    #lettore { 
-      transform: translate3d(-15%, 15%, 80px) scale(0.7); 
-    }
-
-    /* 5. LAGO (Z: 100px - In basso verso il centro) */
-    #lago { 
-      transform: translate3d(5%, 22%, 100px) scale(0.55); 
-    }
-
-    /* 6. BARCA (Z: 120px - Galleggia sul lago) */
-    #barca {
-      transform: translate3d(5%, 23%, 120px) scale(0.32);
-      animation: galleggia 2.5s ease-in-out infinite alternate;
-    }
-
-    @keyframes galleggia {
-      from { transform: translate3d(5%, 23%, 120px) scale(0.32); }
-      to   { transform: translate3d(5%, 20%, 120px) scale(0.32); }
-    }
+    #ui-panel h3 { margin: 0 0 10px 0; font-size: 14px; color: #00d2ff; }
+    .control-group { margin-bottom: 8px; }
+    .control-group label { display: block; margin-bottom: 2px; color: #ccc; }
+    .control-group input[type="range"] { width: 100%; margin: 0; }
+    .val-display { float: right; color: #00ffcc; font-family: monospace; }
+    select { width: 100%; padding: 5px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; margin-bottom: 12px; }
+    button { width: 100%; padding: 8px; background: #00d2ff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #00a2c7; }
   </style>
-</head>
-<body>
-
-  <div id="stage">
-    <!-- 1. Sfondo Base -->
-    <img id="base" class="layer" src="assets/base.png" alt="Base">
-
-    <!-- 2. Vegetazione -->
-    <img id="albero" class="layer" src="assets/layer6.png" alt="Albero">
-
-    <!-- 3. Lampione e Luce -->
-    <img id="lampione" class="layer" src="assets/layer8.png" alt="Lampione">
-
-    <!-- 4. Lettore -->
-    <img id="lettore" class="layer" src="assets/layer3.png" alt="Lettore">
-
-    <!-- 5. Lago e Barca -->
-    <img id="lago" class="layer" src="assets/layer9-middle.png" alt="Lago">
-    <img id="barca" class="layer" src="assets/layer9-barca.png" alt="Barca">
-  </div>
 
   <script>
-    const stage = document.getElementById('stage');
-    
-    window.addEventListener('mousemove', (e) => {
-      const x = (window.innerWidth / 2 - e.clientX) / 25;
-      const y = (window.innerHeight / 2 - e.clientY) / 25;
-      stage.style.transform = `rotateY(${-x}deg) rotateX(${y}deg)`;
-    });
+    // Componente custom per gestire l'UI ed estrarre le coordinate
+    AFRAME.registerComponent('scene-inspector', {
+      init: function () {
+        this.selectedEl = null;
+        this.setupUI();
+      },
+      setupUI: function () {
+        const select = document.getElementById('layer-select');
+        const layers = document.querySelectorAll('.inspectable');
 
-    window.addEventListener('deviceorientation', (e) => {
-      if (e.beta && e.gamma) {
-        stage.style.transform = `rotateY(${e.gamma / 2}deg) rotateX(${e.beta / 2}deg)`;
+        // Popola la Select con tutti gli elementi dotati della classe 'inspectable'
+        layers.forEach((el, index) => {
+          const id = el.getAttribute('id') || el.getAttribute('src') || `Layer ${index + 1}`;
+          const opt = document.createElement('option');
+          opt.value = index;
+          opt.textContent = id.replace('#', '');
+          select.appendChild(opt);
+        });
+
+        select.addEventListener('change', (e) => {
+          this.selectedEl = layers[e.target.value];
+          this.updateSlidersFromElement();
+        });
+
+        // Seleziona il primo per default
+        if (layers.length > 0) {
+          this.selectedEl = layers[0];
+          this.updateSlidersFromElement();
+        }
+
+        // Event listener sugli slider
+        const inputs = ['posX', 'posY', 'posZ', 'rotX', 'rotY', 'rotZ'];
+        inputs.forEach(id => {
+          document.getElementById(id).addEventListener('input', () => this.applyTransform());
+        });
+
+        // Bottone esportazione coordinate
+        document.getElementById('export-btn').addEventListener('click', () => this.exportConfig());
+      },
+      updateSlidersFromElement: function () {
+        if (!this.selectedEl) return;
+        const pos = this.selectedEl.getAttribute('position');
+        const rot = this.selectedEl.getAttribute('rotation');
+
+        this.setSliderVal('posX', pos.x);
+        this.setSliderVal('posY', pos.y);
+        this.setSliderVal('posZ', pos.z);
+        this.setSliderVal('rotX', rot.x);
+        this.setSliderVal('rotY', rot.y);
+        this.setSliderVal('rotZ', rot.z);
+      },
+      setSliderVal: function(id, val) {
+        const input = document.getElementById(id);
+        input.value = val;
+        document.getElementById(`${id}-val`).textContent = Number(val).toFixed(3);
+      },
+      applyTransform: function () {
+        if (!this.selectedEl) return;
+        
+        const px = parseFloat(document.getElementById('posX').value);
+        const py = parseFloat(document.getElementById('posY').value);
+        const pz = parseFloat(document.getElementById('posZ').value);
+        const rx = parseFloat(document.getElementById('rotX').value);
+        const ry = parseFloat(document.getElementById('rotY').value);
+        const rz = parseFloat(document.getElementById('rotZ').value);
+
+        // Aggiorna posizioni e rotazioni a schermo
+        this.selectedEl.setAttribute('position', { x: px, y: py, z: pz });
+        this.selectedEl.setAttribute('rotation', { x: rx, y: ry, z: rz });
+
+        // Aggiorna testi UI
+        document.getElementById('posX-val').textContent = px.toFixed(3);
+        document.getElementById('posY-val').textContent = py.toFixed(3);
+        document.getElementById('posZ-val').textContent = pz.toFixed(3);
+        document.getElementById('rotX-val').textContent = rx.toFixed(1);
+        document.getElementById('rotY-val').textContent = ry.toFixed(1);
+        document.getElementById('rotZ-val').textContent = rz.toFixed(1);
+      },
+      exportConfig: function () {
+        let output = "=== NUOVE TRASFORMAZIONI ===\n";
+        document.querySelectorAll('.inspectable').forEach(el => {
+          const id = el.getAttribute('id') || el.getAttribute('src');
+          const pos = el.getAttribute('position');
+          const rot = el.getAttribute('rotation');
+          output += `${id}:\n  position="${pos.x.toFixed(3)} ${pos.y.toFixed(3)} ${pos.z.toFixed(3)}"\n  rotation="${rot.x.toFixed(1)} ${rot.y.toFixed(1)} ${rot.z.toFixed(1)}"\n\n`;
+        });
+        console.log(output);
+        alert("Configurazione stampata nella Console del Browser (F12)!");
       }
     });
   </script>
+</head>
 
+<body>
+  <!-- Pannello di Controllo UI -->
+  <div id="ui-panel">
+    <h3>Layer Inspector</h3>
+    
+    <label for="layer-select">Seleziona Layer:</label>
+    <select id="layer-select"></select>
+
+    <div class="control-group">
+      <label>Position X <span id="posX-val" class="val-display">0</span></label>
+      <input type="range" id="posX" min="-2" max="2" step="0.005" value="0">
+    </div>
+    <div class="control-group">
+      <label>Position Y <span id="posY-val" class="val-display">0</span></label>
+      <input type="range" id="posY" min="-2" max="2" step="0.005" value="0">
+    </div>
+    <div class="control-group">
+      <label>Position Z <span id="posZ-val" class="val-display">0</span></label>
+      <input type="range" id="posZ" min="-1" max="2" step="0.005" value="0">
+    </div>
+
+    <hr style="border-color: #333; margin: 12px 0;">
+
+    <div class="control-group">
+      <label>Rotation X <span id="rotX-val" class="val-display">0</span></label>
+      <input type="range" id="rotX" min="-180" max="180" step="0.5" value="0">
+    </div>
+    <div class="control-group">
+      <label>Rotation Y <span id="rotY-val" class="val-display">0</span></label>
+      <input type="range" id="rotY" min="-180" max="180" step="0.5" value="0">
+    </div>
+    <div class="control-group">
+      <label>Rotation Z <span id="rotZ-val" class="val-display">0</span></label>
+      <input type="range" id="rotZ" min="-180" max="180" step="0.5" value="0">
+    </div>
+
+    <button id="export-btn">Esporta in Console</button>
+  </div>
+
+  <!-- Scena A-Frame -->
+  <a-scene 
+    scene-inspector
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no;" 
+    color-space="sRGB" 
+    renderer="colorManagement: true; antialias: true;" 
+    vr-mode-ui="enabled: false">
+
+    <a-assets>
+      <img id="base-image" src="./assets/base.png" crossorigin="anonymous" />
+      <img id="layer0" src="./assets/layer0.png" crossorigin="anonymous" />
+      <img id="layer1" src="./assets/layer1.png" crossorigin="anonymous" />
+      <img id="layer2" src="./assets/layer2.png" crossorigin="anonymous" />
+      <img id="layer3" src="./assets/layer3.png" crossorigin="anonymous" />
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+      
+      <!-- NOTA: Aggiungi la classe 'inspectable' a qualsiasi elemento vuoi controllare dall'UI -->
+      <a-plane class="inspectable" id="BASE" src="#base-image" position="0 -0.5 0.5" rotation="-90 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="L0" src="#layer0" position="0 0 0.01" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="L1" src="#layer1" position="0 0 0.05" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="L2" src="#layer2" position="0 0 0.10" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <a-plane class="inspectable" id="L3" src="#layer3" position="0 0 0.20" rotation="0 0 0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+
+    </a-entity>
+  </a-scene>
 </body>
 </html>
