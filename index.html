@@ -1,573 +1,82 @@
 <!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove</title>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- A-Frame & MindAR Libraries -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    
+    <style>
+      body { margin: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- Sostituisci mindar-image="imageTargetSrc: ./target.mind;" con il tuo file di tracking -->
+    <a-scene 
+      mindar-image="imageTargetSrc: ./target.mind; autoStart: true; uiLoading: no; uiError: no;" 
+      embedded 
+      color-space="sRGB" 
+      renderer="colorManagement: true, physicallyCorrectLights" 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false">
+      
+      <a-assets>
+        <!-- Inserisci qui le texture per pagine, legno o foglie se usate -->
+      </a-assets>
 
-  <!-- Librerie A-Frame e MindAR -->
-  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-  <script>
-    // 1. SMOOTH TRACKER
-    AFRAME.registerComponent('smooth-tracker', {
-      schema: { factor: { type: 'number', default: 0.35 } },
-      init: function () {
-        this.hasTarget = false;
-        this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
-        this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
-      },
-      tick: function () {
-        if (!this.hasTarget) return;
-        const object3D = this.el.object3D;
-        if (this.prevPos) {
-          object3D.position.lerp(this.prevPos, 1 - this.data.factor);
-          object3D.quaternion.slerp(this.prevQuat, 1 - this.data.factor);
-        }
-        this.prevPos = object3D.position.clone();
-        this.prevQuat = object3D.quaternion.clone();
-      }
-    });
-
-    // 2. MOVIMENTO OCCHI MOSTRO (IRIDE)
-    AFRAME.registerComponent('eye-movement', {
-      schema: {
-        rangeZ: { type: 'number', default: 0.0065 },
-        minPause: { type: 'number', default: 400 },
-        maxPause: { type: 'number', default: 1800 },
-        moveDuration: { type: 'number', default: 90 },
-        userBias: { type: 'number', default: 0.6 }
-      },
-      init: function () {
-        this.baseZ = this.el.object3D.position.z;
-        this.currentZ = this.baseZ;
-        this.targetZ = this.baseZ;
-        this.isMoving = false;
-        this.moveTimer = 0;
-        this.pauseTimer = 0;
-        this.pauseDuration = this.getRandomPause();
-      },
-      getRandomPause: function () {
-        return Math.random() * (this.data.maxPause - this.data.minPause) + this.data.minPause;
-      },
-      getRandomTargetZ: function () {
-        const direction = Math.random() < this.data.userBias ? 1 : -1;
-        const intensity = Math.random() * this.data.rangeZ;
-        return this.baseZ + (direction * intensity);
-      },
-      tick: function (t, dt) {
-        if (!dt) return;
-        if (this.isMoving) {
-          this.moveTimer += dt;
-          const progress = Math.min(this.moveTimer / this.data.moveDuration, 1);
-          const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-          const newZ = this.currentZ + (this.targetZ - this.currentZ) * easeProgress;
-          this.el.object3D.position.z = newZ;
-          if (progress >= 1) {
-            this.isMoving = false;
-            this.currentZ = this.targetZ;
-            this.pauseTimer = 0;
-            this.pauseDuration = this.getRandomPause();
-          }
-        } else {
-          this.pauseTimer += dt;
-          if (this.pauseTimer >= this.pauseDuration) {
-            this.targetZ = this.getRandomTargetZ();
-            this.isMoving = true;
-            this.moveTimer = 0;
-          }
-        }
-      }
-    });
-
-    // 3. PALPEBRA MOSTRO
-    AFRAME.registerComponent('eyelid-blink', {
-      schema: {
-        closeDuration: { type: 'number', default: 150 },
-        holdClosed: { type: 'number', default: 200 },
-        openDuration: { type: 'number', default: 250 },
-        minPause: { type: 'number', default: 4000 },
-        maxPause: { type: 'number', default: 9000 },
-        blinkDistanceX: { type: 'number', default: 0.15 }
-      },
-      init: function () {
-        this.baseX = this.el.object3D.position.x;
-        this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
-        this.state = 'OPEN';
-        this.timer = 0;
-        this.pauseDuration = this.getRandomPause();
-      },
-      getRandomPause: function () {
-        return Math.random() * (this.data.maxPause - this.data.minPause) + this.data.minPause;
-      },
-      tick: function (t, dt) {
-        if (!dt) return;
-        switch (this.state) {
-          case 'OPEN':
-            this.timer += dt;
-            if (this.timer >= this.pauseDuration) {
-              this.state = 'CLOSING';
-              this.timer = 0;
-            }
-            break;
-          case 'CLOSING':
-            this.timer += dt;
-            const closeProgress = Math.min(this.timer / this.data.closeDuration, 1);
-            const easeClose = 0.5 - Math.cos(closeProgress * Math.PI) / 2;
-            this.el.object3D.position.x = (this.baseX + this.data.blinkDistanceX) - (this.data.blinkDistanceX * easeClose);
-            if (closeProgress >= 1) {
-              this.state = 'HOLD_CLOSED';
-              this.timer = 0;
-            }
-            break;
-          case 'HOLD_CLOSED':
-            this.timer += dt;
-            if (this.timer >= this.data.holdClosed) {
-              this.state = 'OPENING';
-              this.timer = 0;
-            }
-            break;
-          case 'OPENING':
-            this.timer += dt;
-            const openProgress = Math.min(this.timer / this.data.openDuration, 1);
-            const easeOpen = 0.5 - Math.cos(openProgress * Math.PI) / 2;
-            this.el.object3D.position.x = this.baseX + (this.data.blinkDistanceX * easeOpen);
-            if (openProgress >= 1) {
-              this.el.object3D.position.x = this.baseX + this.data.blinkDistanceX;
-              this.state = 'OPEN';
-              this.timer = 0;
-              this.pauseDuration = this.getRandomPause();
-            }
-            break;
-        }
-      }
-    });
-
-    // 4. MONGOLFIERA
-    AFRAME.registerComponent('balloon-float', {
-      schema: {
-        minY: { type: 'number', default: 0.0 },
-        maxY: { type: 'number', default: 0.16 },
-        rangeX: { type: 'number', default: 0.015 },
-        rangeRotZ: { type: 'number', default: 0.8 },
-        speedY: { type: 'number', default: 0.00025 },
-        speedX: { type: 'number', default: 0.00018 }
-      },
-      init: function () {
-        this.baseX = this.el.object3D.position.x;
-        this.timeY = 0;
-        this.timeX = 0;
-      },
-      tick: function (t, dt) {
-        if (!dt) return;
-        this.timeY += dt * this.data.speedY;
-        this.timeX += dt * this.data.speedX;
-        const factorY = (Math.sin(this.timeY) + 1) / 2;
-        const currentY = this.data.minY + factorY * (this.data.maxY - this.data.minY);
-        const offsetX = Math.sin(this.timeX) * this.data.rangeX;
-        const tiltZ = Math.cos(this.timeX) * this.data.rangeRotZ;
-        this.el.object3D.position.y = currentY;
-        this.el.object3D.position.x = this.baseX + offsetX;
-        this.el.object3D.rotation.z = THREE.MathUtils.degToRad(tiltZ);
-      }
-    });
-
-    // 5. BARCA
-    AFRAME.registerComponent('boat-pitch', {
-      schema: {
-        pitchDeg: { type: 'number', default: 3.5 },
-        bobY: { type: 'number', default: 0.008 },
-        speed: { type: 'number', default: 0.002 }
-      },
-      init: function () {
-        this.baseY = this.el.object3D.position.y;
-        this.time = 0;
-      },
-      tick: function (t, dt) {
-        if (!dt) return;
-        this.time += dt * this.data.speed;
-        const offsetY = Math.sin(this.time) * this.data.bobY;
-        this.el.object3D.position.y = this.baseY + offsetY;
-        const pitchAngle = Math.cos(this.time) * this.data.pitchDeg;
-        this.el.object3D.rotation.z = THREE.MathUtils.degToRad(pitchAngle);
-      }
-    });
-
-    // 6. FARFALLA 3D (VOLO E BATTITO)
-    AFRAME.registerComponent('butterfly-3d-flight', {
-      schema: {
-        radiusX: { type: 'number', default: 0.14 },
-        radiusY: { type: 'number', default: 0.09 },
-        flapAngle: { type: 'number', default: 50 },
-        flapSpeed: { type: 'number', default: 0.012 },
-        flightSpeed: { type: 'number', default: 0.001 }
-      },
-      init: function () {
-        this.baseX = this.el.object3D.position.x;
-        this.baseY = this.el.object3D.position.y;
-        this.timeFlight = 0;
-        this.timeFlap = Math.random() * 100;
-        this.wingLeft = this.el.querySelector('.wing-left');
-        this.wingRight = this.el.querySelector('.wing-right');
-      },
-      tick: function (t, dt) {
-        if (!dt) return;
-        this.timeFlight += dt * this.data.flightSpeed;
-        this.timeFlap += dt * this.data.flapSpeed;
-
-        const offsetX = Math.sin(this.timeFlight) * this.data.radiusX;
-        const offsetY = Math.cos(this.timeFlight * 0.7) * this.data.radiusY;
-        this.el.object3D.position.x = this.baseX + offsetX;
-        this.el.object3D.position.y = this.baseY + offsetY;
-
-        const currentFlap = Math.sin(this.timeFlap) * this.data.flapAngle;
-        if (this.wingLeft) this.wingLeft.object3D.rotation.y = THREE.MathUtils.degToRad(currentFlap);
-        if (this.wingRight) this.wingRight.object3D.rotation.y = THREE.MathUtils.degToRad(-currentFlap);
-
-        const heading = Math.atan2(
-          Math.cos(this.timeFlight * 0.7) * this.data.radiusY * 0.7,
-          Math.cos(this.timeFlight) * this.data.radiusX
-        );
-        this.el.object3D.rotation.z = heading - Math.PI / 2;
-      }
-    });
-
-    // 7. FOGLIE CADENTI (Layer 6)
-    AFRAME.registerComponent('falling-particles', {
-      schema: {
-        count: { type: 'int', default: 22 },
-        zPos: { type: 'number', default: 0.60 },
-        zVariance: { type: 'number', default: 0.01 },
-        baseSizeMin: { type: 'number', default: 0.010 }, // Ridotta la dimensione minima
-        baseSizeMax: { type: 'number', default: 0.060 },
-        fallSpeedMin: { type: 'number', default: 0.0005 },
-        fallSpeedMax: { type: 'number', default: 0.0009 },
-        swayAmp: { type: 'number', default: 0.025 },
-        enable3DRotation: { type: 'boolean', default: true },
-        assetFolder: { type: 'string', default: './assets/foglie/' },
-        assetPrefix: { type: 'string', default: 'layer6-foglie-' },
-        assetStart: { type: 'int', default: 1 },
-        assetEnd: { type: 'int', default: 18 }
-      },
-      init: function () {
-        this.particles = [];
-        this.textureUrls = [];
-        for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
-          const numStr = i.toString().padStart(2, '0');
-          this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
-        }
-
-        // Spostati i limiti orizzontali verso destra
-        this.bounds = {
-          xMin: -0.150,
-          xMax:  0.350,
-          yMin: -0.325,
-          yMax:  0.200,
-          yKill: -0.600
-        };
-
-        const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
-
-        for (let i = 0; i < this.data.count; i++) {
-          const pEl = document.createElement('a-plane');
-          const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
-          const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
-          
-          pEl.setAttribute('width', size);
-          pEl.setAttribute('height', size);
-          pEl.setAttribute('material', `src: url(${randTexUrl}); ${overlayMat} side: double;`);
-
-          this.el.appendChild(pEl);
-
-          const pData = {
-            el: pEl,
-            xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
-            x: 0,
-            y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
-            z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
-            fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
-            swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
-            swayFreq: 0.0018 + (Math.random() * 0.0015),
-            rotSpeedZ: (Math.random() - 0.5) * 1.8,
-            rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
-            rotZ: Math.random() * 360,
-            rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
-            timeOffset: Math.random() * 2000
-          };
-
-          pData.x = pData.xInit;
-          this.particles.push(pData);
-        }
-      },
-      randomRange: function (min, max) {
-        return min + Math.random() * (max - min);
-      },
-      resetParticle: function (p) {
-        p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
-        p.x = p.xInit;
-        p.y = this.bounds.yMax;
-        p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
-        p.rotZ = Math.random() * 360;
-      },
-      tick: function (time, timeDelta) {
-        if (!timeDelta) return;
-        this.particles.forEach(p => {
-          p.y -= p.fallSpeed * (timeDelta / 16.6);
-          const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
-          p.x = p.xInit + sway;
-          p.rotZ += p.rotSpeedZ;
-          if (this.data.enable3DRotation) p.rotX += p.rotSpeedX;
-
-          p.el.object3D.position.set(p.x, p.y, p.z);
-          p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
-          if (this.data.enable3DRotation) {
-            p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
-          }
-
-          if (p.y < this.bounds.yKill) this.resetParticle(p);
-        });
-      }
-    });
-  </script>
-
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
-    .mindar-ui-loading, 
-    div[class*="mindar-ui-loading"] {
-      display: none !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
-    }
-    .mindar-ui-overlay, 
-    div[class*="mindar-ui"] {
-      background: transparent !important;
-      background-color: transparent !important;
-    }
-  </style>
-</head>
-
-<body>
-  <a-scene 
-    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; uiLoading: no;" 
-    color-space="sRGB" 
-    renderer="colorManagement: true, physicallyCorrectLights: true; antialias: true;" 
-    vr-mode-ui="enabled: false" 
-    device-orientation-permission-ui="enabled: false">
-
-    <!-- CARICAMENTO ASSETS -->
-    <a-assets>
-      <img id="base-image" src="./assets/base.png" crossorigin="anonymous" />
-      <img id="layer0" src="./assets/layer0.png" crossorigin="anonymous" />
-      <img id="layer1" src="./assets/layer1.png" crossorigin="anonymous" />
-      <img id="layer1-floor" src="./assets/layer1-floor.png" crossorigin="anonymous" />
-      <img id="layer1-mongolfiera" src="./assets/layer1-mongolfiera.png" crossorigin="anonymous" />
-      <img id="layer2" src="./assets/layer2.png" crossorigin="anonymous" />
-      <img id="layer3" src="./assets/layer3.png" crossorigin="anonymous" />
-      <img id="layer4" src="./assets/layer4.png" crossorigin="anonymous" />
-      <img id="layer5" src="./assets/layer5.png" crossorigin="anonymous" />
-      <img id="layer6" src="./assets/layer6.png" crossorigin="anonymous" />
-      <img id="layer7" src="./assets/layer7.png" crossorigin="anonymous" />
-      <img id="layer8" src="./assets/layer8.png" crossorigin="anonymous" />
-      <img id="layer8-floor" src="./assets/layer8-floor.png" crossorigin="anonymous" />
-      <img id="layer9" src="./assets/layer9.png" crossorigin="anonymous" />
-      <img id="layer9-barca" src="./assets/layer9-barca.png" crossorigin="anonymous" />
-      <img id="layer9-over" src="./assets/layer9-over.png" crossorigin="anonymous" />
-      <img id="layer9-floor" src="./assets/layer9-floor.png" crossorigin="anonymous" />
-      <img id="layer9-middle" src="./assets/layer9-middle.png" crossorigin="anonymous" />
-      <img id="layer9-top" src="./assets/layer9-top.png" crossorigin="anonymous" />
-      <img id="layer10" src="./assets/layer10.png" crossorigin="anonymous" />
-      <img id="layer10-floor" src="./assets/layer10-floor.png" crossorigin="anonymous" />
-      <img id="layer10-back" src="./assets/layer10-back.png" crossorigin="anonymous" />
+      <a-entity mindar-image-target="targetIndex: 0">
         
-      <img id="layer-mostro_01" src="./assets/layer-mostro_01.png" crossorigin="anonymous" />
-      <img id="layer-mostro-palpebra" src="./assets/layer-mostro-palpebra.png" crossorigin="anonymous" />
-      <img id="layer-mostro_02-bianco" src="./assets/layer-mostro_02-bianco.png" crossorigin="anonymous" />
-      <img id="layer-mostro_02" src="./assets/layer-mostro_02.png" crossorigin="anonymous" />
-      <img id="layer-mostro_03" src="./assets/layer-mostro_03.png" crossorigin="anonymous" />
+        <!-- 1. BASE: Sfondo di pagine di libro che emerge dal foglio -->
+        <a-plane position="0 0 0" width="1" height="1" material="color: #f4f1ea; opacity: 0.9;" rotation="0 0 0"></a-plane>
 
-      <img id="butterfly-body" src="./assets/butterfly-body.png" crossorigin="anonymous" />
-      <img id="butterfly-wing-left" src="./assets/butterfly-wing-left.png" crossorigin="anonymous" />
-      <img id="butterfly-wing-right" src="./assets/butterfly-wing-right.png" crossorigin="anonymous" />
-    </a-assets>
+        <!-- 2. IL LAMPIONE E IL CONO DI LUCE (Diagonale Narrativa) -->
+        <!-- Palo del Lampione -->
+        <a-cylinder position="0.35 0.1 0.15" radius="0.008" height="0.6" color="#1a1a1a" rotation="0 0 -15"></a-cylinder>
+        
+        <!-- Cono di Luce (Semi-trasparente, depthWrite false per non fare clipping) -->
+        <a-cone 
+          position="0.1 -0.05 0.2" 
+          radius-bottom="0.35" 
+          radius-top="0.02" 
+          height="0.7" 
+          rotation="0 0 40" 
+          material="color: #fbd532; transparent: true; opacity: 0.45; depthWrite: false; side: Double">
+        </a-cone>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-    <!-- TARGET ANCORAGGIO -->
-    <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
-      
-      <!-- BASE INFERIORE (PAVIMENTO) -->
-      <a-plane 
-        src="#base-image" 
-        position="0 -0.5 0.5" 
-        rotation="-90 0 0" 
-        width="1" height="1" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-
-      <!-- LAYER VERTICALI -->
-      <a-plane src="#layer0" position="0 0 0.01" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-     
-      <a-plane 
-        src="#layer1-mongolfiera" 
-        position="0 0 0.03" 
-        width="1" height="1" 
-        material="transparent: true; alphaTest: 0.1; side: double;"
-        balloon-float="minY: 0.0; maxY: 0.2; rangeX: 0.015; rangeRotZ: 0.8; speedY: 0.00025; speedX: 0.00018;">
-      </a-plane>
-
-      <a-plane src="#layer1" position="0 0 0.05" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      
-      <a-plane 
-        src="#layer1-floor" 
-        position="0 -0.499 0.075" 
-        rotation="-90 0 0" 
-        width="1" height="0.05" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-      
-      <a-plane src="#layer2" position="0 0 0.10" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer3" position="0 0 0.20" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer4" position="0 0 0.30" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer5" position="0 0 0.45" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer6" position="0 0 0.50" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-
-      <!-- FOGLIE CADENTI -->
-      <a-entity falling-particles="count: 22; zPos: 0.50;"></a-entity>
-      
-      <a-plane src="#layer7" position="0 0 0.70" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      
-      <!-- LAYER 8 -->
-      <a-plane src="#layer8" position="0 0 0.620" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane 
-        src="#layer8-floor" 
-        position="0 -0.499 0.720" 
-        rotation="-90 0 0" 
-        width="1" height="0.20" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-
-      <!-- LAYER 9 -->
-      <a-plane src="#layer9" position="0 0 0.845" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer9-over" position="0 0 0.895" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-
-      <a-plane 
-        src="#layer9-top" 
-        position="0 0.094 0.845" 
-        rotation="-90 0 0" 
-        width="1" height="0.45" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-
-      <a-plane 
-        src="#layer9-middle" 
-        position="0 -0.11 0.845" 
-        rotation="-90 0 0" 
-        width="1" height="0.35" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-
-      <a-plane 
-        src="#layer9-barca" 
-        position="0 0 0.865" 
-        rotation="0 0 0" 
-        width="1" height="1" 
-        material="transparent: true; alphaTest: 0.1; side: double;"
-        boat-pitch="pitchDeg: 4; bobY: 0.008; speed: 0.0018;">
-      </a-plane>
-
-      <a-plane 
-        src="#layer9-floor" 
-        position="0 -0.499 0.845" 
-        rotation="-90 0 0" 
-        width="1" height="0.30" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>      
-      
-      <!-- LAYER 10 -->
-      <a-plane src="#layer10" position="0 0 1.00" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane src="#layer10-back" position="0 0 0.98" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane 
-        src="#layer10-floor" 
-        position="0 -0.499 0.935" 
-        rotation="-90 0 0" 
-        width="1" height="0.12" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane> 
-
-      <!-- FARFALLA 1 (Principale, in alto a destra) -->
-      <a-entity 
-        position="0.28 0.05 1.05" 
-        butterfly-3d-flight="radiusX: 0.14; radiusY: 0.09; flapAngle: 50; flapSpeed: 0.012; flightSpeed: 0.001;">
-        <a-plane src="#butterfly-body" position="0 0 0" width="0.02" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-entity class="wing-left" position="-0.002 0 0.001">
-          <a-plane src="#butterfly-wing-left" position="-0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        <!-- 3. IL VIAGGIO: Bacino d'acqua e Barca (Primo Piano in Basso) -->
+        <!-- Piano Acqua -->
+        <a-cylinder position="-0.2 -0.25 0.15" radius="0.22" height="0.02" material="color: #2b5c8f; transparent: true; opacity: 0.75;"></a-cylinder>
+        
+        <!-- Scafo Barca -->
+        <a-entity id="barca" position="-0.2 -0.23 0.18" animation="property: position; to: -0.2 -0.21 0.18; dir: alternate; dur: 2500; loop: true; easing: sine">
+          <!-- Scafo -->
+          <a-cone radius-bottom="0.06" radius-top="0" height="0.04" rotation="0 0 180" scale="1 1 2" material="color: #3e2723;"></a-cone>
+          <!-- Vela di carta -->
+          <a-triangle vertex-a="0 0.08 0" vertex-b="-0.04 0 0" vertex-c="0.04 0 0" material="color: #f4f1ea; side: Double" position="0 0.04 0"></a-triangle>
         </a-entity>
-        <a-entity class="wing-right" position="0.002 0 0.002">
-          <a-plane src="#butterfly-wing-right" position="0.035 0 0" width="0.07" height="0.07" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        </a-entity>
+
+        <!-- 4. MOVIMENTO ATMOSFERICO: Lettere che cadono (Metamorfosi della parola) -->
+        <!-- Lettera 'A' -->
+        <a-text value="A" position="0.2 0.3 0.25" scale="0.2 0.2 0.2" color="#1a1a1a"
+                animation="property: position; to: 0.0 -0.3 0.25; dur: 4500; loop: true; easing: linear; delay: 200"
+                animation__rotation="property: rotation; to: 0 360 45; dur: 4500; loop: true; easing: linear">
+        </a-text>
+
+        <!-- Lettera 'M' -->
+        <a-text value="M" position="0.05 0.35 0.18" scale="0.18 0.18 0.18" color="#1a1a1a"
+                animation="property: position; to: -0.15 -0.25 0.18; dur: 5200; loop: true; easing: linear; delay: 1000"
+                animation__rotation="property: rotation; to: 180 180 0; dur: 5200; loop: true; easing: linear">
+        </a-text>
+
+        <!-- Foglia / Parola che attraversa il cono di luce -->
+        <a-plane position="0.25 0.2 0.2" width="0.04" height="0.06" material="color: #4caf50; side: Double"
+                 animation="property: position; to: 0.05 -0.3 0.2; dur: 3800; loop: true; easing: linear; delay: 500"
+                 animation__rot="property: rotation; to: 360 180 90; dur: 3800; loop: true; easing: linear">
+        </a-plane>
+
       </a-entity>
-
-      <!-- FARFALLA 2 (Piccola, sopra i fiori in basso a destra) -->
-      <a-entity 
-        position="0.28 -0.38 1.05" 
-        butterfly-3d-flight="radiusX: 0.08; radiusY: 0.04; flapAngle: 45; flapSpeed: 0.016; flightSpeed: 0.0012;">
-        <a-plane src="#butterfly-body" position="0 0 0" width="0.01" height="0.035" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        <a-entity class="wing-left" position="-0.001 0 0.001">
-          <a-plane src="#butterfly-wing-left" position="-0.0175 0 0" width="0.035" height="0.035" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        </a-entity>
-        <a-entity class="wing-right" position="0.001 0 0.002">
-          <a-plane src="#butterfly-wing-right" position="0.035 0 0" width="0.035" height="0.035" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-        </a-entity>
-      </a-entity>
-
-      <!-- MOSTRO -->
-      <a-plane 
-        src="#layer-mostro_03" 
-        position="0 -0.499 0.35" 
-        rotation="-90 0 0" 
-        width="1" height="0.30" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-
-      <a-plane 
-        src="#layer-mostro_02" 
-        position="0 -0.497 0.35" 
-        rotation="-90 0 0" 
-        width="1" height="0.30" 
-        material="transparent: true; alphaTest: 0.1; side: double;"
-        eye-movement="rangeZ: 0.0065; minPause: 200; maxPause: 600; moveDuration: 60; userBias: 0.7;">
-      </a-plane>
-
-      <a-plane 
-        src="#layer-mostro_02-bianco" 
-        position="0 -0.496 0.35" 
-        rotation="-90 0 0" 
-        width="1" height="0.30" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-
-      <a-plane 
-        src="#layer-mostro-palpebra" 
-        position="0 -0.495 0.35" 
-        rotation="-90 0 0" 
-        width="1" height="0.30" 
-        material="transparent: true; alphaTest: 0.1; side: double;"
-        eyelid-blink="blinkDistanceX: 0.15; minPause: 4000; maxPause: 9000; closeDuration: 150; holdClosed: 100; openDuration: 200;">
-      </a-plane>
-
-      <a-plane 
-        src="#layer-mostro_01" 
-        position="0 -0.493 0.35" 
-        rotation="-90 0 0" 
-        width="1" height="0.30" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
-
-    </a-entity>
-  </a-scene>
-</body>
+    </a-scene>
+  </body>
 </html>
