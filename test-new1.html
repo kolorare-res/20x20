@@ -9,6 +9,26 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <script>
+ // 1. SMOOTH TRACKER
+    AFRAME.registerComponent('smooth-tracker', {
+      schema: { factor: { type: 'number', default: 0.35 } },
+      init: function () {
+        this.hasTarget = false;
+        this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
+        this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
+      },
+      tick: function () {
+        if (!this.hasTarget) return;
+        const object3D = this.el.object3D;
+        if (this.prevPos) {
+          object3D.position.lerp(this.prevPos, 1 - this.data.factor);
+          object3D.quaternion.slerp(this.prevQuat, 1 - this.data.factor);
+        }
+        this.prevPos = object3D.position.clone();
+        this.prevQuat = object3D.quaternion.clone();
+      }
+    });
+    
     AFRAME.registerComponent('opt-plane', {
       init: function () {
         this.el.setAttribute('material', { transparent: true, alphaTest: 0.1, side: 'double' });
