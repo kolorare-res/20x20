@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove - CSS3D Parallax</title>
+  <title>Altrove - Composizione 3D</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -11,11 +11,11 @@
       background: #111;
       overflow: hidden;
       display: flex; justify-content: center; align-items: center;
-      perspective: 1000px; /* Profondità della camera 3D */
+      perspective: 1200px;
     }
 
     #stage {
-      width: 400px; height: 400px;
+      width: 500px; height: 500px;
       position: relative;
       transform-style: preserve-3d;
       transition: transform 0.1s ease-out;
@@ -29,19 +29,36 @@
       pointer-events: none;
     }
 
-    /* Posizionamento dei vari livelli sull'asse Z */
-    #base { transform: translateZ(0px); }
-    #albero { transform: translate3d(-10%, -5%, 40px) scale(0.9); }
-    #lampione { transform: translate3d(10%, 0%, 80px) scale(0.9); }
-    #lago { transform: translate3d(-15%, 15%, 120px) scale(0.85); }
+    /* 1. SFONDO TESTUALE (Piano base) */
+    #base { 
+      transform: translateZ(0px); 
+    }
+
+    /* 2. ALBERO (Spostato a sinistra, leggermente avanzato) */
+    #albero { 
+      transform: translate3d(-20%, -2%, 30px) scale(0.9); 
+    }
+
+    /* 3. LAMPIONE (Centrato a destra, avanza nello spazio) */
+    #lampione { 
+      transform: translate3d(18%, 2%, 60px) scale(1); 
+      mix-blend-mode: screen; /* Elimina l'eventuale blocco nero attorno al lampione */
+    }
+
+    /* 4. LAGO (In basso a sinistra, dentro il perimetro della pagina) */
+    #lago { 
+      transform: translate3d(-12%, 22%, 90px) scale(0.7); 
+    }
+
+    /* 5. BARCA (Galleggia sopra il lago) */
     #barca {
-      transform: translate3d(-12%, 18%, 150px) scale(0.5);
+      transform: translate3d(-12%, 22%, 120px) scale(0.45);
       animation: galleggia 2.5s ease-in-out infinite alternate;
     }
 
     @keyframes galleggia {
-      from { transform: translate3d(-12%, 18%, 150px) scale(0.5); }
-      to   { transform: translate3d(-12%, 15%, 150px) scale(0.5); }
+      from { transform: translate3d(-12%, 22%, 120px) scale(0.45); }
+      to   { transform: translate3d(-12%, 20%, 120px) scale(0.45); }
     }
   </style>
 </head>
@@ -63,12 +80,12 @@
   </div>
 
   <script>
-    // Interattività: Ruota la scena al movimento del mouse/touch per far risaltare il 3D
+    // Interattività: effetto Parallasse muovendo il mouse
     const stage = document.getElementById('stage');
     
     window.addEventListener('mousemove', (e) => {
-      const x = (window.innerWidth / 2 - e.clientX) / 20;
-      const y = (window.innerHeight / 2 - e.clientY) / 20;
+      const x = (window.innerWidth / 2 - e.clientX) / 25;
+      const y = (window.innerHeight / 2 - e.clientY) / 25;
       stage.style.transform = `rotateY(${-x}deg) rotateX(${y}deg)`;
     });
 
