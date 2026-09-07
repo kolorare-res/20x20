@@ -1,57 +1,107 @@
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    width: 100vw; height: 100vh;
-    background: #111;
-    overflow: hidden;
-    display: flex; justify-content: center; align-items: center;
-    perspective: 1200px;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Altrove - Composizione 3D Completa</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 100vw; height: 100vh;
+      background: #111;
+      overflow: hidden;
+      display: flex; justify-content: center; align-items: center;
+      perspective: 1200px;
+    }
 
-  #stage {
-    width: 500px; height: 500px;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.1s ease-out;
-  }
+    #stage {
+      width: 500px; height: 500px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
 
-  .layer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: contain;
-    pointer-events: none;
-  }
+    .layer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
 
-  /* 1. SFONDO BASE */
-  #base { 
-    transform: translateZ(0px); 
-  }
+    /* 1. SFONDO BASE (Z: 0px) */
+    #base { 
+      transform: translateZ(0px); 
+    }
 
-  /* 2. ALBERO (In alto a sinistra) */
-  #albero { 
-    transform: translate3d(-18%, -4%, 30px) scale(0.85); 
-  }
+    /* 2. ALBERO (Z: 30px) */
+    #albero { 
+      transform: translate3d(-18%, -4%, 30px) scale(0.85); 
+    }
 
-  /* 3. LAMPIONE (Ridimensionato e riallineato a destra) */
-  #lampione { 
-    transform: translate3d(12%, -2%, 60px) scale(0.85); 
-    mix-blend-mode: screen; 
-  }
+    /* 3. LAMPIONE E LUCE (Z: 60px) */
+    #lampione { 
+      transform: translate3d(12%, -2%, 60px) scale(0.85); 
+      mix-blend-mode: screen; 
+    }
 
-  /* 4. LAGO (Spostato a destra per centrarlo al fascio di luce) */
-  #lago { 
-    transform: translate3d(-2%, 24%, 90px) scale(0.6); 
-  }
+    /* 4. LETTORE / PERSONAGGIO (Z: 80px - In basso a sinistra) */
+    #lettore { 
+      transform: translate3d(-15%, 15%, 80px) scale(0.7); 
+    }
 
-  /* 5. BARCA (Posizionata al centro del lago con galleggiamento) */
-  #barca {
-    transform: translate3d(-3%, 25%, 120px) scale(0.35);
-    animation: galleggia 2.5s ease-in-out infinite alternate;
-  }
+    /* 5. LAGO (Z: 100px - In basso verso il centro) */
+    #lago { 
+      transform: translate3d(5%, 22%, 100px) scale(0.55); 
+    }
 
-  @keyframes galleggia {
-    from { transform: translate3d(-3%, 25%, 120px) scale(0.35); }
-    to   { transform: translate3d(-3%, 22%, 120px) scale(0.35); }
-  }
-</style>
+    /* 6. BARCA (Z: 120px - Galleggia sul lago) */
+    #barca {
+      transform: translate3d(5%, 23%, 120px) scale(0.32);
+      animation: galleggia 2.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes galleggia {
+      from { transform: translate3d(5%, 23%, 120px) scale(0.32); }
+      to   { transform: translate3d(5%, 20%, 120px) scale(0.32); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="stage">
+    <!-- 1. Sfondo Base -->
+    <img id="base" class="layer" src="assets/base.png" alt="Base">
+
+    <!-- 2. Vegetazione -->
+    <img id="albero" class="layer" src="assets/layer6.png" alt="Albero">
+
+    <!-- 3. Lampione e Luce -->
+    <img id="lampione" class="layer" src="assets/layer8.png" alt="Lampione">
+
+    <!-- 4. Lettore -->
+    <img id="lettore" class="layer" src="assets/layer3.png" alt="Lettore">
+
+    <!-- 5. Lago e Barca -->
+    <img id="lago" class="layer" src="assets/layer9-middle.png" alt="Lago">
+    <img id="barca" class="layer" src="assets/layer9-barca.png" alt="Barca">
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    
+    window.addEventListener('mousemove', (e) => {
+      const x = (window.innerWidth / 2 - e.clientX) / 25;
+      const y = (window.innerHeight / 2 - e.clientY) / 25;
+      stage.style.transform = `rotateY(${-x}deg) rotateX(${y}deg)`;
+    });
+
+    window.addEventListener('deviceorientation', (e) => {
+      if (e.beta && e.gamma) {
+        stage.style.transform = `rotateY(${e.gamma / 2}deg) rotateX(${e.beta / 2}deg)`;
+      }
+    });
+  </script>
+
+</body>
+</html>
