@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <script>
-    // 1. SMOOTH TRACKER (Interpolazione fluida del tracciamento)
+    // SMOOTH TRACKER (Interpolazione fluida del tracciamento)
     AFRAME.registerComponent('smooth-tracker', {
       schema: { factor: { type: 'number', default: 0.35 } },
       init: function () {
@@ -30,54 +30,10 @@
       }
     });
 
-    // 2. OPT-PLANE (Ottimizzazione Trasparenza e Materiale)
+    // OPT-PLANE (Ottimizzazione Trasparenza e Materiale)
     AFRAME.registerComponent('opt-plane', {
       init: function () {
         this.el.setAttribute('material', { transparent: true, alphaTest: 0.1, side: 'double' });
-      }
-    });
-
-    // 3. RIVELAZIONE PROGRESSIVA CORRETTA
-    AFRAME.registerComponent('paper-theater-reveal', {
-      schema: { duration: { type: 'number', default: 4000 } }, // 4 secondi
-      init: function () {
-        this.startTime = null;
-        this.layers = Array.from(this.el.querySelectorAll('.reveal-layer'));
-        
-        // Legge le posizioni finali dagli attributi e inizializza la partenza schiacciata
-        this.targetData = this.layers.map(layer => {
-          const finalZ = parseFloat(layer.getAttribute('data-final-z'));
-          const finalX = parseFloat(layer.getAttribute('data-final-x') || 0);
-          const finalY = parseFloat(layer.getAttribute('data-final-y') || 0);
-          
-          // Imposta subito la posizione di partenza compressa vicino a zero sulla Z
-          layer.object3D.position.set(finalX, finalY, 0.01);
-          
-          return {
-            el: layer,
-            x: finalX,
-            y: finalY,
-            z: finalZ
-          };
-        });
-      },
-      tick: function (time) {
-        if (!this.startTime) this.startTime = time;
-        const elapsed = time - this.startTime;
-        const progress = Math.min(elapsed / this.data.duration, 1);
-        
-        // Easing cubico in uscita (rallenta dolcemente alla fine)
-        const easeProgress = 1 - Math.pow(1 - progress, 3);
-
-        this.targetData.forEach(item => {
-          const currentZ = 0.01 + (item.z - 0.01) * easeProgress;
-          item.el.object3D.position.z = currentZ;
-        });
-
-        // Congela definitivamente la scena a fine animazione
-        if (progress >= 1) {
-          this.remove();
-        }
       }
     });
   </script>
@@ -124,35 +80,35 @@
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
     <!-- TARGET ANCORAGGIO -->
-    <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35" paper-theater-reveal="duration: 4000">
+    <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
-      <!-- BASE E LAYER 0 (Fissi sul fondo) -->
+      <!-- BASE E LAYER 0 (Fissi sul fondo, piatti) -->
       <a-plane opt-plane id="BASE-PAVIMENTO" src="#base-image" position="0.000 -0.500 0.500" rotation="-90.0 0.0 0.0" width="1" height="1"></a-plane>
       <a-plane opt-plane id="LAYER-0" src="#layer0" position="0.000 0.000 0.010" rotation="0.0 0.0 0.0" width="1" height="1"></a-plane>
      
-      <!-- QUINTE / LAYER INTERMEDI -->
-      <a-plane class="reveal-layer" data-final-z="0.05" src="#layer3" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane class="reveal-layer" data-final-z="0.10" src="#layer4" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+      <!-- QUINTE / LAYER INTERMEDI (Partono da Z=0.01 e si aprono alla loro profondità finale) -->
+      <a-plane opt-plane src="#layer3" position="0 0 0.01" width="1" height="1"
+        animation="property: position; to: 0 0 0.05; dur: 4000; easing: easeOutCubic;"></a-plane>
+      
+      <a-plane opt-plane src="#layer4" position="0 0 0.01" width="1" height="1"
+        animation="property: position; to: 0 0 0.10; dur: 4000; easing: easeOutCubic;"></a-plane>
 
       <!-- GRUPPO LAYER 6 -->
-      <a-entity class="reveal-layer" data-final-z="0.50" data-final-x="0.475" data-final-y="0.0" rotation="0.0 -30.5 0.0">
+      <a-entity position="0.475 0.000 0.01" rotation="0.0 -30.5 0.0"
+        animation="property: position; to: 0.475 0.000 0.50; dur: 4000; easing: easeOutCubic;">
         <a-plane opt-plane src="#layer6" position="0 0 0" width="1" height="1"></a-plane>
       </a-entity>
 
-      <!-- LAYER 8 E SUO FLOOR (Allineato correttamente in basso a y = -0.5) -->
-      <a-plane class="reveal-layer" data-final-z="0.620" opt-plane id="LAYER-8" src="#layer8" rotation="0.0 45.0 0.0" width="1" height="1"></a-plane>
-      <a-plane 
-        class="reveal-layer"
-        data-final-z="0.620"
-        src="#layer8-floor" 
-        position="0 -0.500 0" 
-        rotation="-90 45.0 0" 
-        width="1" height="0.20" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
+      <!-- GRUPPO LAYER 8 (Immagine + Floor uniti, così non si sballano le altezze) -->
+      <a-entity position="0 0 0.01" rotation="0.0 45.0 0.0"
+        animation="property: position; to: 0 0 0.620; dur: 4000; easing: easeOutCubic;">
+        <a-plane opt-plane id="LAYER-8" src="#layer8" position="0 0 0" width="1" height="1"></a-plane>
+        <a-plane opt-plane src="#layer8-floor" position="0 -0.500 0" rotation="-90 0 0" width="1" height="0.20"></a-plane>
+      </a-entity>
       
-      <!-- GRUPPO LAYER 9 (Include i floor interni della barca) -->
-      <a-entity class="reveal-layer" data-final-z="0.530" rotation="0.0 -30.5 0.0">
+      <!-- GRUPPO LAYER 9 (Include barca statica e i floor interni) -->
+      <a-entity position="0 0 0.01" rotation="0.0 -30.5 0.0"
+        animation="property: position; to: 0 0 0.530; dur: 4000; easing: easeOutCubic;">
         <a-plane opt-plane src="#layer9" position="0 0 0" width="1" height="1"></a-plane>
         <a-plane opt-plane src="#layer9-over" position="0 0 0.01" width="1" height="1"></a-plane>
         <a-plane opt-plane src="#layer9-barca" position="0 0 0.02" width="1" height="1"></a-plane>
@@ -162,18 +118,13 @@
         <a-plane opt-plane src="#layer9-floor" position="0 -0.500 0.005" rotation="-90 0 0" width="1" height="0.30"></a-plane>
       </a-entity>
 
-      <!-- GRUPPO LAYER 10 E SUO FLOOR (Allineato correttamente in basso a y = -0.5) -->
-      <a-plane class="reveal-layer" data-final-z="0.80" src="#layer10" rotation="0.0 23 0.0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane class="reveal-layer" data-final-z="0.88" src="#layer10-back" rotation="0.0 23 0.0" width="1" height="1" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-      <a-plane 
-        class="reveal-layer"
-        data-final-z="0.88"
-        src="#layer10-floor" 
-        position="0 -0.500 0" 
-        rotation="-90 0 0" 
-        width="1" height="0.12" 
-        material="transparent: true; alphaTest: 0.1; side: double;">
-      </a-plane>
+      <!-- GRUPPO LAYER 10 (Piano più lontano + suo floor uniti) -->
+      <a-entity position="0 0 0.01" rotation="0.0 23 0.0"
+        animation="property: position; to: 0 0 0.80; dur: 4000; easing: easeOutCubic;">
+        <a-plane opt-plane src="#layer10" position="0 0 0" width="1" height="1"></a-plane>
+        <a-plane opt-plane src="#layer10-back" position="0 0 0.01" width="1" height="1"></a-plane>
+        <a-plane opt-plane src="#layer10-floor" position="0 -0.500 0.01" rotation="-90 0 0" width="1" height="0.12"></a-plane>
+      </a-entity>
       
     </a-entity>
   </a-scene>
