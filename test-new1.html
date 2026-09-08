@@ -147,18 +147,14 @@
       }
     });
 
-// PULVISCOLO TIPOGRAFICO STABILE (Font Nativo Dejavu)
+// PULVISCOLO TIPOGRAFICO ANCORATO AI LAYER E MAGGIORE DIMENSIONE
 AFRAME.registerComponent('typo-cloud', {
   schema: {
-    clusters: { type: 'int', default: 6 },
-    totalChars: { type: 'int', default: 220 },
-    boundsX: { type: 'number', default: 1.4 },
-    boundsY: { type: 'number', default: 1.2 },
-    boundsZ: { type: 'number', default: 0.8 },
-    minScale: { type: 'number', default: 0.05 },
-    maxScale: { type: 'number', default: 0.15 },
+    totalChars: { type: 'int', default: 200 },
+    minScale: { type: 'number', default: 0.12 }, // Aumentato per renderle più grandi
+    maxScale: { type: 'number', default: 0.26 }, // Aumentato
     color: { type: 'string', default: '#F4E8D5' },
-    font: { type: 'string', default: 'dejavu' }, // Font nativo sicuro al 100%
+    font: { type: 'string', default: 'dejavu' },
     driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
@@ -166,42 +162,44 @@ AFRAME.registerComponent('typo-cloud', {
     this.nodes = [];
     const chars = Array.from(this.data.charSet);
 
-    const clusterCenters = [];
-    for (let i = 0; i < this.data.clusters; i++) {
-      clusterCenters.push({
-        x: (Math.random() - 0.5) * this.data.boundsX * 0.7,
-        y: (Math.random() - 0.2) * this.data.boundsY * 0.6,
-        z: (Math.random() - 0.3) * this.data.boundsZ * 0.8,
-        radius: 0.25 + Math.random() * 0.3
-      });
-    }
+    // Centri dei cluster ancorati esattamente attorno alle coordinate dei layer esistenti (Layer 6, 8, 9, 10)
+    const anchoredClusters = [
+      { x: 0.47, y: 0.0, z: 0.50, radius: 0.18, weight: 0.3 }, // Attorno a Group Layer 6
+      { x: 0.00, y: 0.0, z: 0.53, radius: 0.20, weight: 0.3 }, // Attorno a Group Layer 9
+      { x: 0.00, y: 0.0, z: 0.62, radius: 0.15, weight: 0.2 }, // Attorno a Layer 8
+      { x: 0.00, y: 0.0, z: 0.90, radius: 0.15, weight: 0.2 }  // Attorno a Layer 10
+    ];
 
     for (let i = 0; i < this.data.totalChars; i++) {
       const charEl = document.createElement('a-entity');
       const randomChar = chars[Math.floor(Math.random() * chars.length)];
       
-      let posX, posY, posZ;
-
-      if (Math.random() < 0.70) {
-        const center = clusterCenters[Math.floor(Math.random() * clusterCenters.length)];
-        const u = Math.random();
-        const r = center.radius * Math.cbrt(u);
-        const theta = Math.random() * 2 * Math.PI;
-        const phi = Math.acos(2 * Math.random() - 1);
-
-        posX = center.x + r * Math.sin(phi) * Math.cos(theta);
-        posY = center.y + r * Math.sin(phi) * Math.sin(theta);
-        posZ = center.z + r * Math.cos(phi);
-      } else {
-        posX = (Math.random() - 0.5) * this.data.boundsX;
-        posY = (Math.random() - 0.3) * this.data.boundsY;
-        posZ = (Math.random() - 0.5) * this.data.boundsZ;
+      // Scegliamo un cluster basato sui pesi per concentrare la densità sui layer
+      let randWeight = Math.random();
+      let accumulated = 0;
+      let targetCluster = anchoredClusters[0];
+      
+      for (let c of anchoredClusters) {
+        accumulated += c.weight;
+        if (randWeight <= accumulated) {
+          targetCluster = c;
+          break;
+        }
       }
 
-      const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      const baseOpacity = 0.45 + Math.random() * 0.50;
+      // Distribuzione sferica attorno al centro del layer scelto
+      const u = Math.random();
+      const r = targetCluster.radius * Math.cbrt(u);
+      const theta = Math.random() * 2 * Math.PI;
+      const phi = Math.acos(2 * Math.random() - 1);
 
-      // Configurazione text con font dejavu e width esplicita
+      const posX = targetCluster.x + r * Math.sin(phi) * Math.cos(theta);
+      const posY = targetCluster.y + r * Math.sin(phi) * Math.sin(theta);
+      const posZ = targetCluster.z + r * Math.cos(phi);
+
+      const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
+      const baseOpacity = 0.50 + Math.random() * 0.45;
+
       charEl.setAttribute('text', {
         value: randomChar,
         align: 'center',
@@ -216,17 +214,17 @@ AFRAME.registerComponent('typo-cloud', {
 
       charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
       charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
-      charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 40} 0`);
+      charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 15} ${(Math.random() - 0.5) * 30} 0`);
 
       this.el.appendChild(charEl);
 
       this.nodes.push({
         el: charEl,
         basePos: { x: posX, y: posY, z: posZ },
-        rotY: (Math.random() - 0.5) * 0.3,
+        rotY: (Math.random() - 0.5) * 0.2,
         freq: 0.7 + Math.random() * 1.2,
         phase: Math.random() * Math.PI * 2,
-        amp: 0.015 + Math.random() * 0.025
+        amp: 0.010 + Math.random() * 0.018
       });
     }
   },
@@ -244,7 +242,7 @@ AFRAME.registerComponent('typo-cloud', {
       node.el.object3D.position.y = node.basePos.y + offsetY;
       node.el.object3D.position.z = node.basePos.z + offsetZ;
 
-      node.el.object3D.rotation.y += node.rotY * 0.003;
+      node.el.object3D.rotation.y += node.rotY * 0.002;
     });
   }
 });
