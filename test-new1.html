@@ -147,27 +147,26 @@
       }
     });
 
-// PULVISCOLO TIPOGRAFICO POETICO (Riquilibrato, Sparso e Sporadico)
+// PULVISCOLO TIPOGRAFICO A INCHIOSTRO ANTICO (Opacità Piena)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
-    totalChars: { type: 'int', default: 45 }, // Ridotto drasticamente per fare spazio e dare ritmo
-    minScale: { type: 'number', default: 0.12 },
-    maxScale: { type: 'number', default: 0.30 },
-    color: { type: 'string', default: '#F4E8D5' },
+    totalChars: { type: 'int', default: 45 },
+    minScale: { type: 'number', default: 0.10 },
+    maxScale: { type: 'number', default: 0.25 },
+    color: { type: 'string', default: '#1A1412' }, // Inchiostro quasi nero/seppia scuro
     font: { type: 'string', default: 'dejavu' },
-    driftSpeed: { type: 'number', default: 0.0003 }, // Ancora più lento e ipnotico
+    driftSpeed: { type: 'number', default: 0.0003 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' }
   },
   init: function () {
     this.nodes = [];
     const chars = Array.from(this.data.charSet);
 
-    // Cluster distribuiti nello spazio reale del diorama (senza ammucchiarsi a x:0, y:0)
     const anchoredClusters = [
-      { x: 0.35, y:  0.15, z: 0.50, radius: 0.25, weight: 0.25 }, // Verso il layer 6 (destra-alto)
-      { x: -0.25, y: -0.10, z: 0.55, radius: 0.30, weight: 0.25 }, // Verso la base/lato sinistro
-      { x: 0.15, y:  0.20, z: 0.70, radius: 0.22, weight: 0.25 }, // Fluttuanti a metà profondità
-      { x: -0.20, y: -0.05, z: 0.88, radius: 0.28, weight: 0.25 }  // Sospese davanti al layer 10
+      { x: 0.35, y:  0.15, z: 0.50, radius: 0.25, weight: 0.25 },
+      { x: -0.25, y: -0.10, z: 0.55, radius: 0.30, weight: 0.25 },
+      { x: 0.15, y:  0.20, z: 0.70, radius: 0.22, weight: 0.25 },
+      { x: -0.20, y: -0.05, z: 0.88, radius: 0.28, weight: 0.25 }
     ];
 
     for (let i = 0; i < this.data.totalChars; i++) {
@@ -196,8 +195,9 @@ AFRAME.registerComponent('typo-cloud', {
       const posZ = targetCluster.z + r * Math.cos(phi);
 
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      // Opacità molto sfumate per non coprire la carta
-      const baseOpacity = 0.25 + Math.random() * 0.45;
+      
+      // ALZO L'OPACITÀ: da 0.85 a 1.0 per far sì che l'inchiostro sia pieno e scuro
+      const baseOpacity = 0.85 + Math.random() * 0.15;
 
       charEl.setAttribute('text', {
         value: randomChar,
@@ -245,7 +245,7 @@ AFRAME.registerComponent('typo-cloud', {
     });
   }
 });
-  
+    
   </script>
 
   <style>
