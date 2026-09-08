@@ -147,7 +147,7 @@
       }
     });
 
-// ETETRE TIPOGRAFICO SERIF A NUBI ATMOSFERICHE
+// ETETRE TIPOGRAFICO SERIF A NUBI ATMOSFERICHE (Fix CORS Font)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
@@ -156,9 +156,10 @@ AFRAME.registerComponent('typo-cloud', {
     boundsY: { type: 'number', default: 1.0 },
     boundsZ: { type: 'number', default: 1.6 },
     minScale: { type: 'number', default: 0.05 },
-    maxScale: { type: 'number', default: 0.15 },   // Scala calibrata per non soffocare la scena
-    color: { type: 'string', default: '#F4E8D5' }, // Tonalità pergamena/carta d'epoca
-    font: { type: 'string', default: 'https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/playfairdisplay/PlayfairDisplay-Regular.json' },
+    maxScale: { type: 'number', default: 0.15 },
+    color: { type: 'string', default: '#F4E8D5' },
+    // URL CDN corretto per caricare il font Serif Playfair Display senza blocchi CORS
+    font: { type: 'string', default: 'https://cdn.jsdelivr.net/gh/etiennepinchon/aframe-fonts@master/fonts/playfairdisplay/PlayfairDisplay-Regular.json' },
     driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
@@ -204,7 +205,7 @@ AFRAME.registerComponent('typo-cloud', {
       charEl.setAttribute('value', randomChar);
       charEl.setAttribute('align', 'center');
       charEl.setAttribute('anchor', 'center');
-      charEl.setAttribute('font', this.data.font); // Applicazione del Font Serif
+      charEl.setAttribute('font', this.data.font);
       charEl.setAttribute('color', this.data.color);
       charEl.setAttribute('side', 'double');
       charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
