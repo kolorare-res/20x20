@@ -147,7 +147,7 @@
       }
     });
 
-// PULVISCOLO TIPOGRAFICO SERIF (Fix Definitivo: MSDF Shader + Percorsi Locali + Posizionamento 3D)
+// PULVISCOLO TIPOGRAFICO (Versione Stabile con Font Nativo Exo2)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
@@ -158,8 +158,7 @@ AFRAME.registerComponent('typo-cloud', {
     minScale: { type: 'number', default: 0.05 },
     maxScale: { type: 'number', default: 0.15 },
     color: { type: 'string', default: '#F4E8D5' },
-    font: { type: 'string', default: './fonts/PlayfairDisplay-Regular.json' },
-    fontImage: { type: 'string', default: './fonts/PlayfairDisplay-Regular.png' },
+    font: { type: 'string', default: 'exo2' }, // Font nativo integrato in A-Frame
     driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
@@ -167,7 +166,6 @@ AFRAME.registerComponent('typo-cloud', {
     this.nodes = [];
     const chars = Array.from(this.data.charSet);
 
-    // Centri dei cluster distribuiti correttamente nello spazio
     const clusterCenters = [];
     for (let i = 0; i < this.data.clusters; i++) {
       clusterCenters.push({
@@ -179,7 +177,6 @@ AFRAME.registerComponent('typo-cloud', {
     }
 
     for (let i = 0; i < this.data.totalChars; i++) {
-      // Uso di a-entity per evitare conflitti con la primitiva a-text
       const charEl = document.createElement('a-entity');
       const randomChar = chars[Math.floor(Math.random() * chars.length)];
       
@@ -204,19 +201,16 @@ AFRAME.registerComponent('typo-cloud', {
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
       const baseOpacity = 0.45 + Math.random() * 0.50;
 
-      // Configurazione text con shader msdf attivo e trasparenza corretta
+      // Configurazione text pulita per font nativo (senza shader msdf o fontImage)
       charEl.setAttribute('text', {
         value: randomChar,
         align: 'center',
         anchor: 'center',
         font: this.data.font,
-        fontImage: this.data.fontImage,
-        shader: 'msdf',
         color: this.data.color,
         side: 'double',
         opacity: baseOpacity,
-        transparent: true,
-        negate: false
+        transparent: true
       });
 
       charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
