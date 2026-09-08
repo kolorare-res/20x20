@@ -146,6 +146,79 @@
         this.el.object3D.rotation.z = heading - Math.PI / 2;
       }
     });
+
+// TENDA TIPOGRAFICA FLUTTUANTE
+AFRAME.registerComponent('hanging-text-curtain', {
+  schema: {
+    textStr: { type: 'string', default: 'SOGNARE LEGGERE VOLARE OLTRE CONFINE VIAGGIARE PAROLE PAROLE SOSPESE ARIA' },
+    columns: { type: 'int', default: 7 },        // Numero di fili verticali
+    height: { type: 'number', default: 0.7 },      // Lunghezza della tenda
+    width: { type: 'number', default: 0.8 },       // Larghezza totale
+    color: { type: 'string', default: '#FFF8E7' },  // Colore caldo/onirico del testo
+    swaySpeed: { type: 'number', default: 0.0012 },// Velocità del vento
+    swayAmp: { type: 'number', default: 0.05 }     // Ampiezza dondolio
+  },
+  init: function () {
+    this.nodes = [];
+    const words = this.data.textStr.split(' ');
+    const colWidth = this.data.width / (this.data.columns - 1);
+    let wordIdx = 0;
+
+    for (let c = 0; c < this.data.columns; c++) {
+      const colX = (c * colWidth) - (this.data.width / 2);
+      const colEntity = document.createElement('a-entity');
+      colEntity.setAttribute('position', `${colX} ${this.data.height / 2} 0`);
+
+      const itemsPerCol = 7;
+      const colNodes = [];
+
+      for (let r = 0; r < itemsPerCol; r++) {
+        const word = words[(wordIdx++) % words.length];
+        const textEl = document.createElement('a-text');
+        
+        // Calcola il peso di caduta (0 in cima, 1 in fondo)
+        const hangWeight = r / (itemsPerCol - 1);
+        const relY = -hangWeight * this.data.height;
+
+        textEl.setAttribute('value', word);
+        textEl.setAttribute('align', 'center');
+        textEl.setAttribute('color', this.data.color);
+        textEl.setAttribute('scale', '0.1 0.1 0.1');
+        textEl.setAttribute('opacity', 0.95 - (hangWeight * 0.3)); // Trasparenza sfumata verso il fondo
+        textEl.setAttribute('position', `0 ${relY} 0`);
+
+        colEntity.appendChild(textEl);
+        colNodes.push({ el: textEl, hangWeight: hangWeight });
+      }
+
+      this.el.appendChild(colEntity);
+      this.nodes.push({ colIndex: c, items: colNodes });
+    }
+  },
+  tick: function (time, dt) {
+    if (!dt) return;
+
+    this.nodes.forEach(col => {
+      // Sfasamento d'onda sinusoidale composto per ogni filo della tenda
+      const phase = time * this.data.swaySpeed + (col.colIndex * 0.45);
+      const waveX = Math.sin(phase) + Math.sin(phase * 1.4) * 0.3;
+      const waveZ = Math.cos(phase * 0.8) * 0.5;
+
+      col.items.forEach(node => {
+        // L'oscillazione aumenta progressivamente verso il basso (effetto drappo/stoffa)
+        const offsetX = waveX * this.data.swayAmp * node.hangWeight;
+        const offsetZ = waveZ * this.data.swayAmp * node.hangWeight;
+        
+        node.el.object3D.position.x = offsetX;
+        node.el.object3D.position.z = offsetZ;
+        
+        // Piccola rotazione morbida inclinata dal movimento
+        node.el.object3D.rotation.z = offsetX * 1.2;
+      });
+    });
+  }
+});
+    
   </script>
 
   <style>
@@ -264,7 +337,14 @@
           <a-plane opt-plane src="#butterfly-wing-right" position="0.035 0 0" width="0.07" height="0.07"></a-plane>
         </a-entity>
       </a-entity>
-
+      
+<!-- TENDA TIPOGRAFICA ONIRICA IN PRIMO PIANO -->
+<a-entity 
+  hanging-text-curtain="columns: 6; height: 0.65; width: 0.75; swayAmp: 0.04; color: #FFFBF0;" 
+  position="0 0.1 0.95" 
+  rotation="0 -10 0">
+</a-entity>
+      
     </a-entity>
   </a-scene>
 </body>
