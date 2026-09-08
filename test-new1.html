@@ -148,105 +148,20 @@
     });
 
 // PULVISCOLO TIPOGRAFICO SERIF (Font in Locale)
-AFRAME.registerComponent('typo-cloud', {
-  schema: {
-    clusters: { type: 'int', default: 6 },
-    totalChars: { type: 'int', default: 200 },
-    boundsX: { type: 'number', default: 1.2 },
-    boundsY: { type: 'number', default: 0.8 },
-    boundsZ: { type: 'number', default: 0.5 },
-    minScale: { type: 'number', default: 0.08 },
-    maxScale: { type: 'number', default: 0.2 },
-    color: { type: 'string', default: '#F4E8D5' },
-    // Percorsi locali relativi alla tua repository
-    font: { type: 'string', default: './fonts/PlayfairDisplay-Regular.json' },
-    fontImage: { type: 'string', default: './fonts/PlayfairDisplay-Regular.png' },
-    driftSpeed: { type: 'number', default: 0.0005 },
-    charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
-  },
-  init: function () {
-    this.nodes = [];
-    const chars = Array.from(this.data.charSet);
-
-    const clusterCenters = [];
-    for (let i = 0; i < this.data.clusters; i++) {
-      clusterCenters.push({
-        x: (Math.random() - 0.5) * this.data.boundsX * 0.7,
-        y: (Math.random() - 0.5) * this.data.boundsY * 0.7,
-        z: (Math.random() - 0.5) * this.data.boundsZ * 0.8,
-        radius: 0.2 + Math.random() * 0.25
+// Passaggio unico dell'oggetto text al componente CON SHADER MSDF
+      charEl.setAttribute('text', {
+        value: randomChar,
+        align: 'center',
+        anchor: 'center',
+        font: this.data.font,
+        fontImage: this.data.fontImage,
+        shader: 'msdf', // <-- QUESTA E' LA RIGA MANCANTE
+        color: this.data.color,
+        side: 'double',
+        opacity: baseOpacity,
+        transparent: true,
+        negate: false
       });
-    }
-
-    for (let i = 0; i < this.data.totalChars; i++) {
-      const charEl = document.createElement('a-text');
-      const randomChar = chars[Math.floor(Math.random() * chars.length)];
-      
-      let posX, posY, posZ;
-
-      if (Math.random() < 0.70) {
-        const center = clusterCenters[Math.floor(Math.random() * clusterCenters.length)];
-        const u = Math.random();
-        const r = center.radius * Math.cbrt(u);
-        const theta = Math.random() * 2 * Math.PI;
-        const phi = Math.acos(2 * Math.random() - 1);
-
-        posX = center.x + r * Math.sin(phi) * Math.cos(theta);
-        posY = center.y + r * Math.sin(phi) * Math.sin(theta);
-        posZ = center.z + r * Math.cos(phi);
-      } else {
-        posX = (Math.random() - 0.5) * this.data.boundsX;
-        posY = (Math.random() - 0.5) * this.data.boundsY;
-        posZ = (Math.random() - 0.5) * this.data.boundsZ;
-      }
-
-      const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      const baseOpacity = 0.4 + Math.random() * 0.5;
-
-      charEl.setAttribute('value', randomChar);
-      charEl.setAttribute('align', 'center');
-      charEl.setAttribute('anchor', 'center');
-      charEl.setAttribute('font', this.data.font);
-      charEl.setAttribute('font-image', this.data.fontImage);
-      charEl.setAttribute('color', this.data.color);
-      charEl.setAttribute('side', 'double');
-      charEl.setAttribute('opacity', baseOpacity);
-      charEl.setAttribute('width', 2);
-      
-      charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
-      charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
-      charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 40} 0`);
-
-      this.el.appendChild(charEl);
-
-      this.nodes.push({
-        el: charEl,
-        basePos: { x: posX, y: posY, z: posZ },
-        rotY: (Math.random() - 0.5) * 0.3,
-        freq: 0.7 + Math.random() * 1.2,
-        phase: Math.random() * Math.PI * 2,
-        amp: 0.015 + Math.random() * 0.025
-      });
-    }
-  },
-  tick: function (time, dt) {
-    if (!dt) return;
-
-    this.nodes.forEach(node => {
-      const t = time * this.data.driftSpeed * node.freq + node.phase;
-      
-      const offsetX = Math.sin(t) * node.amp;
-      const offsetY = Math.cos(t * 0.8) * node.amp * 1.2;
-      const offsetZ = Math.sin(t * 1.2) * node.amp;
-
-      node.el.object3D.position.x = node.basePos.x + offsetX;
-      node.el.object3D.position.y = node.basePos.y + offsetY;
-      node.el.object3D.position.z = node.basePos.z + offsetZ;
-
-      node.el.object3D.rotation.y += node.rotY * 0.003;
-    });
-  }
-});
     
   </script>
 
