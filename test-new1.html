@@ -147,18 +147,20 @@
       }
     });
 
-// PULVISCOLO TIPOGRAFICO (Versione Stabile con Font Nativo)
+// PULVISCOLO TIPOGRAFICO SERIF (Font in Locale)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
     totalChars: { type: 'int', default: 200 },
     boundsX: { type: 'number', default: 1.2 },
     boundsY: { type: 'number', default: 0.8 },
-    boundsZ: { type: 'number', default: 0.5 }, // Profondità ridotta per evitare il clipping della camera
+    boundsZ: { type: 'number', default: 0.5 },
     minScale: { type: 'number', default: 0.08 },
     maxScale: { type: 'number', default: 0.2 },
     color: { type: 'string', default: '#F4E8D5' },
-    font: { type: 'string', default: 'dejavu' }, // Font di default A-Frame per ovviare ai blocchi di caricamento
+    // Percorsi locali relativi alla tua repository
+    font: { type: 'string', default: './fonts/PlayfairDisplay-Regular.json' },
+    fontImage: { type: 'string', default: './fonts/PlayfairDisplay-Regular.png' },
     driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
@@ -205,6 +207,7 @@ AFRAME.registerComponent('typo-cloud', {
       charEl.setAttribute('align', 'center');
       charEl.setAttribute('anchor', 'center');
       charEl.setAttribute('font', this.data.font);
+      charEl.setAttribute('font-image', this.data.fontImage);
       charEl.setAttribute('color', this.data.color);
       charEl.setAttribute('side', 'double');
       charEl.setAttribute('opacity', baseOpacity);
