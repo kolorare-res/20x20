@@ -147,7 +147,7 @@
       }
     });
 
-// ETETRE TIPOGRAFICO SERIF (Fix Font + Texture Atlas)
+// ETETRE TIPOGRAFICO SERIF (Fix Definitivo: a-entity + MSDF Shader)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
@@ -178,7 +178,8 @@ AFRAME.registerComponent('typo-cloud', {
     }
 
     for (let i = 0; i < this.data.totalChars; i++) {
-      const charEl = document.createElement('a-text');
+      // Usa a-entity invece di a-text per evitare conflitti con il wrapper della primitiva
+      const charEl = document.createElement('a-entity');
       const randomChar = chars[Math.floor(Math.random() * chars.length)];
       
       let posX, posY, posZ;
@@ -202,16 +203,18 @@ AFRAME.registerComponent('typo-cloud', {
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
       const baseOpacity = 0.45 + Math.random() * 0.50;
 
-      // Assegnazione unificata delle proprietà al componente text
+      // Assegnazione pulita delle proprietà text con shader MSDF e trasparenza abilitata
       charEl.setAttribute('text', {
         value: randomChar,
         align: 'center',
         anchor: 'center',
         font: this.data.font,
         fontImage: this.data.fontImage,
+        shader: 'msdf',
         color: this.data.color,
         side: 'double',
-        opacity: baseOpacity
+        opacity: baseOpacity,
+        transparent: true
       });
 
       charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
