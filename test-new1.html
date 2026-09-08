@@ -147,7 +147,7 @@
       }
     });
 
-// ETETRE TIPOGRAFICO VISIBILE
+// ETETRE TIPOGRAFICO SERIF A NUBI ATMOSFERICHE
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
@@ -155,10 +155,11 @@ AFRAME.registerComponent('typo-cloud', {
     boundsX: { type: 'number', default: 1.4 },
     boundsY: { type: 'number', default: 1.0 },
     boundsZ: { type: 'number', default: 1.6 },
-    minScale: { type: 'number', default: 0.08 },   // Dimensioni ben leggibili
-    maxScale: { type: 'number', default: 0.15 },   // Caratteri in primo piano
-    color: { type: 'string', default: '#FFFFFF' }, // Bianco brillante per staccare dal fondo
-    driftSpeed: { type: 'number', default: 0.0006 },
+    minScale: { type: 'number', default: 0.05 },
+    maxScale: { type: 'number', default: 0.15 },   // Scala calibrata per non soffocare la scena
+    color: { type: 'string', default: '#F4E8D5' }, // Tonalità pergamena/carta d'epoca
+    font: { type: 'string', default: 'https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/playfairdisplay/PlayfairDisplay-Regular.json' },
+    driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
   init: function () {
@@ -198,27 +199,28 @@ AFRAME.registerComponent('typo-cloud', {
       }
 
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      const baseOpacity = 0.55 + Math.random() * 0.45; // Trasparenza ben visibile
+      const baseOpacity = 0.45 + Math.random() * 0.50;
 
       charEl.setAttribute('value', randomChar);
       charEl.setAttribute('align', 'center');
       charEl.setAttribute('anchor', 'center');
+      charEl.setAttribute('font', this.data.font); // Applicazione del Font Serif
       charEl.setAttribute('color', this.data.color);
-      charEl.setAttribute('side', 'double'); // Visibile da entrambi i lati durante la rotazione
+      charEl.setAttribute('side', 'double');
       charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
       charEl.setAttribute('opacity', baseOpacity);
       charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
-      charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 30} ${(Math.random() - 0.5) * 50} 0`);
+      charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 40} 0`);
 
       this.el.appendChild(charEl);
 
       this.nodes.push({
         el: charEl,
         basePos: { x: posX, y: posY, z: posZ },
-        rotY: (Math.random() - 0.5) * 0.4,
+        rotY: (Math.random() - 0.5) * 0.3,
         freq: 0.7 + Math.random() * 1.2,
         phase: Math.random() * Math.PI * 2,
-        amp: 0.02 + Math.random() * 0.03
+        amp: 0.015 + Math.random() * 0.025
       });
     }
   },
@@ -236,7 +238,7 @@ AFRAME.registerComponent('typo-cloud', {
       node.el.object3D.position.y = node.basePos.y + offsetY;
       node.el.object3D.position.z = node.basePos.z + offsetZ;
 
-      node.el.object3D.rotation.y += node.rotY * 0.004;
+      node.el.object3D.rotation.y += node.rotY * 0.003;
     });
   }
 });
@@ -362,7 +364,7 @@ AFRAME.registerComponent('typo-cloud', {
       
 <!-- PULVISCOLO TIPOGRAFICO ATMOSFERICO -->
 <a-entity 
-  typo-cloud="clusters: 6; totalChars: 220; minScale: 0.09; maxScale: 0.24; color: #FFFFFF;" 
+  typo-cloud="clusters: 6; totalChars: 220; minScale: 0.05; maxScale: 0.15; color: #F4E8D5;" 
   position="0 0 0">
 </a-entity>
       
