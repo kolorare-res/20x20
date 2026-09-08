@@ -163,10 +163,12 @@ AFRAME.registerComponent('typo-cloud', {
     const chars = Array.from(this.data.charSet);
 
     const anchoredClusters = [
-      { x: 0.35, y:  0.15, z: 0.50, radius: 0.25, weight: 0.25 },
-      { x: -0.25, y: -0.10, z: 0.55, radius: 0.30, weight: 0.25 },
-      { x: 0.15, y:  0.20, z: 0.70, radius: 0.22, weight: 0.25 },
-      { x: -0.20, y: -0.05, z: 0.88, radius: 0.28, weight: 0.25 }
+      const anchoredClusters = [
+      { x: 0.35, y:  0.15, z: 0.50, radius: 0.25, weight: 0.25 }, // Layer 6
+      { x: -0.25, y: -0.10, z: 0.55, radius: 0.30, weight: 0.25 }, // Lato sinistro
+      { x: 0.00, y: -0.18, z: 0.62, radius: 0.30, weight: 0.20 }, // Layer 8
+      { x: -0.20, y: -0.05, z: 0.88, radius: 0.28, weight: 0.40 }  // Layer 10 (con più peso per riequilibrare)
+    ];
     ];
 
     for (let i = 0; i < this.data.totalChars; i++) {
