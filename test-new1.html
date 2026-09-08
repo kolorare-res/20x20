@@ -147,7 +147,7 @@
       }
     });
 
-// PULVISCOLO TIPOGRAFICO (Versione Stabile con Font Nativo Exo2)
+// PULVISCOLO TIPOGRAFICO STABILE (Font Nativo Dejavu)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
@@ -158,7 +158,7 @@ AFRAME.registerComponent('typo-cloud', {
     minScale: { type: 'number', default: 0.05 },
     maxScale: { type: 'number', default: 0.15 },
     color: { type: 'string', default: '#F4E8D5' },
-    font: { type: 'string', default: 'exo2' }, // Font nativo integrato in A-Frame
+    font: { type: 'string', default: 'dejavu' }, // Font nativo sicuro al 100%
     driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
@@ -201,7 +201,7 @@ AFRAME.registerComponent('typo-cloud', {
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
       const baseOpacity = 0.45 + Math.random() * 0.50;
 
-      // Configurazione text pulita per font nativo (senza shader msdf o fontImage)
+      // Configurazione text con font dejavu e width esplicita
       charEl.setAttribute('text', {
         value: randomChar,
         align: 'center',
@@ -210,6 +210,7 @@ AFRAME.registerComponent('typo-cloud', {
         color: this.data.color,
         side: 'double',
         opacity: baseOpacity,
+        width: 2,
         transparent: true
       });
 
