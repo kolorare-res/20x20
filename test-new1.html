@@ -147,107 +147,102 @@
       }
     });
 
-// PULVISCOLO TIPOGRAFICO A INCHIOSTRO ANTICO (Opacità Piena)
-AFRAME.registerComponent('typo-cloud', {
-  schema: {
-    totalChars: { type: 'int', default: 45 },
-    minScale: { type: 'number', default: 0.10 },
-    maxScale: { type: 'number', default: 0.25 },
-    color: { type: 'string', default: '#1A1412' }, // Inchiostro quasi nero/seppia scuro
-    font: { type: 'string', default: 'dejavu' },
-    driftSpeed: { type: 'number', default: 0.0003 },
-    charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' }
-  },
-  init: function () {
-    this.nodes = [];
-    const chars = Array.from(this.data.charSet);
+    // PULVISCOLO TIPOGRAFICO A INCHIOSTRO ANTICO (Densità 200, Raggio ampliato, Y corretto)
+    AFRAME.registerComponent('typo-cloud', {
+      schema: {
+        totalChars: { type: 'int', default: 200 },
+        minScale: { type: 'number', default: 0.10 },
+        maxScale: { type: 'number', default: 0.25 },
+        color: { type: 'string', default: '#1A1412' },
+        font: { type: 'string', default: 'dejavu' },
+        driftSpeed: { type: 'number', default: 0.0003 },
+        charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' }
+      },
+      init: function () {
+        this.nodes = [];
+        const chars = Array.from(this.data.charSet);
 
-    const anchoredClusters = [
-      const anchoredClusters = [
-      { x: 0.35, y:  0.15, z: 0.50, radius: 0.25, weight: 0.25 }, // Layer 6
-      { x: -0.25, y: -0.10, z: 0.55, radius: 0.30, weight: 0.25 }, // Lato sinistro
-      { x: 0.00, y: -0.18, z: 0.62, radius: 0.30, weight: 0.20 }, // Layer 8
-      { x: -0.20, y: -0.05, z: 0.88, radius: 0.28, weight: 0.40 }  // Layer 10 (con più peso per riequilibrare)
-    ];
-    ];
+        const anchoredClusters = [
+          { x: 0.35, y:  0.15, z: 0.50, radius: 0.25, weight: 0.25 },
+          { x: -0.25, y: -0.10, z: 0.55, radius: 0.30, weight: 0.25 },
+          { x: 0.00, y: -0.18, z: 0.62, radius: 0.30, weight: 0.20 },
+          { x: -0.20, y: -0.05, z: 0.88, radius: 0.28, weight: 0.40 }
+        ];
 
-    for (let i = 0; i < this.data.totalChars; i++) {
-      const charEl = document.createElement('a-entity');
-      const randomChar = chars[Math.floor(Math.random() * chars.length)];
-      
-      let randWeight = Math.random();
-      let accumulated = 0;
-      let targetCluster = anchoredClusters[0];
-      
-      for (let c of anchoredClusters) {
-        accumulated += c.weight;
-        if (randWeight <= accumulated) {
-          targetCluster = c;
-          break;
+        for (let i = 0; i < this.data.totalChars; i++) {
+          const charEl = document.createElement('a-entity');
+          const randomChar = chars[Math.floor(Math.random() * chars.length)];
+          
+          let randWeight = Math.random();
+          let accumulated = 0;
+          let targetCluster = anchoredClusters[0];
+          
+          for (let c of anchoredClusters) {
+            accumulated += c.weight;
+            if (randWeight <= accumulated) {
+              targetCluster = c;
+              break;
+            }
+          }
+
+          const u = Math.random();
+          const r = targetCluster.radius * Math.cbrt(u);
+          const theta = Math.random() * 2 * Math.PI;
+          const phi = Math.acos(2 * Math.random() - 1);
+
+          const posX = targetCluster.x + r * Math.sin(phi) * Math.cos(theta);
+          const posY = targetCluster.y + r * Math.sin(phi) * Math.sin(theta);
+          const posZ = targetCluster.z + r * Math.cos(phi);
+
+          const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
+          const baseOpacity = 0.85 + Math.random() * 0.15;
+
+          charEl.setAttribute('text', {
+            value: randomChar,
+            align: 'center',
+            anchor: 'center',
+            font: this.data.font,
+            color: this.data.color,
+            side: 'double',
+            opacity: baseOpacity,
+            width: 2,
+            transparent: true
+          });
+
+          charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
+          charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
+          charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 45} 0`);
+
+          this.el.appendChild(charEl);
+
+          this.nodes.push({
+            el: charEl,
+            basePos: { x: posX, y: posY, z: posZ },
+            rotY: (Math.random() - 0.5) * 0.2,
+            freq: 0.5 + Math.random() * 1.0,
+            phase: Math.random() * Math.PI * 2,
+            amp: 0.008 + Math.random() * 0.015
+          });
         }
+      },
+      tick: function (time, dt) {
+        if (!dt) return;
+
+        this.nodes.forEach(node => {
+          const t = time * this.data.driftSpeed * node.freq + node.phase;
+          
+          const offsetX = Math.sin(t) * node.amp;
+          const offsetY = Math.cos(t * 0.8) * node.amp * 1.5;
+          const offsetZ = Math.sin(t * 1.2) * node.amp;
+
+          node.el.object3D.position.x = node.basePos.x + offsetX;
+          node.el.object3D.position.y = node.basePos.y + offsetY;
+          node.el.object3D.position.z = node.basePos.z + offsetZ;
+
+          node.el.object3D.rotation.y += node.rotY * 0.001;
+        });
       }
-
-      const u = Math.random();
-      const r = targetCluster.radius * Math.cbrt(u);
-      const theta = Math.random() * 2 * Math.PI;
-      const phi = Math.acos(2 * Math.random() - 1);
-
-      const posX = targetCluster.x + r * Math.sin(phi) * Math.cos(theta);
-      const posY = targetCluster.y + r * Math.sin(phi) * Math.sin(theta);
-      const posZ = targetCluster.z + r * Math.cos(phi);
-
-      const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      
-      // ALZO L'OPACITÀ: da 0.85 a 1.0 per far sì che l'inchiostro sia pieno e scuro
-      const baseOpacity = 0.85 + Math.random() * 0.15;
-
-      charEl.setAttribute('text', {
-        value: randomChar,
-        align: 'center',
-        anchor: 'center',
-        font: this.data.font,
-        color: this.data.color,
-        side: 'double',
-        opacity: baseOpacity,
-        width: 2,
-        transparent: true
-      });
-
-      charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
-      charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
-      charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 45} 0`);
-
-      this.el.appendChild(charEl);
-
-      this.nodes.push({
-        el: charEl,
-        basePos: { x: posX, y: posY, z: posZ },
-        rotY: (Math.random() - 0.5) * 0.2,
-        freq: 0.5 + Math.random() * 1.0,
-        phase: Math.random() * Math.PI * 2,
-        amp: 0.008 + Math.random() * 0.015
-      });
-    }
-  },
-  tick: function (time, dt) {
-    if (!dt) return;
-
-    this.nodes.forEach(node => {
-      const t = time * this.data.driftSpeed * node.freq + node.phase;
-      
-      const offsetX = Math.sin(t) * node.amp;
-      const offsetY = Math.cos(t * 0.8) * node.amp * 1.5;
-      const offsetZ = Math.sin(t * 1.2) * node.amp;
-
-      node.el.object3D.position.x = node.basePos.x + offsetX;
-      node.el.object3D.position.y = node.basePos.y + offsetY;
-      node.el.object3D.position.z = node.basePos.z + offsetZ;
-
-      node.el.object3D.rotation.y += node.rotY * 0.001;
     });
-  }
-});
-    
   </script>
 
   <style>
@@ -367,8 +362,8 @@ AFRAME.registerComponent('typo-cloud', {
         </a-entity>
       </a-entity>
       
-<!-- PULVISCOLO TIPOGRAFICO ATMOSFERICO -->
-<a-entity typo-cloud="totalChars: 200; color: #1A1412;"></a-entity>
+      <!-- PULVISCOLO TIPOGRAFICO ATMOSFERICO (Totale 200 caratteri) -->
+      <a-entity typo-cloud="totalChars: 200; color: #1A1412;"></a-entity>
       
     </a-entity>
   </a-scene>
