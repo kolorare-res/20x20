@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
-      // Componente custom per applicare facilmente le tue texture UV al modello 3D
       AFRAME.registerComponent('custom-texture', {
         schema: {
           coverSrc: { type: 'selector', default: '#texture-copertina' },
@@ -21,14 +20,12 @@
 
             const loader = new THREE.TextureLoader();
             
-            // Carica la texture della copertina
             if (this.data.coverSrc) {
               const coverTex = loader.load(this.data.coverSrc.src);
               coverTex.encoding = THREE.sRGBEncoding;
-              coverTex.flipY = false; // Necessario per le coordinate UV standard glTF
+              coverTex.flipY = false;
             }
 
-            // Carica la texture delle pagine
             if (this.data.pagesSrc) {
               const pagesTex = loader.load(this.data.pagesSrc.src);
               pagesTex.encoding = THREE.sRGBEncoding;
@@ -37,7 +34,6 @@
 
             mesh.traverse((node) => {
               if (node.isMesh && node.material) {
-                // Mantiene le coordinate UV del modello e aggiorna i materiali
                 node.material.needsUpdate = true;
               }
             });
@@ -48,31 +44,25 @@
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene 
-       mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; autoStart: true; uiLoading: no;" 
-    color-space="sRGB" 
-    renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true;" 
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+      mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; autoStart: true; uiLoading: no;" 
+      color-space="sRGB" 
+      renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true;" 
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false">
 
       <a-assets>
-        <!-- 1. SOSTITUISCI QUESTI FILE CON LE TUE GRAFICHE (TEXTURE) -->
         <img id="texture-copertina" src="copertina.png" crossorigin="anonymous">
         <img id="texture-pagine" src="pagine.png" crossorigin="anonymous">
 
-        <!-- 2. MODELLO 3D INSERITO INLINE (Formato GLB in Base64: Libro Semi-Aperto ~20cm) -->
         <a-asset-item id="libro3D" src="data:model/gltf-binary;base64,gLTFggEAAAA8AQAAAAAAAIA/AAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAAAAABgP319vT8AAIA/AAAAAIA/AACA/wAAAAAAAACAPwAAgD8AAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAEAAAEAAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAABAAAAAAAAAAFAAAAAAAAAAYAAAAAAAAABwAAAAAAAAAIAAAAAAAAAAkAAAAAAAAACgAAAAAAAAALAAAAAAAAAA0AAAAAAAAADgAAAAAAAAAPAAAAAAAAABAAAAAAAAAREAAAAB4AAAA="></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- Ancoraggio sul Marker Fisico (MindAR Target) -->
       <a-entity mindar-image-target="targetIndex: 0">
-        
-        <!-- Luce Direzionale per dare rilievo e volume al libro -->
         <a-light type="directional" intensity="1.2" position="1 2 1"></a-light>
         <a-light type="ambient" intensity="0.6"></a-light>
 
-        <!-- Modello 3D del Libro Semi-Aperto posizionato al centro dello spazio 20x20x20 cm -->
         <a-gltf-model 
           src="#libro3D" 
           custom-texture="coverSrc: #texture-copertina; pagesSrc: #texture-pagine"
@@ -80,7 +70,6 @@
           rotation="45 0 0" 
           scale="1 1 1">
         </a-gltf-model>
-
       </a-entity>
     </a-scene>
   </body>
