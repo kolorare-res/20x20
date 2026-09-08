@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Altrove - Foglie in Primo Piano</title>
 
+  <!-- Librerie A-Frame e MindAR -->
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <script>
- // 1. SMOOTH TRACKER
+    // 1. SMOOTH TRACKER (Interpolazione fluida per eliminare scatti)
     AFRAME.registerComponent('smooth-tracker', {
       schema: { factor: { type: 'number', default: 0.35 } },
       init: function () {
@@ -28,14 +29,15 @@
         this.prevQuat = object3D.quaternion.clone();
       }
     });
-    
+
+    // 2. OPT-PLANE (Ottimizzazione Trasparenza e Materiale)
     AFRAME.registerComponent('opt-plane', {
       init: function () {
         this.el.setAttribute('material', { transparent: true, alphaTest: 0.1, side: 'double' });
       }
     });
 
-    // BARCA (Pitching)
+    // 3. BARCA (Pitching e Oscillazione)
     AFRAME.registerComponent('boat-pitch', {
       schema: { pitchDeg: { type: 'number', default: 4 }, bobY: { type: 'number', default: 0.008 }, speed: { type: 'number', default: 0.0018 } },
       init: function () { this.baseY = this.el.object3D.position.y; this.time = 0; },
@@ -47,12 +49,12 @@
       }
     });
 
-    // FOGLIE CADENTI (Spostate in avanti rispetto al layer)
+    // 4. FOGLIE CADENTI
     AFRAME.registerComponent('falling-particles', {
       schema: {
         count: { type: 'int', default: 18 },
-        zPos: { type: 'number', default: 0.08 }, // Spostato in avanti (positivo = verso l'utente)
-        zVariance: { type: 'number', default: 0.04 }, // Maggiore spessore del volume
+        zPos: { type: 'number', default: 0.08 },
+        zVariance: { type: 'number', default: 0.04 },
         assetFolder: { type: 'string', default: './ima/foglie/' },
         assetPrefix: { type: 'string', default: 'layer6-foglie-' }
       },
@@ -77,7 +79,6 @@
             xInit: this.rand(this.bounds.xMin, this.bounds.xMax),
             x: 0,
             y: this.rand(this.bounds.yMin, this.bounds.yMax),
-            // Distribuisce le foglie attorno allo zPos con la varianza definita
             z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
             fallSpeed: 0.0005 + Math.random() * 0.0004,
             swayAmp: 0.02 * (0.8 + Math.random() * 0.4),
@@ -107,7 +108,7 @@
       }
     });
 
-    // 6. FARFALLA 3D (VOLO E BATTITO)
+    // 5. FARFALLA 3D (VOLO E BATTITO)
     AFRAME.registerComponent('butterfly-3d-flight', {
       schema: {
         radiusX: { type: 'number', default: 0.14 },
@@ -146,14 +147,34 @@
       }
     });
   </script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    .mindar-ui-loading, 
+    div[class*="mindar-ui-loading"] {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+    .mindar-ui-overlay, 
+    div[class*="mindar-ui"] {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+  </style>
 </head>
 
 <body>
+  <!-- SCENA CON FILTRI MINDAR E RENDERER STABILI -->
   <a-scene 
-    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no;" 
+    mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; autoStart: true; uiLoading: no;" 
     color-space="sRGB" 
-    renderer="colorManagement: true; antialias: true;" 
-    vr-mode-ui="enabled: false">
+    renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true;" 
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
 
     <a-assets>
       <img id="base-image" src="./ima/base.png" crossorigin="anonymous" />
@@ -184,7 +205,8 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <a-entity mindar-image-target="targetIndex: 0">
+    <!-- TARGET ANCORAGGIO CON SMOOTH-TRACKER ATTIVATO -->
+    <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
       <!-- BASE E LAYER 0 -->
       <a-plane opt-plane id="BASE-PAVIMENTO" src="#base-image" position="0.000 -0.500 0.500" rotation="-90.0 0.0 0.0" width="1" height="1"></a-plane>
@@ -232,7 +254,7 @@
         material="transparent: true; alphaTest: 0.1; side: double;">
       </a-plane>
 
-      <!-- FARFALLA 1 (Abassata sull'asse Y) -->
+      <!-- FARFALLA 1 (Abbassata sull'asse Y) -->
       <a-entity position="0.28 -0.15 1.05" butterfly-3d-flight>
         <a-plane opt-plane src="#butterfly-body" width="0.02" height="0.07"></a-plane>
         <a-entity class="wing-left" position="-0.002 0 0.001">
