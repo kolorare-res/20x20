@@ -147,19 +147,18 @@
       }
     });
 
-// ETETRE TIPOGRAFICO SERIF (Fix Definitivo: a-entity + MSDF Shader)
+// PULVISCOLO TIPOGRAFICO (Versione Stabile con Font Nativo)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
-    totalChars: { type: 'int', default: 220 },
-    boundsX: { type: 'number', default: 1.4 },
-    boundsY: { type: 'number', default: 1.0 },
-    boundsZ: { type: 'number', default: 1.6 },
-    minScale: { type: 'number', default: 0.05 },
-    maxScale: { type: 'number', default: 0.15 },
+    totalChars: { type: 'int', default: 200 },
+    boundsX: { type: 'number', default: 1.2 },
+    boundsY: { type: 'number', default: 0.8 },
+    boundsZ: { type: 'number', default: 0.5 }, // Profondità ridotta per evitare il clipping della camera
+    minScale: { type: 'number', default: 0.08 },
+    maxScale: { type: 'number', default: 0.2 },
     color: { type: 'string', default: '#F4E8D5' },
-    font: { type: 'string', default: 'https://cdn.jsdelivr.net/gh/etiennepinchon/aframe-fonts@master/fonts/playfairdisplay/PlayfairDisplay-Regular.json' },
-    fontImage: { type: 'string', default: 'https://cdn.jsdelivr.net/gh/etiennepinchon/aframe-fonts@master/fonts/playfairdisplay/PlayfairDisplay-Regular.png' },
+    font: { type: 'string', default: 'dejavu' }, // Font di default A-Frame per ovviare ai blocchi di caricamento
     driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
@@ -173,13 +172,12 @@ AFRAME.registerComponent('typo-cloud', {
         x: (Math.random() - 0.5) * this.data.boundsX * 0.7,
         y: (Math.random() - 0.5) * this.data.boundsY * 0.7,
         z: (Math.random() - 0.5) * this.data.boundsZ * 0.8,
-        radius: 0.25 + Math.random() * 0.3
+        radius: 0.2 + Math.random() * 0.25
       });
     }
 
     for (let i = 0; i < this.data.totalChars; i++) {
-      // Usa a-entity invece di a-text per evitare conflitti con il wrapper della primitiva
-      const charEl = document.createElement('a-entity');
+      const charEl = document.createElement('a-text');
       const randomChar = chars[Math.floor(Math.random() * chars.length)];
       
       let posX, posY, posZ;
@@ -201,22 +199,17 @@ AFRAME.registerComponent('typo-cloud', {
       }
 
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      const baseOpacity = 0.45 + Math.random() * 0.50;
+      const baseOpacity = 0.4 + Math.random() * 0.5;
 
-      // Assegnazione pulita delle proprietà text con shader MSDF e trasparenza abilitata
-      charEl.setAttribute('text', {
-        value: randomChar,
-        align: 'center',
-        anchor: 'center',
-        font: this.data.font,
-        fontImage: this.data.fontImage,
-        shader: 'msdf',
-        color: this.data.color,
-        side: 'double',
-        opacity: baseOpacity,
-        transparent: true
-      });
-
+      charEl.setAttribute('value', randomChar);
+      charEl.setAttribute('align', 'center');
+      charEl.setAttribute('anchor', 'center');
+      charEl.setAttribute('font', this.data.font);
+      charEl.setAttribute('color', this.data.color);
+      charEl.setAttribute('side', 'double');
+      charEl.setAttribute('opacity', baseOpacity);
+      charEl.setAttribute('width', 2);
+      
       charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
       charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
       charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 40} 0`);
