@@ -147,17 +147,20 @@
       }
     });
 
-// TENDA TIPOGRAFICA FITTA (Soli caratteri alfanumerici e dimensioni variabili)
+// TENDA TIPOGRAFICA SFALSATA (Scala random marcata e disallineamento a griglia rotta)
 AFRAME.registerComponent('char-curtain', {
   schema: {
-    columns: { type: 'int', default: 24 },        // Fili molto più vicini e fitti
-    charsPerCol: { type: 'int', default: 14 },    // Numero di caratteri lungo il filo
+    columns: { type: 'int', default: 22 },        // Numero di fili
+    charsPerCol: { type: 'int', default: 13 },    // Caratteri per filo
     width: { type: 'number', default: 0.85 },      // Larghezza totale
     height: { type: 'number', default: 0.80 },     // Lunghezza dei fili
-    color: { type: 'string', default: '#FFF8E7' }, // Colore caldo/pergamena
+    color: { type: 'string', default: '#FFF8E7' }, // Colore caldo
     swaySpeed: { type: 'number', default: 0.001 },// Velocità dondolio
-    swayAmp: { type: 'number', default: 0.07 },   // Ampiezza dondolio in fondo
-    // Set di soli caratteri alfanumerici (esclusi simboli e caratteri speciali)
+    swayAmp: { type: 'number', default: 0.07 },   // Ampiezza dondolio
+    minScale: { type: 'number', default: 0.020 },  // Scala minima (micro-carattere)
+    maxScale: { type: 'number', default: 0.085 },  // Scala massima (carattere gigante)
+    jitterX: { type: 'number', default: 0.035 },   // Sfalsamento orizzontale casuale
+    jitterY: { type: 'number', default: 0.040 },   // Sfalsamento verticale casuale
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
   init: function () {
@@ -168,8 +171,12 @@ AFRAME.registerComponent('char-curtain', {
 
     for (let c = 0; c < this.data.columns; c++) {
       const colX = (c * colWidth) - (this.data.width / 2);
+      
+      // Sfalsamento verticale dell'intera colonna (per non far partire i fili tutti alla stessa altezza)
+      const colYShift = (Math.random() - 0.5) * rowHeight * 1.2;
+
       const strandContainer = document.createElement('a-entity');
-      strandContainer.setAttribute('position', `${colX} ${this.data.height / 2} 0`);
+      strandContainer.setAttribute('position', `${colX} ${this.data.height / 2 + colYShift} 0`);
 
       const strandItems = [];
 
@@ -177,24 +184,32 @@ AFRAME.registerComponent('char-curtain', {
         const randomChar = chars[Math.floor(Math.random() * chars.length)];
         const charEl = document.createElement('a-text');
 
-        const depthFactor = (r + 1) / this.data.charsPerCol; 
-        const relY = -r * rowHeight;
+        const depthFactor = (r + 1) / this.data.charsPerCol;
 
-        // Variazione dinamica delle dimensioni: mix di casualità organica e incremento graduale verso il basso
-        const dynamicScale = 0.045 + (Math.random() * 0.04) + (depthFactor * 0.025);
+        // 1. DIMENSIONE RANDOM MARCATA (estratta tra minScale e maxScale)
+        const randomScale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
+
+        // 2. SFALSAMENTO CASUALE POSIZIONE (disallineamento orizzontale, verticale e di profondità)
+        const baseX = (Math.random() - 0.5) * this.data.jitterX;
+        const baseY = -r * rowHeight + (Math.random() - 0.5) * this.data.jitterY;
+        const baseZ = (Math.random() - 0.5) * 0.025;
 
         charEl.setAttribute('value', randomChar);
         charEl.setAttribute('align', 'center');
         charEl.setAttribute('anchor', 'center');
         charEl.setAttribute('color', this.data.color);
-        charEl.setAttribute('scale', `${dynamicScale} ${dynamicScale} ${dynamicScale}`);
+        charEl.setAttribute('scale', `${randomScale} ${randomScale} ${randomScale}`);
         charEl.setAttribute('opacity', 0.95 - (depthFactor * 0.25));
-        charEl.setAttribute('position', `0 ${relY} 0`);
+        charEl.setAttribute('position', `${baseX} ${baseY} ${baseZ}`);
 
         strandContainer.appendChild(charEl);
 
+        // Salviamo le posizioni base sfalsate per applicarvi l'oscillazione senza perdere il disallineamento
         strandItems.push({
           el: charEl,
+          baseX: baseX,
+          baseY: baseY,
+          baseZ: baseZ,
           depthFactor: depthFactor,
           twistOffset: Math.random() * Math.PI * 2
         });
@@ -219,21 +234,22 @@ AFRAME.registerComponent('char-curtain', {
 
       strand.items.forEach(node => {
         const factor = Math.pow(node.depthFactor, 1.25);
-        const offsetX = waveX * this.data.swayAmp * factor;
-        const offsetZ = waveZ * this.data.swayAmp * 0.45 * factor;
+        const waveOffsetX = waveX * this.data.swayAmp * factor;
+        const waveOffsetZ = waveZ * this.data.swayAmp * 0.45 * factor;
 
         const twistY = Math.sin(t * 1.4 + node.twistOffset) * 35 * node.depthFactor;
 
-        node.el.object3D.position.x = offsetX;
-        node.el.object3D.position.z = offsetZ;
+        // Somma la dinamica dell'onda alle posizioni di base sfalsate
+        node.el.object3D.position.x = node.baseX + waveOffsetX;
+        node.el.object3D.position.y = node.baseY;
+        node.el.object3D.position.z = node.baseZ + waveOffsetZ;
         
-        node.el.object3D.rotation.z = offsetX * 0.7;
+        node.el.object3D.rotation.z = waveOffsetX * 0.7;
         node.el.object3D.rotation.y = THREE.MathUtils.degToRad(twistY);
       });
     });
   }
-});
-  
+});  
   </script>
 
   <style>
@@ -353,9 +369,9 @@ AFRAME.registerComponent('char-curtain', {
         </a-entity>
       </a-entity>
       
-<!-- TENDA FITTA TIPOGRAFICA -->
+<!-- TENDA TIPOGRAFICA NATURALE E DISALLINEATA -->
 <a-entity 
-  char-curtain="columns: 26; charsPerCol: 15; width: 0.9; height: 0.85; swayAmp: 0.07; color: #FFF8E7;" 
+  char-curtain="columns: 22; charsPerCol: 13; width: 0.9; height: 0.85; minScale: 0.02; maxScale: 0.08; swayAmp: 0.07; color: #FFF8E7;" 
   position="0 0.05 0.95" 
   rotation="0 -5 0">
 </a-entity>
