@@ -147,7 +147,7 @@
       }
     });
 
-// ETETRE TIPOGRAFICO SERIF A NUBI ATMOSFERICHE (Fix CORS Font)
+// ETETRE TIPOGRAFICO SERIF (Fix Font + Texture Atlas)
 AFRAME.registerComponent('typo-cloud', {
   schema: {
     clusters: { type: 'int', default: 6 },
@@ -158,8 +158,8 @@ AFRAME.registerComponent('typo-cloud', {
     minScale: { type: 'number', default: 0.05 },
     maxScale: { type: 'number', default: 0.15 },
     color: { type: 'string', default: '#F4E8D5' },
-    // URL CDN corretto per caricare il font Serif Playfair Display senza blocchi CORS
     font: { type: 'string', default: 'https://cdn.jsdelivr.net/gh/etiennepinchon/aframe-fonts@master/fonts/playfairdisplay/PlayfairDisplay-Regular.json' },
+    fontImage: { type: 'string', default: 'https://cdn.jsdelivr.net/gh/etiennepinchon/aframe-fonts@master/fonts/playfairdisplay/PlayfairDisplay-Regular.png' },
     driftSpeed: { type: 'number', default: 0.0005 },
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' }
   },
@@ -202,14 +202,19 @@ AFRAME.registerComponent('typo-cloud', {
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
       const baseOpacity = 0.45 + Math.random() * 0.50;
 
-      charEl.setAttribute('value', randomChar);
-      charEl.setAttribute('align', 'center');
-      charEl.setAttribute('anchor', 'center');
-      charEl.setAttribute('font', this.data.font);
-      charEl.setAttribute('color', this.data.color);
-      charEl.setAttribute('side', 'double');
+      // Assegnazione unificata delle proprietà al componente text
+      charEl.setAttribute('text', {
+        value: randomChar,
+        align: 'center',
+        anchor: 'center',
+        font: this.data.font,
+        fontImage: this.data.fontImage,
+        color: this.data.color,
+        side: 'double',
+        opacity: baseOpacity
+      });
+
       charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
-      charEl.setAttribute('opacity', baseOpacity);
       charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
       charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 40} 0`);
 
