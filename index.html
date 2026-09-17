@@ -73,6 +73,14 @@ AFRAME.registerComponent('opt-plane', {
       <img id="layer7" src="./ima/layer7.png">
       <img id="omino" src="./ima/omino.png">
 
+      <!-- oggetti -->
+      <img id="obj-1" src="./ima/obj-1.png">
+      <img id="obj-2" src="./ima/obj-2.png">
+      <img id="obj-3" src="./ima/obj-3.png">
+      <img id="obj-4" src="./ima/obj-4.png">
+      <img id="obj-5" src="./ima/obj-5.png">
+      <img id="obj-6" src="./ima/obj-6.png">
+
     </a-assets>
 
     <!-- FOTOCAMERA -->
@@ -82,14 +90,23 @@ AFRAME.registerComponent('opt-plane', {
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
       <!-- 7 LAYER PNG TRASPARENTI 20x20 (sovrapposti in ordine di profondità Z) -->
-      <a-plane opt-plane src="#layer1" position="0 0 0.001" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer2" position="0 0 0.002" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer3" position="0 0 0.003" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer4" position="0 0 0.004" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer5" position="0 0 0.005" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer6" position="0 0 0.006" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer7" position="0 0 0.007" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#omino" position="0 0 0.007" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#layer1" position="0 0 0.07" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-1" position="0 0 0.072" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#layer2" position="0 0 0.06" width="1" height="1"></a-plane>
+       <a-plane opt-plane src="#obj-2" position="0 0 0.062" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#layer3" position="0 0 0.05" width="1" height="1"></a-plane>
+       <a-plane opt-plane src="#obj-3" position="0 0 0.052" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#layer4" position="0 0 0.04" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-4" position="0 0 0.042" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer5" position="0 0 0.03" width="1" height="1"></a-plane>
+       <a-plane opt-plane src="#obj-1" position="0 0 0.032" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer6" position="0 0 0.02" width="1" height="1"></a-plane>
+       <a-plane opt-plane src="#obj-6" position="0 0 0.022" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer7" position="0 0 0.01" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#omino" position="0 0 0.08" width="1" height="1"></a-plane>
 
     </a-entity>
   </a-scene>
