@@ -30,12 +30,20 @@
       }
     });
 
-    // 2. OPT-PLANE (Ottimizzazione Trasparenza e Materiale)
-    AFRAME.registerComponent('opt-plane', {
-      init: function () {
-        this.el.setAttribute('material', { transparent: true, alphaTest: 0.1, side: 'double' });
-      }
+   // 2. OPT-PLANE (Effetto Carta)
+AFRAME.registerComponent('opt-plane', {
+  init: function () {
+    this.el.setAttribute('material', { 
+      shader: 'standard',
+      color: '#fcfaf2',      // Bianco avorio/carta (evita il bianco ottico)
+      roughness: 0.8,        // Rende la superficie opaca come la carta
+      metalness: 0.0,        // Zero riflessi metallici
+      transparent: true,
+      alphaTest: 0.1,
+      side: 'double'
     });
+  }
+});
   </script>
 
   <style>
