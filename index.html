@@ -100,7 +100,6 @@
         };
 
         const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
-        // Trasla l'origine della geometria all'indietro così che Z coincida con la faccia frontale
         geometry.translate(0, 0, -data.depth / 2);
 
         const materials = [
@@ -296,7 +295,7 @@
       <!-- 0. Z = 0.005 (Layer 0 Sfondo) -->
       <a-plane id="plane-layer0" class="editable" opt-plane src="#layer0" position="0.000 0.000 0.005" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 1. SCATOLA LAYER 5 (Barca) - Z = 0.025 -->
+      <!-- 1. SCATOLA LAYER 5 (Barca) - Scala x5 -->
       <a-entity 
         id="box-layer5" 
         class="editable" 
@@ -304,8 +303,8 @@
           src: #layer5; 
           srcTop: #layer5-top; 
           srcBottom: #layer5-bottom; 
-          width: 0.1141; 
-          height: 0.0248; 
+          width: 0.5705; 
+          height: 0.1240; 
           depth: 0.025;" 
         position="0.000 0.000 0.025" 
         rotation="0 0 356.687">
@@ -314,7 +313,7 @@
       <!-- Oggetto 5 -->
       <a-plane id="plane-obj5" class="editable" opt-plane src="#obj-5" position="0.000 0.000 0.032" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 2. SCATOLA LAYER 4 (Pesce) - Z = 0.040 -->
+      <!-- 2. SCATOLA LAYER 4 (Pesce) - Scala x5 -->
       <a-entity 
         id="box-layer4" 
         class="editable" 
@@ -322,8 +321,8 @@
           src: #layer4; 
           srcTop: #layer4-top; 
           srcBottom: #layer4-bottom; 
-          width: 0.1191; 
-          height: 0.0176; 
+          width: 0.5955; 
+          height: 0.0880; 
           depth: 0.040;" 
         position="0.000 0.000 0.040" 
         rotation="0 0 357.73">
@@ -335,7 +334,7 @@
       <!-- Elemento Omino Sfondo -->
       <a-plane id="plane-omino" class="editable" opt-plane src="#omino" position="0.000 0.000 0.080" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 3. SCATOLA LAYER 7 (Omino Box) - Z = 0.100 -->
+      <!-- 3. SCATOLA LAYER 7 (Omino Box) - Scala x5 -->
       <a-entity 
         id="box-layer7" 
         class="editable" 
@@ -343,14 +342,14 @@
           src: #layer7; 
           srcTop: #layer7-top; 
           srcBottom: #layer7-bottom; 
-          width: 0.1252; 
-          height: 0.0260; 
+          width: 0.6260; 
+          height: 0.1300; 
           depth: 0.100;" 
         position="0.000 0.000 0.100" 
         rotation="0 0 3.302">
       </a-entity>
 
-      <!-- 4. SCATOLA LAYER 6 (Case) - Z = 0.179 -->
+      <!-- 4. SCATOLA LAYER 6 (Case) - Scala x5 -->
       <a-entity 
         id="box-layer6" 
         class="editable" 
@@ -358,14 +357,14 @@
           src: #layer6; 
           srcTop: #layer6-top; 
           srcBottom: #layer6-bottom; 
-          width: 0.1118; 
-          height: 0.0123; 
+          width: 0.5590; 
+          height: 0.0615; 
           depth: 0.179;" 
         position="0.000 0.000 0.179" 
         rotation="0 0 357.794">
       </a-entity>
 
-      <!-- 5. SCATOLA LAYER 3 (Lampione) - Z = 0.184 -->
+      <!-- 5. SCATOLA LAYER 3 (Lampione) - Scala x5 -->
       <a-entity 
         id="box-layer3" 
         class="editable" 
@@ -373,8 +372,8 @@
           src: #layer3; 
           srcTop: #layer3-top; 
           srcBottom: #layer3-bottom; 
-          width: 0.1236; 
-          height: 0.0221; 
+          width: 0.6180; 
+          height: 0.1105; 
           depth: 0.184;" 
         position="0.000 0.000 0.184" 
         rotation="0 0 189.397">
@@ -383,7 +382,7 @@
       <!-- Oggetto 3 -->
       <a-plane id="plane-obj3" class="editable" opt-plane src="#obj-3" position="0.000 0.000 0.186" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 6. SCATOLA LAYER 2 (Fiori) - Z = 0.200 -->
+      <!-- 6. SCATOLA LAYER 2 (Fiori) - Scala x5 -->
       <a-entity 
         id="box-layer2" 
         class="editable" 
@@ -391,8 +390,8 @@
           src: #layer2; 
           srcTop: #layer2-top; 
           srcBottom: #layer2-bottom; 
-          width: 0.1140; 
-          height: 0.0237; 
+          width: 0.5700; 
+          height: 0.1185; 
           depth: 0.200;" 
         position="0.000 0.000 0.200" 
         rotation="0 0 0">
@@ -402,7 +401,7 @@
       <a-plane id="plane-obj6" class="editable" opt-plane src="#obj-6" position="0.000 0.000 0.205" rotation="0 0 0" width="1" height="1"></a-plane>
       <a-plane id="plane-obj2" class="editable" opt-plane src="#obj-2" position="0.000 0.000 0.220" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 7. SCATOLA LAYER 1 (Box Principale) - Z = 0.300 -->
+      <!-- 7. SCATOLA LAYER 1 (Box Principale) -->
       <a-entity 
         id="box-layer1"
         class="editable"
