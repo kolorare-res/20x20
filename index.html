@@ -30,31 +30,142 @@
       }
     });
 
-   // 2. OPT-PLANE (Effetto Carta)
-AFRAME.registerComponent('opt-plane', {
-  init: function () {
-    this.el.setAttribute('material', { 
-      shader: 'standard',
-      color: '#fcfaf2',      // Bianco avorio/carta (evita il bianco ottico)
-      roughness: 0.8,        // Rende la superficie opaca come la carta
-      metalness: 0.0,        // Zero riflessi metallici
-      transparent: true,
-      alphaTest: 0.01,       // Abbassato per non "tagliare" le ombre morbide in modo netto
-      depthWrite: false,     // RISOLVE IL PROBLEMA DEL LIVELLO BUCATO
-      side: 'double'
+    // 2. OPT-PLANE (Effetto Carta)
+    AFRAME.registerComponent('opt-plane', {
+      init: function () {
+        this.el.setAttribute('material', { 
+          shader: 'standard',
+          color: '#fcfaf2',      // Bianco avorio/carta (evita il bianco ottico)
+          roughness: 0.8,        // Rende la superficie opaca come la carta
+          metalness: 0.0,        // Zero riflessi metallici
+          transparent: true,
+          alphaTest: 0.01,       // Abbassato per non "tagliare" le ombre morbide in modo netto
+          depthWrite: false,     // RISOLVE IL PROBLEMA DEL LIVELLO BUCATO
+          side: 'double'
+        });
+      }
     });
-  }
-});
   </script>
 
   <style>
     body { margin: 0; overflow: hidden; }
     /* Nasconde la schermata di caricamento di default di MindAR */
     .mindar-ui-loading, div[class*="mindar-ui"] { display: none !important; }
+
+    /* STILI PANNELLO EDITOR UI */
+    #editor-ui {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999999;
+      background: rgba(18, 18, 20, 0.94);
+      color: #e1e1e1;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 11px;
+      width: 320px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      border: 1px solid #333;
+      backdrop-filter: blur(8px);
+    }
+    #editor-ui.collapsed #editor-body {
+      display: none;
+    }
+    #editor-ui header {
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #3897f0;
+      letter-spacing: 0.5px;
+    }
+    #editor-ui header button {
+      background: #2c2c2e;
+      color: #aaa;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 10px;
+    }
+    #editor-body { margin-top: 10px; }
+    #editor-ui select, #editor-ui input, #editor-ui button {
+      background: #252528;
+      color: #fff;
+      border: 1px solid #3a3a3c;
+      padding: 5px;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 11px;
+    }
+    #editor-ui select { width: 100%; margin-bottom: 10px; }
+    .ui-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .ui-row label { width: 18px; font-weight: bold; color: #8e8e93; }
+    .ui-row input[type="number"] { width: 70px; text-align: right; }
+    .ui-row input[type="range"] { flex: 1; accent-color: #3897f0; }
+    .btn-group { display: flex; gap: 6px; margin-top: 10px; }
+    .btn-group button { flex: 1; cursor: pointer; background: #007aff; border: none; font-weight: 600; color: #fff; padding: 7px; }
+    .btn-group button:hover { background: #0056b3; }
+    #export-output {
+      display: none;
+      width: 100%;
+      height: 100px;
+      margin-top: 8px;
+      background: #0d0d0e;
+      color: #34c759;
+      font-family: monospace;
+      font-size: 10px;
+      resize: vertical;
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- EDITOR UI OVERLAY -->
+  <div id="editor-ui">
+    <header>
+      <span>AR LAYER EDITOR</span>
+      <div>
+        <button id="btn-toggle">Nascondi</button>
+      </div>
+    </header>
+
+    <div id="editor-body">
+      <label for="plane-select" style="display:block; margin-bottom: 4px; color: #8e8e93;">Seleziona Elemento:</label>
+      <select id="plane-select"></select>
+
+      <div class="ui-row">
+        <label>X</label>
+        <input type="number" id="posX-num" step="0.005">
+        <input type="range" id="posX-range" min="-1" max="1" step="0.005">
+      </div>
+      <div class="ui-row">
+        <label>Y</label>
+        <input type="number" id="posY-num" step="0.005">
+        <input type="range" id="posY-range" min="-1" max="1" step="0.005">
+      </div>
+      <div class="ui-row">
+        <label>Z</label>
+        <input type="number" id="posZ-num" step="0.001">
+        <input type="range" id="posZ-range" min="-0.1" max="0.3" step="0.001">
+      </div>
+
+      <div class="btn-group">
+        <button id="btn-refresh" style="background: #3a3a3c;">Rileva Piani</button>
+        <button id="btn-export">Genera HTML</button>
+      </div>
+      <textarea id="export-output" readonly></textarea>
+    </div>
+  </div>
+
   <!-- IMPOSTAZIONI FOTOCAMERA E TRACCIAMENTO MINDAR -->
   <a-scene 
     mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; autoStart: true; uiLoading: no;" 
@@ -81,8 +192,11 @@ AFRAME.registerComponent('opt-plane', {
       <img id="obj-4" src="./ima/obj-4.png">
       <img id="obj-5" src="./ima/obj-5.png">
       <img id="obj-6" src="./ima/obj-6.png">
-
     </a-assets>
+
+    <!-- LUCI PER RISALTARE MATERIALI CARTA -->
+    <a-entity light="type: ambient; color: #ffffff; intensity: 1.1;"></a-entity>
+    <a-entity light="type: directional; color: #ffffff; intensity: 0.4" position="1 2 1"></a-entity>
 
     <!-- FOTOCAMERA -->
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -90,26 +204,143 @@ AFRAME.registerComponent('opt-plane', {
     <!-- ANCORAGGIO TARGET CON SMOOTH-TRACKER APPLICATO -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
-      <!-- 7 LAYER PNG TRASPARENTI 20x20 (sovrapposti in ordine di profondità Z) -->
+      <!-- 7 LAYER PNG TRASPARENTI 20x20 + OGGETTI + OMINO -->
       <a-plane opt-plane src="#layer1" position="0 0 0.07" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#obj-1" position="0 0 0.072" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#layer2" position="0 0 0.06" width="1" height="1"></a-plane>
-       <a-plane opt-plane src="#obj-2" position="0 0 0.062" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-2" position="0 0 0.062" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#layer3" position="0 0 0.05" width="1" height="1"></a-plane>
-       <a-plane opt-plane src="#obj-3" position="0 0 0.052" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-3" position="0 0 0.052" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#layer4" position="0 0 0.04" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#obj-4" position="0 0 0.042" width="1" height="1"></a-plane>
-
       <a-plane opt-plane src="#layer5" position="0 0 0.03" width="1" height="1"></a-plane>
-       <a-plane opt-plane src="#obj-5" position="0 0 0.032" width="1" height="1"></a-plane>
-
+      <a-plane opt-plane src="#obj-5" position="0 0 0.032" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#layer6" position="0 0 0.02" width="1" height="1"></a-plane>
-       <a-plane opt-plane src="#obj-6" position="0 0 0.022" width="1" height="1"></a-plane>
-
+      <a-plane opt-plane src="#obj-6" position="0 0 0.022" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#layer7" position="0 0 0.01" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#omino" position="0 0 0.08" width="1" height="1"></a-plane>
 
     </a-entity>
   </a-scene>
+
+  <!-- LOGICA GESTIONE EDITOR POSIZIONI -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const select = document.getElementById('plane-select');
+      const posXNum = document.getElementById('posX-num');
+      const posXRange = document.getElementById('posX-range');
+      const posYNum = document.getElementById('posY-num');
+      const posYRange = document.getElementById('posY-range');
+      const posZNum = document.getElementById('posZ-num');
+      const posZRange = document.getElementById('posZ-range');
+      const btnExport = document.getElementById('btn-export');
+      const btnRefresh = document.getElementById('btn-refresh');
+      const btnToggle = document.getElementById('btn-toggle');
+      const editorUI = document.getElementById('editor-ui');
+      const exportOutput = document.getElementById('export-output');
+
+      let planes = [];
+      let selectedPlane = null;
+
+      // Scansione di tutti gli a-plane nella scena
+      function scanPlanes() {
+        planes = Array.from(document.querySelectorAll('a-plane'));
+        select.innerHTML = '';
+        
+        planes.forEach((plane, index) => {
+          const srcAttr = plane.getAttribute('src') || '';
+          const idAttr = plane.id ? `#${plane.id}` : '';
+          const label = idAttr ? `${idAttr} (${srcAttr})` : `${index + 1}. ${srcAttr}`;
+          
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = label;
+          select.appendChild(option);
+        });
+
+        if (planes.length > 0) {
+          selectPlane(0);
+        }
+      }
+
+      function selectPlane(index) {
+        selectedPlane = planes[index];
+        if (!selectedPlane) return;
+        
+        const pos = selectedPlane.getAttribute('position') || { x: 0, y: 0, z: 0 };
+        updateUIValues(pos.x, pos.y, pos.z);
+      }
+
+      function updateUIValues(x, y, z) {
+        posXNum.value = Number(x).toFixed(3);
+        posXRange.value = x;
+        posYNum.value = Number(y).toFixed(3);
+        posYRange.value = y;
+        posZNum.value = Number(z).toFixed(3);
+        posZRange.value = z;
+      }
+
+      function applyPosition() {
+        if (!selectedPlane) return;
+        const x = parseFloat(posXNum.value) || 0;
+        const y = parseFloat(posYNum.value) || 0;
+        const z = parseFloat(posZNum.value) || 0;
+        selectedPlane.setAttribute('position', `${x} ${y} ${z}`);
+      }
+
+      function bindAxis(numEl, rangeEl) {
+        numEl.addEventListener('input', () => {
+          rangeEl.value = numEl.value;
+          applyPosition();
+        });
+        rangeEl.addEventListener('input', () => {
+          numEl.value = rangeEl.value;
+          applyPosition();
+        });
+      }
+
+      bindAxis(posXNum, posXRange);
+      bindAxis(posYNum, posYRange);
+      bindAxis(posZNum, posZRange);
+
+      select.addEventListener('change', (e) => selectPlane(e.target.value));
+      btnRefresh.addEventListener('click', scanPlanes);
+
+      // Espandi / Contrai UI
+      btnToggle.addEventListener('click', () => {
+        editorUI.classList.toggle('collapsed');
+        btnToggle.textContent = editorUI.classList.contains('collapsed') ? 'Mostra' : 'Nascondi';
+      });
+
+      // Esporta il blocco HTML aggiornato
+      btnExport.addEventListener('click', () => {
+        let outputHTML = '';
+        planes.forEach(plane => {
+          const id = plane.id ? `id="${plane.id}" ` : '';
+          const src = plane.getAttribute('src') ? `src="${plane.getAttribute('src')}" ` : '';
+          const pos = plane.getAttribute('position');
+          const posX = Number(pos.x).toFixed(3);
+          const posY = Number(pos.y).toFixed(3);
+          const posZ = Number(pos.z).toFixed(3);
+          const w = plane.getAttribute('width') || '1';
+          const h = plane.getAttribute('height') || '1';
+          
+          outputHTML += `<a-plane ${id}opt-plane ${src}position="${posX} ${posY} ${posZ}" width="${w}" height="${h}"></a-plane>\n`;
+        });
+
+        exportOutput.value = outputHTML;
+        exportOutput.style.display = 'block';
+        exportOutput.select();
+      });
+
+      // Avvio scansione a scena pronta
+      const scene = document.querySelector('a-scene');
+      if (scene.hasLoaded) {
+        scanPlanes();
+      } else {
+        scene.addEventListener('loaded', scanPlanes);
+      }
+    });
+  </script>
 </body>
 </html>
