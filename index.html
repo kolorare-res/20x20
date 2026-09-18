@@ -51,25 +51,27 @@
     body { margin: 0; overflow: hidden; }
     .mindar-ui-loading, div[class*="mindar-ui"] { display: none !important; }
 
-    /* STILI PANNELLO EDITOR UI ESTESO (POSIZIONE + ROTAZIONE) */
+    /* PANNELLO EDITOR DOCK SULLA DESTRA */
     #editor-ui {
       position: fixed;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 12px;
+      right: 12px;
+      left: auto;
+      bottom: auto;
       z-index: 999999;
-      background: rgba(18, 18, 20, 0.95);
+      background: rgba(18, 18, 22, 0.92);
       color: #e1e1e1;
-      padding: 10px 12px;
+      padding: 12px;
       border-radius: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 10px;
-      width: 330px;
-      max-height: 85vh;
+      width: 290px;
+      max-width: calc(100vw - 24px);
+      max-height: calc(100vh - 24px);
       overflow-y: auto;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
-      border: 1px solid #333;
-      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
     }
     #editor-ui.collapsed #editor-body { display: none; }
     #editor-ui header {
@@ -78,31 +80,31 @@
       justify-content: space-between;
       align-items: center;
       color: #3897f0;
+      letter-spacing: 0.5px;
     }
     #editor-ui header button {
-      background: #2c2c2e; color: #aaa; border: 1px solid #444; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 10px;
+      background: #2c2c2e; color: #aaa; border: 1px solid #444; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 10px;
     }
     #editor-body { margin-top: 8px; }
-    .section-title { font-weight: bold; color: #3897f0; margin: 6px 0 4px 0; border-bottom: 1px solid #333; padding-bottom: 2px; }
+    .section-title { font-weight: bold; color: #3897f0; margin: 8px 0 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; }
     #editor-ui select, #editor-ui input, #editor-ui button {
       background: #252528; color: #fff; border: 1px solid #3a3a3c; padding: 4px; border-radius: 4px; font-size: 10px;
     }
     #editor-ui select { width: 100%; margin-bottom: 6px; }
     .ui-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-    .ui-row label { width: 32px; font-weight: bold; color: #8e8e93; }
+    .ui-row label { width: 36px; font-weight: bold; color: #8e8e93; }
     .ui-row input[type="number"] { width: 55px; text-align: right; }
     .ui-row input[type="range"] { flex: 1; accent-color: #3897f0; }
     .btn-group { display: flex; gap: 6px; margin-top: 8px; }
     .btn-group button { flex: 1; cursor: pointer; background: #007aff; border: none; font-weight: 600; color: #fff; padding: 6px; border-radius: 4px; }
     #export-output {
-      display: none; width: 100%; height: 90px; margin-top: 6px; background: #0d0d0e; color: #34c759; font-family: monospace; font-size: 9px; resize: vertical;
+      display: none; width: 100%; height: 100px; margin-top: 6px; background: #0d0d0e; color: #34c759; font-family: monospace; font-size: 9px; resize: vertical; box-sizing: border-box;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- EDITOR UI OVERLAY CON POSIZIONE E ROTAZIONE -->
   <div id="editor-ui">
     <header>
       <span>AR BOX & LAYER EDITOR</span>
@@ -127,7 +129,7 @@
       <div class="ui-row">
         <label>Z</label>
         <input type="number" id="posZ-num" step="0.001">
-        <input type="range" id="posZ-range" min="-0.1" max="0.4" step="0.001">
+        <input type="range" id="posZ-range" min="-0.1" max="0.5" step="0.001">
       </div>
 
       <div class="section-title">ROTAZIONE (RotX, RotY, RotZ)</div>
@@ -142,7 +144,7 @@
         <input type="range" id="rotY-range" min="-180" max="180" step="1">
       </div>
       <div class="ui-row">
-        <label>RotZ</label>
+        <label>RotZ (Inclinazione)</label>
         <input type="number" id="rotZ-num" step="1">
         <input type="range" id="rotZ-range" min="-180" max="180" step="1">
       </div>
@@ -155,7 +157,6 @@
     </div>
   </div>
 
-  <!-- SCENA 3D AR -->
   <a-scene 
     mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; autoStart: true; uiLoading: no;" 
     color-space="sRGB" 
@@ -187,57 +188,114 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- TRACCIAMENTO TARGET -->
+    <!-- TRACCIAMENTO TARGET (ORDINATO PER Z CRESCENTE) -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
-      <!-- ================= LAYER 5 (Z = 0.025 - Profondità 0.5cm) ================= -->
-      <a-plane id="layer5-top" opt-plane position="0.000 0.500 0.0125" rotation="90 0 0" width="1" height="0.025"></a-plane>
-      <a-plane id="layer5-bottom" opt-plane position="0.000 -0.500 0.0125" rotation="-90 0 0" width="1" height="0.025"></a-plane>
-      <a-plane id="plane-layer5" opt-plane src="#layer5" position="0.000 0.000 0.025" width="1" height="1"></a-plane>
-      <a-plane id="plane-obj5" opt-plane src="#obj-5" position="0.000 0.000 0.032" width="1" height="1"></a-plane>
+      <!-- ================= 1. Z = 0.013 ================= -->
+      <a-entity id="layer5-top" class="editable" position="0.000 0.500 0.013" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="90 0 0" width="1" height="0.025"></a-plane>
+      </a-entity>
 
-      <!-- ================= LAYER 4 (Z = 0.040 - Profondità 0.8cm) ================= -->
-      <a-plane id="layer4-top" opt-plane position="0.000 0.500 0.020" rotation="90 0 0" width="1" height="0.040"></a-plane>
-      <a-plane id="layer4-bottom" opt-plane position="0.000 -0.500 0.020" rotation="-90 0 0" width="1" height="0.040"></a-plane>
-      <a-plane id="plane-layer4" opt-plane src="#layer4" position="0.000 0.000 0.040" width="1" height="1"></a-plane>
-      <a-plane id="plane-obj4" opt-plane src="#obj-4" position="0.000 0.000 0.042" width="1" height="1"></a-plane>
+      <a-entity id="layer5-bottom" class="editable" position="0.000 -0.500 0.013" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="-90 0 0" width="1" height="0.025"></a-plane>
+      </a-entity>
 
-      <!-- ================= OMINO (Z = 0.080) ================= -->
-      <a-plane id="plane-omino" opt-plane src="#omino" position="0.000 0.000 0.080" width="1" height="1"></a-plane>
+      <!-- ================= 2. Z = 0.020 ================= -->
+      <a-entity id="layer4-top" class="editable" position="0.000 0.500 0.020" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="90 0 0" width="1" height="0.040"></a-plane>
+      </a-entity>
 
-      <!-- ================= LAYER 7 (Z = 0.100 - Profondità 2.0cm) ================= -->
-      <a-plane id="layer7-top" opt-plane position="0.000 0.500 0.050" rotation="90 0 0" width="1" height="0.100"></a-plane>
-      <a-plane id="layer7-bottom" opt-plane position="0.000 -0.500 0.050" rotation="-90 0 0" width="1" height="0.100"></a-plane>
-      <a-plane id="plane-layer7" opt-plane src="#layer7" position="0.000 0.000 0.100" width="1" height="1"></a-plane>
+      <a-entity id="layer4-bottom" class="editable" position="0.000 -0.500 0.020" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="-90 0 0" width="1" height="0.040"></a-plane>
+      </a-entity>
 
-      <!-- ================= LAYER 3 (Z = 0.100 - Profondità 2.0cm) ================= -->
-      <a-plane id="layer3-top" opt-plane position="0.000 0.500 0.050" rotation="90 0 0" width="1" height="0.100"></a-plane>
-      <a-plane id="layer3-bottom" opt-plane position="0.000 -0.500 0.050" rotation="-90 0 0" width="1" height="0.100"></a-plane>
-      <a-plane id="plane-layer3" opt-plane src="#layer3" position="0.000 0.000 0.100" width="1" height="1"></a-plane>
-      <a-plane id="plane-obj3" opt-plane src="#obj-3" position="0.000 0.000 0.120" width="1" height="1"></a-plane>
+      <!-- ================= 3. Z = 0.025 ================= -->
+      <a-plane id="plane-layer5" class="editable" opt-plane src="#layer5" position="0.000 0.000 0.025" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= LAYER 6 (Z = 0.200 - Profondità 4.0cm) ================= -->
-      <a-plane id="layer6-top" opt-plane position="0.000 0.500 0.100" rotation="90 0 0" width="1" height="0.200"></a-plane>
-      <a-plane id="layer6-bottom" opt-plane position="0.000 -0.500 0.100" rotation="-90 0 0" width="1" height="0.200"></a-plane>
-      <a-plane id="plane-layer6" opt-plane src="#layer6" position="0.000 0.000 0.200" width="1" height="1"></a-plane>
-      <a-plane id="plane-obj6" opt-plane src="#obj-6" position="0.000 0.000 0.205" width="1" height="1"></a-plane>
+      <!-- ================= 4. Z = 0.032 ================= -->
+      <a-plane id="plane-obj5" class="editable" opt-plane src="#obj-5" position="0.000 0.000 0.032" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= LAYER 2 (Z = 0.200 - Profondità 4.0cm) ================= -->
-      <a-plane id="layer2-top" opt-plane position="0.000 0.500 0.100" rotation="90 0 0" width="1" height="0.200"></a-plane>
-      <a-plane id="layer2-bottom" opt-plane position="0.000 -0.500 0.100" rotation="-90 0 0" width="1" height="0.200"></a-plane>
-      <a-plane id="plane-layer2" opt-plane src="#layer2" position="0.000 0.000 0.200" width="1" height="1"></a-plane>
-      <a-plane id="plane-obj2" opt-plane src="#obj-2" position="0.000 0.000 0.220" width="1" height="1"></a-plane>
+      <!-- ================= 5. Z = 0.040 ================= -->
+      <a-plane id="plane-layer4" class="editable" opt-plane src="#layer4" position="0.000 0.000 0.040" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= LAYER 1 (Z = 0.300 - Profondità 6.0cm) ================= -->
-      <a-plane id="layer1-top" opt-plane position="0.000 0.500 0.150" rotation="90 0 0" width="1" height="0.300"></a-plane>
-      <a-plane id="layer1-bottom" opt-plane position="0.000 -0.500 0.150" rotation="-90 0 0" width="1" height="0.300"></a-plane>
-      <a-plane id="plane-layer1" opt-plane src="#layer1" position="0.000 0.000 0.300" width="1" height="1"></a-plane>
-      <a-plane id="plane-obj1" opt-plane src="#obj-1" position="0.000 0.000 0.320" width="1" height="1"></a-plane>
+      <!-- ================= 6. Z = 0.042 ================= -->
+      <a-plane id="plane-obj4" class="editable" opt-plane src="#obj-4" position="0.000 0.000 0.042" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 7. Z = 0.050 ================= -->
+      <a-entity id="layer7-top" class="editable" position="0.000 0.500 0.050" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer7-bottom" class="editable" position="0.000 -0.500 0.050" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer3-top" class="editable" position="0.000 0.025 0.050" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer3-bottom" class="editable" position="0.000 -0.500 0.050" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
+      </a-entity>
+
+      <!-- ================= 8. Z = 0.080 ================= -->
+      <a-plane id="plane-omino" class="editable" opt-plane src="#omino" position="0.000 0.000 0.080" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 9. Z = 0.100 ================= -->
+      <a-entity id="layer6-top" class="editable" position="0.000 0.260 0.100" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer6-bottom" class="editable" position="0.000 0.215 0.100" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer2-top" class="editable" position="0.000 -0.165 0.100" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer2-bottom" class="editable" position="0.000 -0.275 0.100" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
+      </a-entity>
+
+      <a-plane id="plane-layer7" class="editable" opt-plane src="#layer7" position="0.000 0.000 0.100" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 10. Z = 0.120 ================= -->
+      <a-plane id="plane-obj3" class="editable" opt-plane src="#obj-3" position="0.000 0.000 0.120" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 11. Z = 0.150 / 0.160 ================= -->
+      <a-entity id="layer1-top" class="editable" position="0.000 -0.290 0.150" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="90 0 0" width="1" height="0.300"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer1-bottom" class="editable" position="0.000 -0.340 0.160" rotation="0 0 0">
+        <a-plane opt-plane position="0 0 0" rotation="-90 0 0" width="1" height="0.300"></a-plane>
+      </a-entity>
+
+      <!-- ================= 12. Z = 0.179 ================= -->
+      <a-plane id="plane-layer6" class="editable" opt-plane src="#layer6" position="0.000 0.000 0.179" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 13. Z = 0.184 ================= -->
+      <a-plane id="plane-layer3" class="editable" opt-plane src="#layer3" position="0.000 0.000 0.184" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 14. Z = 0.200 ================= -->
+      <a-plane id="plane-layer2" class="editable" opt-plane src="#layer2" position="0.000 0.000 0.200" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 15. Z = 0.205 ================= -->
+      <a-plane id="plane-obj6" class="editable" opt-plane src="#obj-6" position="0.000 0.000 0.205" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 16. Z = 0.220 ================= -->
+      <a-plane id="plane-obj2" class="editable" opt-plane src="#obj-2" position="0.000 0.000 0.220" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 17. Z = 0.300 ================= -->
+      <a-plane id="plane-layer1" class="editable" opt-plane src="#layer1" position="0.000 0.000 0.300" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- ================= 18. Z = 0.320 ================= -->
+      <a-plane id="plane-obj1" class="editable" opt-plane src="#obj-1" position="0.000 0.000 0.320" rotation="0 0 0" width="1" height="1"></a-plane>
 
     </a-entity>
   </a-scene>
 
-  <!-- LOGICA JAVASCRIPT PER EDITOR DUAL (POSIZIONE + ROTAZIONE) -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const select = document.getElementById('plane-select');
@@ -262,17 +320,18 @@
       const editorUI = document.getElementById('editor-ui');
       const exportOutput = document.getElementById('export-output');
 
-      let planes = [];
-      let selectedPlane = null;
+      let elements = [];
+      let selectedElement = null;
 
-      function scanPlanes() {
-        planes = Array.from(document.querySelectorAll('a-plane'));
+      function scanElements() {
+        // Seleziona sia i wrapper genitore (.editable a-entity) che i singoli piani (.editable a-plane)
+        elements = Array.from(document.querySelectorAll('.editable'));
         select.innerHTML = '';
         
-        planes.forEach((plane, index) => {
-          const idAttr = plane.id ? `#${plane.id}` : '';
-          const srcAttr = plane.getAttribute('src') || '';
-          const label = idAttr ? idAttr : `${index + 1}. ${srcAttr}`;
+        elements.forEach((el, index) => {
+          const idAttr = el.id ? `#${el.id}` : `elem-${index + 1}`;
+          const tagType = el.tagName.toLowerCase() === 'a-entity' ? '[WRAPPER]' : '[PLANE]';
+          const label = `${idAttr} ${tagType}`;
           
           const option = document.createElement('option');
           option.value = index;
@@ -280,15 +339,15 @@
           select.appendChild(option);
         });
 
-        if (planes.length > 0) selectPlane(0);
+        if (elements.length > 0) selectElement(0);
       }
 
-      function selectPlane(index) {
-        selectedPlane = planes[index];
-        if (!selectedPlane) return;
+      function selectElement(index) {
+        selectedElement = elements[index];
+        if (!selectedElement) return;
         
-        const pos = selectedPlane.getAttribute('position') || { x: 0, y: 0, z: 0 };
-        const rot = selectedPlane.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
+        const pos = selectedElement.getAttribute('position') || { x: 0, y: 0, z: 0 };
+        const rot = selectedElement.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
 
         updateUIValues(pos, rot);
       }
@@ -304,7 +363,7 @@
       }
 
       function applyTransform() {
-        if (!selectedPlane) return;
+        if (!selectedElement) return;
         const px = parseFloat(posXNum.value) || 0;
         const py = parseFloat(posYNum.value) || 0;
         const pz = parseFloat(posZNum.value) || 0;
@@ -313,8 +372,8 @@
         const ry = parseFloat(rotYNum.value) || 0;
         const rz = parseFloat(rotZNum.value) || 0;
 
-        selectedPlane.setAttribute('position', `${px} ${py} ${pz}`);
-        selectedPlane.setAttribute('rotation', `${rx} ${ry} ${rz}`);
+        selectedElement.setAttribute('position', `${px} ${py} ${pz}`);
+        selectedElement.setAttribute('rotation', `${rx} ${ry} ${rz}`);
       }
 
       function bindControl(numEl, rangeEl) {
@@ -330,8 +389,8 @@
       bindControl(rotYNum, rotYRange);
       bindControl(rotZNum, rotZRange);
 
-      select.addEventListener('change', (e) => selectPlane(e.target.value));
-      btnRefresh.addEventListener('click', scanPlanes);
+      select.addEventListener('change', (e) => selectElement(e.target.value));
+      btnRefresh.addEventListener('click', scanElements);
 
       btnToggle.addEventListener('click', () => {
         editorUI.classList.toggle('collapsed');
@@ -340,13 +399,10 @@
 
       btnExport.addEventListener('click', () => {
         let outputHTML = '';
-        planes.forEach(plane => {
-          const id = plane.id ? `id="${plane.id}" ` : '';
-          const src = plane.getAttribute('src') ? `src="${plane.getAttribute('src')}" ` : '';
-          const pos = plane.getAttribute('position');
-          const rot = plane.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
-          const w = plane.getAttribute('width') || '1';
-          const h = plane.getAttribute('height') || '1';
+        elements.forEach(el => {
+          const id = el.id ? `id="${el.id}" ` : '';
+          const pos = el.getAttribute('position');
+          const rot = el.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
 
           const posX = Number(pos.x).toFixed(3);
           const posY = Number(pos.y).toFixed(3);
@@ -356,7 +412,23 @@
           const rotY = Math.round(rot.y);
           const rotZ = Math.round(rot.z);
 
-          outputHTML += `<a-plane ${id}opt-plane ${src}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}" width="${w}" height="${h}"></a-plane>\n`;
+          if (el.tagName.toLowerCase() === 'a-entity') {
+            const childPlane = el.querySelector('a-plane');
+            const innerRot = childPlane.getAttribute('rotation') || { x: 90, y: 0, z: 0 };
+            const innerRotStr = `${innerRot.x} ${innerRot.y} ${innerRot.z}`;
+            const w = childPlane.getAttribute('width') || '1';
+            const h = childPlane.getAttribute('height') || '1';
+
+            outputHTML += `<a-entity ${id}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}">\n`;
+            outputHTML += `  <a-plane opt-plane position="0 0 0" rotation="${innerRotStr}" width="${w}" height="${h}"></a-plane>\n`;
+            outputHTML += `</a-entity>\n`;
+          } else {
+            const src = el.getAttribute('src') ? `src="${el.getAttribute('src')}" ` : '';
+            const w = el.getAttribute('width') || '1';
+            const h = el.getAttribute('height') || '1';
+
+            outputHTML += `<a-plane ${id}opt-plane ${src}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}" width="${w}" height="${h}"></a-plane>\n`;
+          }
         });
 
         exportOutput.value = outputHTML;
@@ -365,8 +437,8 @@
       });
 
       const scene = document.querySelector('a-scene');
-      if (scene.hasLoaded) scanPlanes();
-      else scene.addEventListener('loaded', scanPlanes);
+      if (scene.hasLoaded) scanElements();
+      else scene.addEventListener('loaded', scanElements);
     });
   </script>
 </body>
