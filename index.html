@@ -39,7 +39,8 @@ AFRAME.registerComponent('opt-plane', {
       roughness: 0.8,        // Rende la superficie opaca come la carta
       metalness: 0.0,        // Zero riflessi metallici
       transparent: true,
-      alphaTest: 0.01,
+      alphaTest: 0.01,       // Abbassato per non "tagliare" le ombre morbide in modo netto
+      depthWrite: false,     // RISOLVE IL PROBLEMA DEL LIVELLO BUCATO
       side: 'double'
     });
   }
