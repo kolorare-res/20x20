@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <script>
-    // 1. SMOOTH TRACKER (Interpolazione fluida per eliminare scatti)
+    // 1. SMOOTH TRACKER
     AFRAME.registerComponent('smooth-tracker', {
       schema: { factor: { type: 'number', default: 0.35 } },
       init: function () {
@@ -30,23 +30,23 @@
       }
     });
 
-    // 2. OPT-PLANE (Effetto Carta / Pareti Scatola)
+    // 2. OPT-PLANE
     AFRAME.registerComponent('opt-plane', {
       init: function () {
         this.el.setAttribute('material', { 
           shader: 'standard',
-          color: '#fcfaf2',      // Bianco avorio/carta
-          roughness: 0.8,        // Superficie opaca
-          metalness: 0.0,        // Zero riflessi
+          color: '#fcfaf2',
+          roughness: 0.8,
+          metalness: 0.0,
           transparent: true,
           alphaTest: 0.01,
-          depthWrite: false,     // Previene buchi visivi
-          side: 'double'         // Visibile da entrambi i lati
+          depthWrite: false,
+          side: 'double'
         });
       }
     });
 
-    // 3. RENDER-ORDER (Propagazione corretta ai nodi mesh figli)
+    // 3. RENDER-ORDER
     AFRAME.registerComponent('render-order', {
       schema: { type: 'number', default: 0 },
       init: function () {
@@ -68,62 +68,57 @@
       }
     });
 
+    // 4. 3D-BOX COMPONENT
     AFRAME.registerComponent('3d-box', {
-  schema: {
-    width: { type: 'number', default: 1 },
-    height: { type: 'number', default: 1 },
-    depth: { type: 'number', default: 0.05 },
-    src: { type: 'selector' },          // Fronte
-    srcTop: { type: 'selector' },       // Lato Alto
-    srcBottom: { type: 'selector' },    // Lato Basso
-    srcLeft: { type: 'selector' },      // Lato Sinistro
-    srcRight: { type: 'selector' }      // Lato Destro
-  },
-  init: function () {
-    const el = this.el;
-    const data = this.data;
-    const loader = new THREE.TextureLoader();
+      schema: {
+        width: { type: 'number', default: 1 },
+        height: { type: 'number', default: 1 },
+        depth: { type: 'number', default: 0.05 },
+        src: { type: 'selector' },
+        srcTop: { type: 'selector' },
+        srcBottom: { type: 'selector' },
+        srcLeft: { type: 'selector' },
+        srcRight: { type: 'selector' }
+      },
+      init: function () {
+        const el = this.el;
+        const data = this.data;
+        const loader = new THREE.TextureLoader();
 
-    // Funzione di supporto per creare un materiale da un tag <img>
-    const createMat = (selector) => {
-      if (!selector) {
-        return new THREE.MeshStandardMaterial({ color: '#fcfaf2', roughness: 0.8 });
+        const createMat = (selector) => {
+          if (!selector) {
+            return new THREE.MeshStandardMaterial({ color: '#fcfaf2', roughness: 0.8 });
+          }
+          const texture = loader.load(selector.src);
+          texture.encoding = THREE.sRGBEncoding;
+          return new THREE.MeshStandardMaterial({ 
+            map: texture, 
+            transparent: true, 
+            alphaTest: 0.1, 
+            roughness: 0.8 
+          });
+        };
+
+        const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        const materials = [
+          createMat(data.srcRight),
+          createMat(data.srcLeft),
+          createMat(data.srcTop),
+          createMat(data.srcBottom),
+          createMat(data.src),
+          createMat(data.src)
+        ];
+
+        const mesh = new THREE.Mesh(geometry, materials);
+        el.setObject3D('mesh', mesh);
       }
-      const texture = loader.load(selector.src);
-      texture.encoding = THREE.sRGBEncoding;
-      return new THREE.MeshStandardMaterial({ 
-        map: texture, 
-        transparent: true, 
-        alphaTest: 0.1, 
-        roughness: 0.8 
-      });
-    };
-
-    const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
-
-    // Mappatura facce di Three.js (BoxGeometry)
-    const materials = [
-      createMat(data.srcRight),  // Index 0: Destra (+X)
-      createMat(data.srcLeft),   // Index 1: Sinistra (-X)
-      createMat(data.srcTop),    // Index 2: Sopra (+Y)
-      createMat(data.srcBottom), // Index 3: Sotto (-Y)
-      createMat(data.src),       // Index 4: Fronte (+Z)
-      createMat(data.src)        // Index 5: Retro (-Z)
-    ];
-
-    const mesh = new THREE.Mesh(geometry, materials);
-    el.setObject3D('mesh', mesh);
-  }
-});
-
-    
+    });
   </script>
 
   <style>
     body { margin: 0; overflow: hidden; }
     .mindar-ui-loading, div[class*="mindar-ui"] { display: none !important; }
 
-    /* PANNELLO EDITOR DOCK SULLA DESTRA */
     #editor-ui {
       position: fixed;
       top: 12px;
@@ -292,115 +287,92 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- TRACCIAMENTO TARGET (ORDINATO PER Z CRESCENTE) -->
+    <!-- TRACCIAMENTO TARGET -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
-      <!-- ================= 0. Z = 0.005 (Layer 0) ================= -->
+      <!-- 0. Z = 0.005 (Layer 0) -->
       <a-plane id="plane-layer0" class="editable" opt-plane src="#layer0" position="0.000 0.000 0.005" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 1. Z = 0.013 (Layer 5: render-order="5") ================= -->
+      <!-- 1. Z = 0.013 (Layer 5 sides) -->
       <a-entity id="layer5-top" class="editable" position="0.000 0.200 0.013" rotation="0 0 -2">
         <a-plane opt-plane render-order="5" material="alphaTest: 0.5" src="#layer5-top" position="0 0 0" rotation="90 0 0" width="1" height="0.025"></a-plane>
       </a-entity>
-
       <a-entity id="layer5-bottom" class="editable" position="0.000 0.090 0.013" rotation="0 0 -2">
         <a-plane opt-plane render-order="5" material="alphaTest: 0.5" src="#layer5-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.025"></a-plane>
       </a-entity>
 
-      <!-- ================= 2. Z = 0.020 (Layer 4: render-order="4") ================= -->
+      <!-- 2. Z = 0.020 (Layer 4 sides) -->
       <a-entity id="layer4-top" class="editable" position="0.000 0.068 0.020" rotation="0 0 -2">
         <a-plane opt-plane render-order="4" material="alphaTest: 0.5" src="#layer4-top" position="0 0 0" rotation="90 0 0" width="1" height="0.040"></a-plane>
       </a-entity>
-
       <a-entity id="layer4-bottom" class="editable" position="0.000 -0.020 0.020" rotation="0 0 -2">
         <a-plane opt-plane render-order="4" material="alphaTest: 0.5" src="#layer4-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.040"></a-plane>
       </a-entity>
 
-      <!-- ================= 3. Z = 0.025 ================= -->
+      <!-- 3. Planes / Objects intermedi -->
       <a-plane id="plane-layer5" class="editable" opt-plane src="#layer5" position="0.000 0.000 0.025" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- ================= 4. Z = 0.032 ================= -->
       <a-plane id="plane-obj5" class="editable" opt-plane src="#obj-5" position="0.000 0.000 0.032" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- ================= 5. Z = 0.040 ================= -->
       <a-plane id="plane-layer4" class="editable" opt-plane src="#layer4" position="0.000 0.000 0.040" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- ================= 6. Z = 0.042 ================= -->
       <a-plane id="plane-obj4" class="editable" opt-plane src="#obj-4" position="0.000 0.000 0.042" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 7. Z = 0.050 (Layer 7: render-order="7") ================= -->
+      <!-- 4. Z = 0.050 (Layer 7 sides) -->
       <a-entity id="layer7-top" class="editable" position="0.000 0.410 0.050" rotation="0 0 3">
         <a-plane opt-plane render-order="7" material="alphaTest: 0.5" src="#layer7-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
       </a-entity>
-
       <a-entity id="layer7-bottom" class="editable" position="0.000 0.285 0.050" rotation="0 0 3">
         <a-plane opt-plane render-order="7" material="alphaTest: 0.5" src="#layer7-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
       </a-entity>
 
-      <!-- ================= 8. Z = 0.080 ================= -->
       <a-plane id="plane-omino" class="editable" opt-plane src="#omino" position="0.000 0.000 0.080" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 9. Z = 0.100 (Layer 6: render-order="6", Layer 2: render-order="2") ================= -->
+      <!-- 5. Z = 0.100 (Layer 6 & 2 sides) -->
       <a-entity id="layer6-top" class="editable" position="0.000 0.265 0.100" rotation="0 0 -1">
         <a-plane opt-plane render-order="6" material="alphaTest: 0.5" src="#layer6-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
-
       <a-entity id="layer6-bottom" class="editable" position="0.000 0.210 0.100" rotation="0 0 -2">
         <a-plane opt-plane render-order="6" material="alphaTest: 0.5" src="#layer6-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
-
       <a-entity id="layer2-top" class="editable" position="0.000 -0.165 0.100" rotation="0 0 0">
         <a-plane opt-plane render-order="2" material="alphaTest: 0.5" src="#layer2-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
-
       <a-entity id="layer2-bottom" class="editable" position="0.000 -0.275 0.100" rotation="0 0 0">
         <a-plane opt-plane render-order="2" material="alphaTest: 0.5" src="#layer2-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
 
       <a-plane id="plane-layer7" class="editable" opt-plane src="#layer7" position="0.000 0.000 0.100" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 10. Z = 0.150 / 0.160 (Layer 1: render-order="1") ================= -->
-    <a-entity 
-  id="box-layer1"
-  class="editable"
-  3d-box="
-    src: #layer1; 
-    srcTop: #layer1-top; 
-    srcBottom: #layer1-bottom; 
-    width: 0.616; 
-    height: 0.052; 
-    depth: 0.03;" 
-  position="0.000 0.000 0.300" 
-  rotation="0 0 0">
-</a-entity>
+      <!-- 6. SCATOLA LAYER 1 (3D-BOX UNICO) -->
+      <a-entity 
+        id="box-layer1"
+        class="editable"
+        3d-box="
+          src: #layer1; 
+          srcTop: #layer1-top; 
+          srcBottom: #layer1-bottom; 
+          width: 0.616; 
+          height: 0.052; 
+          depth: 0.03;" 
+        position="0.000 0.300 0.300" 
+        rotation="0 0 0">
+      </a-entity>
 
-      <!-- ================= 11. Z = 0.177 (Layer 3: render-order="3") ================= -->
+      <!-- 7. Z = 0.177 (Layer 3 sides) -->
       <a-entity id="layer3-top" class="editable" position="0.035 -0.015 0.177" rotation="0 0 9">
         <a-plane opt-plane render-order="3" material="alphaTest: 0.5" src="#layer3-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
       </a-entity>
-
       <a-entity id="layer3-bottom" class="editable" position="0.035 -0.115 0.177" rotation="0 0 9">
         <a-plane opt-plane render-order="3" material="alphaTest: 0.5" src="#layer3-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
       </a-entity>
 
-      <!-- ================= 12. Z = 0.179 ================= -->
       <a-plane id="plane-layer6" class="editable" opt-plane src="#layer6" position="0.000 0.000 0.179" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- ================= 13. Z = 0.184 / 0.186 ================= -->
       <a-plane id="plane-layer3" class="editable" opt-plane src="#layer3" position="0.000 0.000 0.184" rotation="0 0 0" width="1" height="1"></a-plane>
       <a-plane id="plane-obj3" class="editable" opt-plane src="#obj-3" position="0.000 0.000 0.186" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- ================= 14. Z = 0.200 / 0.205 ================= -->
       <a-plane id="plane-layer2" class="editable" opt-plane src="#layer2" position="0.000 0.000 0.200" rotation="0 0 0" width="1" height="1"></a-plane>
       <a-plane id="plane-obj6" class="editable" opt-plane src="#obj-6" position="0.000 0.000 0.205" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- ================= 15. Z = 0.220 ================= -->
       <a-plane id="plane-obj2" class="editable" opt-plane src="#obj-2" position="0.000 0.000 0.220" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 16. Z = 0.300 ================= -->
-      <a-plane id="plane-layer1" class="editable" opt-plane src="#layer1" position="0.000 0.000 0.300" rotation="0 0 0" width="1" height="1"></a-plane>
+      <!-- RIMOSSO: il vecchio plane-layer1 a dimensione 1x1 che copriva tutto -->
 
-      <!-- ================= 17. Z = 0.320 ================= -->
       <a-plane id="plane-obj1" class="editable" opt-plane src="#obj-1" position="0.000 0.000 0.320" rotation="0 0 0" width="1" height="1"></a-plane>
 
     </a-entity>
@@ -439,7 +411,8 @@
         
         elements.forEach((el, index) => {
           const idAttr = el.id ? `#${el.id}` : `elem-${index + 1}`;
-          const tagType = el.tagName.toLowerCase() === 'a-entity' ? '[WRAPPER]' : '[PLANE]';
+          const is3DBox = el.hasAttribute('3d-box');
+          const tagType = is3DBox ? '[3D-BOX]' : (el.tagName.toLowerCase() === 'a-entity' ? '[WRAPPER]' : '[PLANE]');
           const label = `${idAttr} ${tagType}`;
           
           const option = document.createElement('option');
@@ -521,23 +494,28 @@
           const rotY = Math.round(rot.y);
           const rotZ = Math.round(rot.z);
 
-          if (el.tagName.toLowerCase() === 'a-entity') {
+          if (el.hasAttribute('3d-box')) {
+            const boxData = el.getAttribute('3d-box');
+            outputHTML += `<a-entity ${id}class="editable" 3d-box="${boxData}" position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}"></a-entity>\n`;
+          } else if (el.tagName.toLowerCase() === 'a-entity') {
             const childPlane = el.querySelector('a-plane');
-            const innerRot = childPlane.getAttribute('rotation') || { x: 90, y: 0, z: 0 };
-            const innerRotStr = `${innerRot.x} ${innerRot.y} ${innerRot.z}`;
-            const w = childPlane.getAttribute('width') || '1';
-            const h = childPlane.getAttribute('height') || '1';
-            const renderOrderAttr = childPlane.getAttribute('render-order') ? `render-order="${childPlane.getAttribute('render-order')}" ` : '';
+            if (childPlane) {
+              const innerRot = childPlane.getAttribute('rotation') || { x: 90, y: 0, z: 0 };
+              const innerRotStr = `${innerRot.x} ${innerRot.y} ${innerRot.z}`;
+              const w = childPlane.getAttribute('width') || '1';
+              const h = childPlane.getAttribute('height') || '1';
+              const renderOrderAttr = childPlane.getAttribute('render-order') ? `render-order="${childPlane.getAttribute('render-order')}" ` : '';
 
-            outputHTML += `<a-entity ${id}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}">\n`;
-            outputHTML += `  <a-plane opt-plane ${renderOrderAttr}position="0 0 0" rotation="${innerRotStr}" width="${w}" height="${h}"></a-plane>\n`;
-            outputHTML += `</a-entity>\n`;
+              outputHTML += `<a-entity ${id}class="editable" position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}">\n`;
+              outputHTML += `  <a-plane opt-plane ${renderOrderAttr}position="0 0 0" rotation="${innerRotStr}" width="${w}" height="${h}"></a-plane>\n`;
+              outputHTML += `</a-entity>\n`;
+            }
           } else {
             const src = el.getAttribute('src') ? `src="${el.getAttribute('src')}" ` : '';
             const w = el.getAttribute('width') || '1';
             const h = el.getAttribute('height') || '1';
 
-            outputHTML += `<a-plane ${id}opt-plane ${src}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}" width="${w}" height="${h}"></a-plane>\n`;
+            outputHTML += `<a-plane ${id}class="editable" opt-plane ${src}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}" width="${w}" height="${h}"></a-plane>\n`;
           }
         });
 
