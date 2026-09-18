@@ -177,27 +177,25 @@
     <!-- ASSETS PRELOAD (Cartella /ima) -->
     <a-assets>
       <img id="layer1" src="./ima/layer1.png">
-            <img id="obj-1" src="./ima/obj-1.png">
+      <img id="obj-1" src="./ima/obj-1.png">
 
       <img id="layer2" src="./ima/layer2.png">
-            <img id="obj-2" src="./ima/obj-2.png">
+      <img id="obj-2" src="./ima/obj-2.png">
 
       <img id="layer3" src="./ima/layer3.png">
-            <img id="obj-3" src="./ima/obj-3.png">
+      <img id="obj-3" src="./ima/obj-3.png">
 
       <img id="layer4" src="./ima/layer4.png">
-            <img id="obj-4" src="./ima/obj-4.png">
+      <img id="obj-4" src="./ima/obj-4.png">
       
       <img id="layer5" src="./ima/layer5.png">
-            <img id="obj-5" src="./ima/obj-5.png">
+      <img id="obj-5" src="./ima/obj-5.png">
 
       <img id="layer6" src="./ima/layer6.png">
-            <img id="obj-6" src="./ima/obj-6.png">
+      <img id="obj-6" src="./ima/obj-6.png">
 
       <img id="layer7" src="./ima/layer7.png">
       <img id="omino" src="./ima/omino.png">
-
-     
     </a-assets>
 
     <!-- LUCI PER RISALTARE MATERIALI CARTA -->
@@ -208,22 +206,29 @@
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
     <!-- ANCORAGGIO TARGET CON SMOOTH-TRACKER APPLICATO -->
+    <!-- PIANI ORDINATI DAL PIÙ LONTANO (Z=0.01) AL PIÙ VICINO (Z=0.08) -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
-      <!-- 7 LAYER PNG TRASPARENTI 20x20 + OGGETTI + OMINO -->
-      <a-plane opt-plane src="#layer1" position="0 0 0.07" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#obj-1" position="0 0 0.072" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer2" position="0 0 0.06" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#obj-2" position="0 0 0.062" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer3" position="0 0 0.05" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#obj-3" position="0 0 0.052" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer4" position="0 0 0.04" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#obj-4" position="0 0 0.042" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer5" position="0 0 0.03" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#obj-5" position="0 0 0.032" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#layer7" position="0 0 0.01" width="1" height="1"></a-plane>
+
       <a-plane opt-plane src="#layer6" position="0 0 0.02" width="1" height="1"></a-plane>
       <a-plane opt-plane src="#obj-6" position="0 0 0.022" width="1" height="1"></a-plane>
-      <a-plane opt-plane src="#layer7" position="0 0 0.01" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer5" position="0 0 0.03" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-5" position="0 0 0.032" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer4" position="0 0 0.04" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-4" position="0 0 0.042" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer3" position="0 0 0.05" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-3" position="0 0 0.052" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer2" position="0 0 0.06" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-2" position="0 0 0.062" width="1" height="1"></a-plane>
+
+      <a-plane opt-plane src="#layer1" position="0 0 0.07" width="1" height="1"></a-plane>
+      <a-plane opt-plane src="#obj-1" position="0 0 0.072" width="1" height="1"></a-plane>
+
       <a-plane opt-plane src="#omino" position="0 0 0.08" width="1" height="1"></a-plane>
 
     </a-entity>
