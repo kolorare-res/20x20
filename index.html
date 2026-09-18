@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Altrove - Setup Tracciamento</title>
+  <title>Altrove - Setup Tracciamento e Scatole 3D</title>
 
   <!-- Librerie A-Frame e MindAR -->
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
@@ -30,18 +30,18 @@
       }
     });
 
-    // 2. OPT-PLANE (Effetto Carta)
+    // 2. OPT-PLANE (Effetto Carta / Pareti Scatola)
     AFRAME.registerComponent('opt-plane', {
       init: function () {
         this.el.setAttribute('material', { 
           shader: 'standard',
-          color: '#fcfaf2',      // Bianco avorio/carta (evita il bianco ottico)
-          roughness: 0.8,        // Rende la superficie opaca come la carta
-          metalness: 0.0,        // Zero riflessi metallici
+          color: '#fcfaf2',      // Bianco avorio/carta
+          roughness: 0.8,        // Superficie opaca
+          metalness: 0.0,        // Zero riflessi
           transparent: true,
-          alphaTest: 0.01,       // Abbassato per non "tagliare" le ombre morbide in modo netto
-          depthWrite: false,     // RISOLVE IL PROBLEMA DEL LIVELLO BUCATO
-          side: 'double'
+          alphaTest: 0.01,
+          depthWrite: false,     // Previene buchi visivi
+          side: 'double'         // Visibile da entrambi i lati
         });
       }
     });
@@ -49,99 +49,71 @@
 
   <style>
     body { margin: 0; overflow: hidden; }
-    /* Nasconde la schermata di caricamento di default di MindAR */
     .mindar-ui-loading, div[class*="mindar-ui"] { display: none !important; }
 
-    /* STILI PANNELLO EDITOR UI */
+    /* STILI PANNELLO EDITOR UI ESTESO (POSIZIONE + ROTAZIONE) */
     #editor-ui {
       position: fixed;
-      bottom: 12px;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 999999;
-      background: rgba(18, 18, 20, 0.94);
+      background: rgba(18, 18, 20, 0.95);
       color: #e1e1e1;
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-radius: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 11px;
-      width: 320px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      font-size: 10px;
+      width: 330px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
       border: 1px solid #333;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
     }
-    #editor-ui.collapsed #editor-body {
-      display: none;
-    }
+    #editor-ui.collapsed #editor-body { display: none; }
     #editor-ui header {
       font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
       color: #3897f0;
-      letter-spacing: 0.5px;
     }
     #editor-ui header button {
-      background: #2c2c2e;
-      color: #aaa;
-      border: 1px solid #444;
-      border-radius: 4px;
-      padding: 2px 8px;
-      cursor: pointer;
-      font-size: 10px;
+      background: #2c2c2e; color: #aaa; border: 1px solid #444; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 10px;
     }
-    #editor-body { margin-top: 10px; }
+    #editor-body { margin-top: 8px; }
+    .section-title { font-weight: bold; color: #3897f0; margin: 6px 0 4px 0; border-bottom: 1px solid #333; padding-bottom: 2px; }
     #editor-ui select, #editor-ui input, #editor-ui button {
-      background: #252528;
-      color: #fff;
-      border: 1px solid #3a3a3c;
-      padding: 5px;
-      border-radius: 5px;
-      box-sizing: border-box;
-      font-size: 11px;
+      background: #252528; color: #fff; border: 1px solid #3a3a3c; padding: 4px; border-radius: 4px; font-size: 10px;
     }
-    #editor-ui select { width: 100%; margin-bottom: 10px; }
-    .ui-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .ui-row label { width: 18px; font-weight: bold; color: #8e8e93; }
-    .ui-row input[type="number"] { width: 70px; text-align: right; }
+    #editor-ui select { width: 100%; margin-bottom: 6px; }
+    .ui-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .ui-row label { width: 32px; font-weight: bold; color: #8e8e93; }
+    .ui-row input[type="number"] { width: 55px; text-align: right; }
     .ui-row input[type="range"] { flex: 1; accent-color: #3897f0; }
-    .btn-group { display: flex; gap: 6px; margin-top: 10px; }
-    .btn-group button { flex: 1; cursor: pointer; background: #007aff; border: none; font-weight: 600; color: #fff; padding: 7px; }
-    .btn-group button:hover { background: #0056b3; }
+    .btn-group { display: flex; gap: 6px; margin-top: 8px; }
+    .btn-group button { flex: 1; cursor: pointer; background: #007aff; border: none; font-weight: 600; color: #fff; padding: 6px; border-radius: 4px; }
     #export-output {
-      display: none;
-      width: 100%;
-      height: 100px;
-      margin-top: 8px;
-      background: #0d0d0e;
-      color: #34c759;
-      font-family: monospace;
-      font-size: 10px;
-      resize: vertical;
+      display: none; width: 100%; height: 90px; margin-top: 6px; background: #0d0d0e; color: #34c759; font-family: monospace; font-size: 9px; resize: vertical;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- EDITOR UI OVERLAY -->
+  <!-- EDITOR UI OVERLAY CON POSIZIONE E ROTAZIONE -->
   <div id="editor-ui">
     <header>
-      <span>AR LAYER EDITOR</span>
-      <div>
-        <button id="btn-toggle">Nascondi</button>
-      </div>
+      <span>AR BOX & LAYER EDITOR</span>
+      <button id="btn-toggle">Nascondi</button>
     </header>
 
     <div id="editor-body">
-      <label for="plane-select" style="display:block; margin-bottom: 4px; color: #8e8e93;">Seleziona Elemento:</label>
+      <label for="plane-select" style="display:block; margin-bottom: 2px; color: #8e8e93;">Seleziona Elemento:</label>
       <select id="plane-select"></select>
 
+      <div class="section-title">POSIZIONE (X, Y, Z)</div>
       <div class="ui-row">
         <label>X</label>
         <input type="number" id="posX-num" step="0.005">
@@ -155,18 +127,35 @@
       <div class="ui-row">
         <label>Z</label>
         <input type="number" id="posZ-num" step="0.001">
-        <input type="range" id="posZ-range" min="-0.1" max="0.3" step="0.001">
+        <input type="range" id="posZ-range" min="-0.1" max="0.4" step="0.001">
+      </div>
+
+      <div class="section-title">ROTAZIONE (RotX, RotY, RotZ)</div>
+      <div class="ui-row">
+        <label>RotX</label>
+        <input type="number" id="rotX-num" step="1">
+        <input type="range" id="rotX-range" min="-180" max="180" step="1">
+      </div>
+      <div class="ui-row">
+        <label>RotY</label>
+        <input type="number" id="rotY-num" step="1">
+        <input type="range" id="rotY-range" min="-180" max="180" step="1">
+      </div>
+      <div class="ui-row">
+        <label>RotZ</label>
+        <input type="number" id="rotZ-num" step="1">
+        <input type="range" id="rotZ-range" min="-180" max="180" step="1">
       </div>
 
       <div class="btn-group">
-        <button id="btn-refresh" style="background: #3a3a3c;">Rileva Piani</button>
+        <button id="btn-refresh" style="background: #3a3a3c;">Aggiorna</button>
         <button id="btn-export">Genera HTML</button>
       </div>
       <textarea id="export-output" readonly></textarea>
     </div>
   </div>
 
-  <!-- IMPOSTAZIONI FOTOCAMERA E TRACCIAMENTO MINDAR -->
+  <!-- SCENA 3D AR -->
   <a-scene 
     mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; autoStart: true; uiLoading: no;" 
     color-space="sRGB" 
@@ -174,87 +163,99 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
-    <!-- ASSETS PRELOAD (Cartella /ima) -->
+    <!-- ASSETS PRELOAD -->
     <a-assets>
       <img id="layer1" src="./ima/layer1.png">
       <img id="obj-1" src="./ima/obj-1.png">
-
       <img id="layer2" src="./ima/layer2.png">
       <img id="obj-2" src="./ima/obj-2.png">
-
       <img id="layer3" src="./ima/layer3.png">
       <img id="obj-3" src="./ima/obj-3.png">
-
       <img id="layer4" src="./ima/layer4.png">
       <img id="obj-4" src="./ima/obj-4.png">
-      
       <img id="layer5" src="./ima/layer5.png">
       <img id="obj-5" src="./ima/obj-5.png">
-
       <img id="layer6" src="./ima/layer6.png">
       <img id="obj-6" src="./ima/obj-6.png">
-
       <img id="layer7" src="./ima/layer7.png">
       <img id="omino" src="./ima/omino.png">
     </a-assets>
 
-    <!-- LUCI PER RISALTARE MATERIALI CARTA -->
+    <!-- LUCI -->
     <a-entity light="type: ambient; color: #ffffff; intensity: 1.1;"></a-entity>
     <a-entity light="type: directional; color: #ffffff; intensity: 0.4" position="1 2 1"></a-entity>
 
-    <!-- FOTOCAMERA -->
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- ANCORAGGIO TARGET CON SMOOTH-TRACKER APPLICATO -->
-    <!-- PIANI ORDINATI DAL PIÙ LONTANO (Z=0.01) AL PIÙ VICINO (Z=0.08) -->
+    <!-- TRACCIAMENTO TARGET -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
-<!-- Z = 0.025 -->
-<a-plane opt-plane src="#layer5" position="0.000 0.000 0.025" width="1" height="1"></a-plane>
-<!-- Z = 0.032 -->
-<a-plane opt-plane src="#obj-5" position="0.000 0.000 0.032" width="1" height="1"></a-plane>
+      <!-- ================= LAYER 5 (Z = 0.025 - Profondità 0.5cm) ================= -->
+      <a-plane id="layer5-top" opt-plane position="0.000 0.500 0.0125" rotation="90 0 0" width="1" height="0.025"></a-plane>
+      <a-plane id="layer5-bottom" opt-plane position="0.000 -0.500 0.0125" rotation="-90 0 0" width="1" height="0.025"></a-plane>
+      <a-plane id="plane-layer5" opt-plane src="#layer5" position="0.000 0.000 0.025" width="1" height="1"></a-plane>
+      <a-plane id="plane-obj5" opt-plane src="#obj-5" position="0.000 0.000 0.032" width="1" height="1"></a-plane>
 
-<!-- Z = 0.040 -->
-<a-plane opt-plane src="#layer4" position="0.000 0.000 0.040" width="1" height="1"></a-plane>
-<!-- Z = 0.042 -->
-<a-plane opt-plane src="#obj-4" position="0.000 0.000 0.042" width="1" height="1"></a-plane>
+      <!-- ================= LAYER 4 (Z = 0.040 - Profondità 0.8cm) ================= -->
+      <a-plane id="layer4-top" opt-plane position="0.000 0.500 0.020" rotation="90 0 0" width="1" height="0.040"></a-plane>
+      <a-plane id="layer4-bottom" opt-plane position="0.000 -0.500 0.020" rotation="-90 0 0" width="1" height="0.040"></a-plane>
+      <a-plane id="plane-layer4" opt-plane src="#layer4" position="0.000 0.000 0.040" width="1" height="1"></a-plane>
+      <a-plane id="plane-obj4" opt-plane src="#obj-4" position="0.000 0.000 0.042" width="1" height="1"></a-plane>
 
-<!-- Z = 0.080 -->
-<a-plane opt-plane src="#omino" position="0.000 0.000 0.080" width="1" height="1"></a-plane>
+      <!-- ================= OMINO (Z = 0.080) ================= -->
+      <a-plane id="plane-omino" opt-plane src="#omino" position="0.000 0.000 0.080" width="1" height="1"></a-plane>
 
-<!-- Z = 0.100 -->
-<a-plane opt-plane src="#layer7" position="0.000 0.000 0.100" width="1" height="1"></a-plane>
-<a-plane opt-plane src="#layer3" position="0.000 0.000 0.095" width="1" height="1"></a-plane>
-<!-- Z = 0.120 -->
-<a-plane opt-plane src="#obj-3" position="0.000 0.000 0.110" width="1" height="1"></a-plane>
+      <!-- ================= LAYER 7 (Z = 0.100 - Profondità 2.0cm) ================= -->
+      <a-plane id="layer7-top" opt-plane position="0.000 0.500 0.050" rotation="90 0 0" width="1" height="0.100"></a-plane>
+      <a-plane id="layer7-bottom" opt-plane position="0.000 -0.500 0.050" rotation="-90 0 0" width="1" height="0.100"></a-plane>
+      <a-plane id="plane-layer7" opt-plane src="#layer7" position="0.000 0.000 0.100" width="1" height="1"></a-plane>
 
-<!-- Z = 0.200 -->
-<a-plane opt-plane src="#layer6" position="0.000 0.000 0.200" width="1" height="1"></a-plane>
-<a-plane opt-plane src="#layer2" position="0.000 0.000 0.200" width="1" height="1"></a-plane>
-<!-- Z = 0.205 -->
-<a-plane opt-plane src="#obj-6" position="0.000 0.000 0.205" width="1" height="1"></a-plane>
-<!-- Z = 0.220 -->
-<a-plane opt-plane src="#obj-2" position="0.000 0.000 0.220" width="1" height="1"></a-plane>
+      <!-- ================= LAYER 3 (Z = 0.100 - Profondità 2.0cm) ================= -->
+      <a-plane id="layer3-top" opt-plane position="0.000 0.500 0.050" rotation="90 0 0" width="1" height="0.100"></a-plane>
+      <a-plane id="layer3-bottom" opt-plane position="0.000 -0.500 0.050" rotation="-90 0 0" width="1" height="0.100"></a-plane>
+      <a-plane id="plane-layer3" opt-plane src="#layer3" position="0.000 0.000 0.100" width="1" height="1"></a-plane>
+      <a-plane id="plane-obj3" opt-plane src="#obj-3" position="0.000 0.000 0.120" width="1" height="1"></a-plane>
 
-<!-- Z = 0.300 -->
-<a-plane opt-plane src="#layer1" position="0.000 0.000 0.300" width="1" height="1"></a-plane>
-<!-- Z = 0.320 -->
-<a-plane opt-plane src="#obj-1" position="0.000 0.000 0.320" width="1" height="1"></a-plane>
+      <!-- ================= LAYER 6 (Z = 0.200 - Profondità 4.0cm) ================= -->
+      <a-plane id="layer6-top" opt-plane position="0.000 0.500 0.100" rotation="90 0 0" width="1" height="0.200"></a-plane>
+      <a-plane id="layer6-bottom" opt-plane position="0.000 -0.500 0.100" rotation="-90 0 0" width="1" height="0.200"></a-plane>
+      <a-plane id="plane-layer6" opt-plane src="#layer6" position="0.000 0.000 0.200" width="1" height="1"></a-plane>
+      <a-plane id="plane-obj6" opt-plane src="#obj-6" position="0.000 0.000 0.205" width="1" height="1"></a-plane>
 
+      <!-- ================= LAYER 2 (Z = 0.200 - Profondità 4.0cm) ================= -->
+      <a-plane id="layer2-top" opt-plane position="0.000 0.500 0.100" rotation="90 0 0" width="1" height="0.200"></a-plane>
+      <a-plane id="layer2-bottom" opt-plane position="0.000 -0.500 0.100" rotation="-90 0 0" width="1" height="0.200"></a-plane>
+      <a-plane id="plane-layer2" opt-plane src="#layer2" position="0.000 0.000 0.200" width="1" height="1"></a-plane>
+      <a-plane id="plane-obj2" opt-plane src="#obj-2" position="0.000 0.000 0.220" width="1" height="1"></a-plane>
+
+      <!-- ================= LAYER 1 (Z = 0.300 - Profondità 6.0cm) ================= -->
+      <a-plane id="layer1-top" opt-plane position="0.000 0.500 0.150" rotation="90 0 0" width="1" height="0.300"></a-plane>
+      <a-plane id="layer1-bottom" opt-plane position="0.000 -0.500 0.150" rotation="-90 0 0" width="1" height="0.300"></a-plane>
+      <a-plane id="plane-layer1" opt-plane src="#layer1" position="0.000 0.000 0.300" width="1" height="1"></a-plane>
+      <a-plane id="plane-obj1" opt-plane src="#obj-1" position="0.000 0.000 0.320" width="1" height="1"></a-plane>
 
     </a-entity>
   </a-scene>
 
-  <!-- LOGICA GESTIONE EDITOR POSIZIONI -->
+  <!-- LOGICA JAVASCRIPT PER EDITOR DUAL (POSIZIONE + ROTAZIONE) -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const select = document.getElementById('plane-select');
+      
       const posXNum = document.getElementById('posX-num');
       const posXRange = document.getElementById('posX-range');
       const posYNum = document.getElementById('posY-num');
       const posYRange = document.getElementById('posY-range');
       const posZNum = document.getElementById('posZ-num');
       const posZRange = document.getElementById('posZ-range');
+
+      const rotXNum = document.getElementById('rotX-num');
+      const rotXRange = document.getElementById('rotX-range');
+      const rotYNum = document.getElementById('rotY-num');
+      const rotYRange = document.getElementById('rotY-range');
+      const rotZNum = document.getElementById('rotZ-num');
+      const rotZRange = document.getElementById('rotZ-range');
+
       const btnExport = document.getElementById('btn-export');
       const btnRefresh = document.getElementById('btn-refresh');
       const btnToggle = document.getElementById('btn-toggle');
@@ -264,15 +265,14 @@
       let planes = [];
       let selectedPlane = null;
 
-      // Scansione di tutti gli a-plane nella scena
       function scanPlanes() {
         planes = Array.from(document.querySelectorAll('a-plane'));
         select.innerHTML = '';
         
         planes.forEach((plane, index) => {
-          const srcAttr = plane.getAttribute('src') || '';
           const idAttr = plane.id ? `#${plane.id}` : '';
-          const label = idAttr ? `${idAttr} (${srcAttr})` : `${index + 1}. ${srcAttr}`;
+          const srcAttr = plane.getAttribute('src') || '';
+          const label = idAttr ? idAttr : `${index + 1}. ${srcAttr}`;
           
           const option = document.createElement('option');
           option.value = index;
@@ -280,9 +280,7 @@
           select.appendChild(option);
         });
 
-        if (planes.length > 0) {
-          selectPlane(0);
-        }
+        if (planes.length > 0) selectPlane(0);
       }
 
       function selectPlane(index) {
@@ -290,64 +288,75 @@
         if (!selectedPlane) return;
         
         const pos = selectedPlane.getAttribute('position') || { x: 0, y: 0, z: 0 };
-        updateUIValues(pos.x, pos.y, pos.z);
+        const rot = selectedPlane.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
+
+        updateUIValues(pos, rot);
       }
 
-      function updateUIValues(x, y, z) {
-        posXNum.value = Number(x).toFixed(3);
-        posXRange.value = x;
-        posYNum.value = Number(y).toFixed(3);
-        posYRange.value = y;
-        posZNum.value = Number(z).toFixed(3);
-        posZRange.value = z;
+      function updateUIValues(pos, rot) {
+        posXNum.value = Number(pos.x).toFixed(3); posXRange.value = pos.x;
+        posYNum.value = Number(pos.y).toFixed(3); posYRange.value = pos.y;
+        posZNum.value = Number(pos.z).toFixed(3); posZRange.value = pos.z;
+
+        rotXNum.value = Math.round(rot.x); rotXRange.value = rot.x;
+        rotYNum.value = Math.round(rot.y); rotYRange.value = rot.y;
+        rotZNum.value = Math.round(rot.z); rotZRange.value = rot.z;
       }
 
-      function applyPosition() {
+      function applyTransform() {
         if (!selectedPlane) return;
-        const x = parseFloat(posXNum.value) || 0;
-        const y = parseFloat(posYNum.value) || 0;
-        const z = parseFloat(posZNum.value) || 0;
-        selectedPlane.setAttribute('position', `${x} ${y} ${z}`);
+        const px = parseFloat(posXNum.value) || 0;
+        const py = parseFloat(posYNum.value) || 0;
+        const pz = parseFloat(posZNum.value) || 0;
+
+        const rx = parseFloat(rotXNum.value) || 0;
+        const ry = parseFloat(rotYNum.value) || 0;
+        const rz = parseFloat(rotZNum.value) || 0;
+
+        selectedPlane.setAttribute('position', `${px} ${py} ${pz}`);
+        selectedPlane.setAttribute('rotation', `${rx} ${ry} ${rz}`);
       }
 
-      function bindAxis(numEl, rangeEl) {
-        numEl.addEventListener('input', () => {
-          rangeEl.value = numEl.value;
-          applyPosition();
-        });
-        rangeEl.addEventListener('input', () => {
-          numEl.value = rangeEl.value;
-          applyPosition();
-        });
+      function bindControl(numEl, rangeEl) {
+        numEl.addEventListener('input', () => { rangeEl.value = numEl.value; applyTransform(); });
+        rangeEl.addEventListener('input', () => { numEl.value = rangeEl.value; applyTransform(); });
       }
 
-      bindAxis(posXNum, posXRange);
-      bindAxis(posYNum, posYRange);
-      bindAxis(posZNum, posZRange);
+      bindControl(posXNum, posXRange);
+      bindControl(posYNum, posYRange);
+      bindControl(posZNum, posZRange);
+
+      bindControl(rotXNum, rotXRange);
+      bindControl(rotYNum, rotYRange);
+      bindControl(rotZNum, rotZRange);
 
       select.addEventListener('change', (e) => selectPlane(e.target.value));
       btnRefresh.addEventListener('click', scanPlanes);
 
-      // Espandi / Contrai UI
       btnToggle.addEventListener('click', () => {
         editorUI.classList.toggle('collapsed');
         btnToggle.textContent = editorUI.classList.contains('collapsed') ? 'Mostra' : 'Nascondi';
       });
 
-      // Esporta il blocco HTML aggiornato
       btnExport.addEventListener('click', () => {
         let outputHTML = '';
         planes.forEach(plane => {
           const id = plane.id ? `id="${plane.id}" ` : '';
           const src = plane.getAttribute('src') ? `src="${plane.getAttribute('src')}" ` : '';
           const pos = plane.getAttribute('position');
+          const rot = plane.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
+          const w = plane.getAttribute('width') || '1';
+          const h = plane.getAttribute('height') || '1';
+
           const posX = Number(pos.x).toFixed(3);
           const posY = Number(pos.y).toFixed(3);
           const posZ = Number(pos.z).toFixed(3);
-          const w = plane.getAttribute('width') || '1';
-          const h = plane.getAttribute('height') || '1';
-          
-          outputHTML += `<a-plane ${id}opt-plane ${src}position="${posX} ${posY} ${posZ}" width="${w}" height="${h}"></a-plane>\n`;
+
+          const rotX = Math.round(rot.x);
+          const rotY = Math.round(rot.y);
+          const rotZ = Math.round(rot.z);
+
+          outputHTML += `<a-plane ${id}opt-plane ${src}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}" width="${w}" height="${h}"></a-plane>\n`;
         });
 
         exportOutput.value = outputHTML;
@@ -355,13 +364,9 @@
         exportOutput.select();
       });
 
-      // Avvio scansione a scena pronta
       const scene = document.querySelector('a-scene');
-      if (scene.hasLoaded) {
-        scanPlanes();
-      } else {
-        scene.addEventListener('loaded', scanPlanes);
-      }
+      if (scene.hasLoaded) scanPlanes();
+      else scene.addEventListener('loaded', scanPlanes);
     });
   </script>
 </body>
