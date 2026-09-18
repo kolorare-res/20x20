@@ -68,56 +68,54 @@
       }
     });
 
- // 4. 3D-BOX COMPONENT
-AFRAME.registerComponent('3d-box', {
-  schema: {
-    width: { type: 'number', default: 1 },
-    height: { type: 'number', default: 1 },
-    depth: { type: 'number', default: 0.3 },
-    src: { type: 'selector' },
-    srcTop: { type: 'selector' },
-    srcBottom: { type: 'selector' },
-    srcLeft: { type: 'selector' },
-    srcRight: { type: 'selector' }
-  },
-  init: function () {
-    const el = this.el;
-    const data = this.data;
-    const loader = new THREE.TextureLoader();
+    // 4. 3D-BOX COMPONENT (Ancorato alla faccia frontale)
+    AFRAME.registerComponent('3d-box', {
+      schema: {
+        width: { type: 'number', default: 1 },
+        height: { type: 'number', default: 1 },
+        depth: { type: 'number', default: 0.05 },
+        src: { type: 'selector' },
+        srcTop: { type: 'selector' },
+        srcBottom: { type: 'selector' },
+        srcLeft: { type: 'selector' },
+        srcRight: { type: 'selector' }
+      },
+      init: function () {
+        const el = this.el;
+        const data = this.data;
+        const loader = new THREE.TextureLoader();
 
-    const createMat = (selector) => {
-      if (!selector) {
-        return new THREE.MeshStandardMaterial({ color: '#fcfaf2', roughness: 0.8 });
+        const createMat = (selector) => {
+          if (!selector) {
+            return new THREE.MeshStandardMaterial({ color: '#fcfaf2', roughness: 0.8 });
+          }
+          const texture = loader.load(selector.src);
+          texture.encoding = THREE.sRGBEncoding;
+          return new THREE.MeshStandardMaterial({ 
+            map: texture, 
+            transparent: true, 
+            alphaTest: 0.1, 
+            roughness: 0.8 
+          });
+        };
+
+        const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+        // Trasla l'origine della geometria all'indietro così che Z coincida con la faccia frontale
+        geometry.translate(0, 0, -data.depth / 2);
+
+        const materials = [
+          createMat(data.srcRight),
+          createMat(data.srcLeft),
+          createMat(data.srcTop),
+          createMat(data.srcBottom),
+          createMat(data.src),
+          createMat(data.src)
+        ];
+
+        const mesh = new THREE.Mesh(geometry, materials);
+        el.setObject3D('mesh', mesh);
       }
-      const texture = loader.load(selector.src);
-      texture.encoding = THREE.sRGBEncoding;
-      return new THREE.MeshStandardMaterial({ 
-        map: texture, 
-        transparent: true, 
-        alphaTest: 0.1, 
-        roughness: 0.8 
-      });
-    };
-
-    const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
-    
-    // Sposta il centro geometrico all'indietro: la posizione Z ora corrisponde alla faccia frontale
-    geometry.translate(0, 0, -data.depth / 2);
-
-    const materials = [
-      createMat(data.srcRight),
-      createMat(data.srcLeft),
-      createMat(data.srcTop),
-      createMat(data.srcBottom),
-      createMat(data.src),
-      createMat(data.src)
-    ];
-
-    const mesh = new THREE.Mesh(geometry, materials);
-    el.setObject3D('mesh', mesh);
-  }
-});
-    
+    });
   </script>
 
   <style>
@@ -239,51 +237,51 @@ AFRAME.registerComponent('3d-box', {
     <!-- ASSETS PRELOAD -->
     <a-assets>
       <!-- Layer 0 -->
-      <img id="layer0" src="./ima/layer0.png">
+      <img id="layer0" src="./image/layer0.png">
 
       <!-- Layer 1 -->
-      <img id="layer1" src="./ima/layer1.png">
-      <img id="obj-1" src="./ima/obj-1.png">
-      <img id="layer1-top" src="./ima/layer1-top.png">
-      <img id="layer1-bottom" src="./ima/layer1-bottom.png">
+      <img id="layer1" src="./image/layer1.png">
+      <img id="obj-1" src="./image/obj-1.png">
+      <img id="layer1-top" src="./image/layer1-top.png">
+      <img id="layer1-bottom" src="./image/layer1-bottom.png">
 
       <!-- Layer 2 -->
-      <img id="layer2" src="./ima/layer2.png">
-      <img id="obj-2" src="./ima/obj-2.png">
-      <img id="layer2-top" src="./ima/layer2-top.png">
-      <img id="layer2-bottom" src="./ima/layer2-bottom.png">
+      <img id="layer2" src="./image/layer2.png">
+      <img id="obj-2" src="./image/obj-2.png">
+      <img id="layer2-top" src="./image/layer2-top.png">
+      <img id="layer2-bottom" src="./image/layer2-bottom.png">
 
       <!-- Layer 3 -->
-      <img id="layer3" src="./ima/layer3.png">
-      <img id="obj-3" src="./ima/obj-3.png">
-      <img id="layer3-top" src="./ima/layer3-top.png">
-      <img id="layer3-bottom" src="./ima/layer3-bottom.png">
+      <img id="layer3" src="./image/layer3.png">
+      <img id="obj-3" src="./image/obj-3.png">
+      <img id="layer3-top" src="./image/layer3-top.png">
+      <img id="layer3-bottom" src="./image/layer3-bottom.png">
 
       <!-- Layer 4 -->
-      <img id="layer4" src="./ima/layer4.png">
-      <img id="obj-4" src="./ima/obj-4.png">
-      <img id="layer4-top" src="./ima/layer4-top.png">
-      <img id="layer4-bottom" src="./ima/layer4-bottom.png">
+      <img id="layer4" src="./image/layer4.png">
+      <img id="obj-4" src="./image/obj-4.png">
+      <img id="layer4-top" src="./image/layer4-top.png">
+      <img id="layer4-bottom" src="./image/layer4-bottom.png">
 
       <!-- Layer 5 -->
-      <img id="layer5" src="./ima/layer5.png">
-      <img id="obj-5" src="./ima/obj-5.png">
-      <img id="layer5-top" src="./ima/layer5-top.png">
-      <img id="layer5-bottom" src="./ima/layer5-bottom.png">
+      <img id="layer5" src="./image/layer5.png">
+      <img id="obj-5" src="./image/obj-5.png">
+      <img id="layer5-top" src="./image/layer5-top.png">
+      <img id="layer5-bottom" src="./image/layer5-bottom.png">
 
       <!-- Layer 6 -->
-      <img id="layer6" src="./ima/layer6.png">
-      <img id="obj-6" src="./ima/obj-6.png">
-      <img id="layer6-top" src="./ima/layer6-top.png">
-      <img id="layer6-bottom" src="./ima/layer6-bottom.png">
+      <img id="layer6" src="./image/layer6.png">
+      <img id="obj-6" src="./image/obj-6.png">
+      <img id="layer6-top" src="./image/layer6-top.png">
+      <img id="layer6-bottom" src="./image/layer6-bottom.png">
 
       <!-- Layer 7 -->
-      <img id="layer7" src="./ima/layer7.png">
-      <img id="layer7-top" src="./ima/layer7-top.png">
-      <img id="layer7-bottom" src="./ima/layer7-bottom.png">
+      <img id="layer7" src="./image/layer7.png">
+      <img id="layer7-top" src="./image/layer7-top.png">
+      <img id="layer7-bottom" src="./image/layer7-bottom.png">
 
       <!-- Elementi Extra -->
-      <img id="omino" src="./ima/omino.png">
+      <img id="omino" src="./image/omino.png">
     </a-assets>
 
     <!-- LUCI -->
@@ -295,90 +293,131 @@ AFRAME.registerComponent('3d-box', {
     <!-- TRACCIAMENTO TARGET -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
-      <!-- 0. Z = 0.005 (Layer 0) -->
+      <!-- 0. Z = 0.005 (Layer 0 Sfondo) -->
       <a-plane id="plane-layer0" class="editable" opt-plane src="#layer0" position="0.000 0.000 0.005" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 1. Z = 0.013 (Layer 5 sides) -->
-      <a-entity id="layer5-top" class="editable" position="0.000 0.200 0.013" rotation="0 0 -2">
-        <a-plane opt-plane render-order="5" material="alphaTest: 0.5" src="#layer5-top" position="0 0 0" rotation="90 0 0" width="1" height="0.025"></a-plane>
-      </a-entity>
-      <a-entity id="layer5-bottom" class="editable" position="0.000 0.090 0.013" rotation="0 0 -2">
-        <a-plane opt-plane render-order="5" material="alphaTest: 0.5" src="#layer5-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.025"></a-plane>
+      <!-- 1. SCATOLA LAYER 5 (Barca) - Z = 0.025 -->
+      <a-entity 
+        id="box-layer5" 
+        class="editable" 
+        3d-box="
+          src: #layer5; 
+          srcTop: #layer5-top; 
+          srcBottom: #layer5-bottom; 
+          width: 0.1141; 
+          height: 0.0248; 
+          depth: 0.025;" 
+        position="0.000 0.000 0.025" 
+        rotation="0 0 356.687">
       </a-entity>
 
-      <!-- 2. Z = 0.020 (Layer 4 sides) -->
-      <a-entity id="layer4-top" class="editable" position="0.000 0.068 0.020" rotation="0 0 -2">
-        <a-plane opt-plane render-order="4" material="alphaTest: 0.5" src="#layer4-top" position="0 0 0" rotation="90 0 0" width="1" height="0.040"></a-plane>
-      </a-entity>
-      <a-entity id="layer4-bottom" class="editable" position="0.000 -0.020 0.020" rotation="0 0 -2">
-        <a-plane opt-plane render-order="4" material="alphaTest: 0.5" src="#layer4-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.040"></a-plane>
-      </a-entity>
-
-      <!-- 3. Planes / Objects intermedi -->
-      <a-plane id="plane-layer5" class="editable" opt-plane src="#layer5" position="0.000 0.000 0.025" rotation="0 0 0" width="1" height="1"></a-plane>
+      <!-- Oggetto 5 -->
       <a-plane id="plane-obj5" class="editable" opt-plane src="#obj-5" position="0.000 0.000 0.032" rotation="0 0 0" width="1" height="1"></a-plane>
-      <a-plane id="plane-layer4" class="editable" opt-plane src="#layer4" position="0.000 0.000 0.040" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- 2. SCATOLA LAYER 4 (Pesce) - Z = 0.040 -->
+      <a-entity 
+        id="box-layer4" 
+        class="editable" 
+        3d-box="
+          src: #layer4; 
+          srcTop: #layer4-top; 
+          srcBottom: #layer4-bottom; 
+          width: 0.1191; 
+          height: 0.0176; 
+          depth: 0.040;" 
+        position="0.000 0.000 0.040" 
+        rotation="0 0 357.73">
+      </a-entity>
+
+      <!-- Oggetto 4 -->
       <a-plane id="plane-obj4" class="editable" opt-plane src="#obj-4" position="0.000 0.000 0.042" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 4. Z = 0.050 (Layer 7 sides) -->
-      <a-entity id="layer7-top" class="editable" position="0.000 0.410 0.050" rotation="0 0 3">
-        <a-plane opt-plane render-order="7" material="alphaTest: 0.5" src="#layer7-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
-      </a-entity>
-      <a-entity id="layer7-bottom" class="editable" position="0.000 0.285 0.050" rotation="0 0 3">
-        <a-plane opt-plane render-order="7" material="alphaTest: 0.5" src="#layer7-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
-      </a-entity>
-
+      <!-- Elemento Omino Sfondo -->
       <a-plane id="plane-omino" class="editable" opt-plane src="#omino" position="0.000 0.000 0.080" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 5. Z = 0.100 (Layer 6 & 2 sides) -->
-      <a-entity id="layer6-top" class="editable" position="0.000 0.265 0.100" rotation="0 0 -1">
-        <a-plane opt-plane render-order="6" material="alphaTest: 0.5" src="#layer6-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
-      </a-entity>
-      <a-entity id="layer6-bottom" class="editable" position="0.000 0.210 0.100" rotation="0 0 -2">
-        <a-plane opt-plane render-order="6" material="alphaTest: 0.5" src="#layer6-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
-      </a-entity>
-      <a-entity id="layer2-top" class="editable" position="0.000 -0.165 0.100" rotation="0 0 0">
-        <a-plane opt-plane render-order="2" material="alphaTest: 0.5" src="#layer2-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
-      </a-entity>
-      <a-entity id="layer2-bottom" class="editable" position="0.000 -0.275 0.100" rotation="0 0 0">
-        <a-plane opt-plane render-order="2" material="alphaTest: 0.5" src="#layer2-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
-      </a-entity>
-
-      <a-plane id="plane-layer7" class="editable" opt-plane src="#layer7" position="0.000 0.000 0.100" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- 6. SCATOLA LAYER 1 (3D-BOX UNICO) -->
-     <!-- 6. SCATOLA LAYER 1 (3D-BOX UNICO) -->
-<a-entity 
-  id="box-layer1"
-  class="editable"
-  3d-box="
-    src: #layer1; 
-    srcTop: #layer1-top; 
-    srcBottom: #layer1-bottom; 
-    width: 0.616; 
-    height: 0.052; 
-    depth: 0.3;" 
-  position="0.000 0.300 0.300" 
-  rotation="0 0 0">
-</a-entity>
-
-      <!-- 7. Z = 0.177 (Layer 3 sides) -->
-      <a-entity id="layer3-top" class="editable" position="0.035 -0.015 0.177" rotation="0 0 9">
-        <a-plane opt-plane render-order="3" material="alphaTest: 0.5" src="#layer3-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
-      </a-entity>
-      <a-entity id="layer3-bottom" class="editable" position="0.035 -0.115 0.177" rotation="0 0 9">
-        <a-plane opt-plane render-order="3" material="alphaTest: 0.5" src="#layer3-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
+      <!-- 3. SCATOLA LAYER 7 (Omino Box) - Z = 0.100 -->
+      <a-entity 
+        id="box-layer7" 
+        class="editable" 
+        3d-box="
+          src: #layer7; 
+          srcTop: #layer7-top; 
+          srcBottom: #layer7-bottom; 
+          width: 0.1252; 
+          height: 0.0260; 
+          depth: 0.100;" 
+        position="0.000 0.000 0.100" 
+        rotation="0 0 3.302">
       </a-entity>
 
-      <a-plane id="plane-layer6" class="editable" opt-plane src="#layer6" position="0.000 0.000 0.179" rotation="0 0 0" width="1" height="1"></a-plane>
-      <a-plane id="plane-layer3" class="editable" opt-plane src="#layer3" position="0.000 0.000 0.184" rotation="0 0 0" width="1" height="1"></a-plane>
+      <!-- 4. SCATOLA LAYER 6 (Case) - Z = 0.179 -->
+      <a-entity 
+        id="box-layer6" 
+        class="editable" 
+        3d-box="
+          src: #layer6; 
+          srcTop: #layer6-top; 
+          srcBottom: #layer6-bottom; 
+          width: 0.1118; 
+          height: 0.0123; 
+          depth: 0.179;" 
+        position="0.000 0.000 0.179" 
+        rotation="0 0 357.794">
+      </a-entity>
+
+      <!-- 5. SCATOLA LAYER 3 (Lampione) - Z = 0.184 -->
+      <a-entity 
+        id="box-layer3" 
+        class="editable" 
+        3d-box="
+          src: #layer3; 
+          srcTop: #layer3-top; 
+          srcBottom: #layer3-bottom; 
+          width: 0.1236; 
+          height: 0.0221; 
+          depth: 0.184;" 
+        position="0.000 0.000 0.184" 
+        rotation="0 0 189.397">
+      </a-entity>
+
+      <!-- Oggetto 3 -->
       <a-plane id="plane-obj3" class="editable" opt-plane src="#obj-3" position="0.000 0.000 0.186" rotation="0 0 0" width="1" height="1"></a-plane>
-      <a-plane id="plane-layer2" class="editable" opt-plane src="#layer2" position="0.000 0.000 0.200" rotation="0 0 0" width="1" height="1"></a-plane>
+
+      <!-- 6. SCATOLA LAYER 2 (Fiori) - Z = 0.200 -->
+      <a-entity 
+        id="box-layer2" 
+        class="editable" 
+        3d-box="
+          src: #layer2; 
+          srcTop: #layer2-top; 
+          srcBottom: #layer2-bottom; 
+          width: 0.1140; 
+          height: 0.0237; 
+          depth: 0.200;" 
+        position="0.000 0.000 0.200" 
+        rotation="0 0 0">
+      </a-entity>
+
+      <!-- Oggetti 6 e 2 -->
       <a-plane id="plane-obj6" class="editable" opt-plane src="#obj-6" position="0.000 0.000 0.205" rotation="0 0 0" width="1" height="1"></a-plane>
       <a-plane id="plane-obj2" class="editable" opt-plane src="#obj-2" position="0.000 0.000 0.220" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- RIMOSSO: il vecchio plane-layer1 a dimensione 1x1 che copriva tutto -->
+      <!-- 7. SCATOLA LAYER 1 (Box Principale) - Z = 0.300 -->
+      <a-entity 
+        id="box-layer1"
+        class="editable"
+        3d-box="
+          src: #layer1; 
+          srcTop: #layer1-top; 
+          srcBottom: #layer1-bottom; 
+          width: 0.616; 
+          height: 0.052; 
+          depth: 0.300;" 
+        position="0.000 0.300 0.300" 
+        rotation="0 0 0">
+      </a-entity>
 
+      <!-- Oggetto 1 -->
       <a-plane id="plane-obj1" class="editable" opt-plane src="#obj-1" position="0.000 0.000 0.320" rotation="0 0 0" width="1" height="1"></a-plane>
 
     </a-entity>
@@ -503,19 +542,6 @@ AFRAME.registerComponent('3d-box', {
           if (el.hasAttribute('3d-box')) {
             const boxData = el.getAttribute('3d-box');
             outputHTML += `<a-entity ${id}class="editable" 3d-box="${boxData}" position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}"></a-entity>\n`;
-          } else if (el.tagName.toLowerCase() === 'a-entity') {
-            const childPlane = el.querySelector('a-plane');
-            if (childPlane) {
-              const innerRot = childPlane.getAttribute('rotation') || { x: 90, y: 0, z: 0 };
-              const innerRotStr = `${innerRot.x} ${innerRot.y} ${innerRot.z}`;
-              const w = childPlane.getAttribute('width') || '1';
-              const h = childPlane.getAttribute('height') || '1';
-              const renderOrderAttr = childPlane.getAttribute('render-order') ? `render-order="${childPlane.getAttribute('render-order')}" ` : '';
-
-              outputHTML += `<a-entity ${id}class="editable" position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}">\n`;
-              outputHTML += `  <a-plane opt-plane ${renderOrderAttr}position="0 0 0" rotation="${innerRotStr}" width="${w}" height="${h}"></a-plane>\n`;
-              outputHTML += `</a-entity>\n`;
-            }
           } else {
             const src = el.getAttribute('src') ? `src="${el.getAttribute('src')}" ` : '';
             const w = el.getAttribute('width') || '1';
