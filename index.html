@@ -68,51 +68,56 @@
       }
     });
 
-    // 4. 3D-BOX COMPONENT
-    AFRAME.registerComponent('3d-box', {
-      schema: {
-        width: { type: 'number', default: 1 },
-        height: { type: 'number', default: 1 },
-        depth: { type: 'number', default: 0.05 },
-        src: { type: 'selector' },
-        srcTop: { type: 'selector' },
-        srcBottom: { type: 'selector' },
-        srcLeft: { type: 'selector' },
-        srcRight: { type: 'selector' }
-      },
-      init: function () {
-        const el = this.el;
-        const data = this.data;
-        const loader = new THREE.TextureLoader();
+ // 4. 3D-BOX COMPONENT
+AFRAME.registerComponent('3d-box', {
+  schema: {
+    width: { type: 'number', default: 1 },
+    height: { type: 'number', default: 1 },
+    depth: { type: 'number', default: 0.3 },
+    src: { type: 'selector' },
+    srcTop: { type: 'selector' },
+    srcBottom: { type: 'selector' },
+    srcLeft: { type: 'selector' },
+    srcRight: { type: 'selector' }
+  },
+  init: function () {
+    const el = this.el;
+    const data = this.data;
+    const loader = new THREE.TextureLoader();
 
-        const createMat = (selector) => {
-          if (!selector) {
-            return new THREE.MeshStandardMaterial({ color: '#fcfaf2', roughness: 0.8 });
-          }
-          const texture = loader.load(selector.src);
-          texture.encoding = THREE.sRGBEncoding;
-          return new THREE.MeshStandardMaterial({ 
-            map: texture, 
-            transparent: true, 
-            alphaTest: 0.1, 
-            roughness: 0.8 
-          });
-        };
-
-        const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
-        const materials = [
-          createMat(data.srcRight),
-          createMat(data.srcLeft),
-          createMat(data.srcTop),
-          createMat(data.srcBottom),
-          createMat(data.src),
-          createMat(data.src)
-        ];
-
-        const mesh = new THREE.Mesh(geometry, materials);
-        el.setObject3D('mesh', mesh);
+    const createMat = (selector) => {
+      if (!selector) {
+        return new THREE.MeshStandardMaterial({ color: '#fcfaf2', roughness: 0.8 });
       }
-    });
+      const texture = loader.load(selector.src);
+      texture.encoding = THREE.sRGBEncoding;
+      return new THREE.MeshStandardMaterial({ 
+        map: texture, 
+        transparent: true, 
+        alphaTest: 0.1, 
+        roughness: 0.8 
+      });
+    };
+
+    const geometry = new THREE.BoxGeometry(data.width, data.height, data.depth);
+    
+    // Sposta il centro geometrico all'indietro: la posizione Z ora corrisponde alla faccia frontale
+    geometry.translate(0, 0, -data.depth / 2);
+
+    const materials = [
+      createMat(data.srcRight),
+      createMat(data.srcLeft),
+      createMat(data.srcTop),
+      createMat(data.srcBottom),
+      createMat(data.src),
+      createMat(data.src)
+    ];
+
+    const mesh = new THREE.Mesh(geometry, materials);
+    el.setObject3D('mesh', mesh);
+  }
+});
+    
   </script>
 
   <style>
@@ -342,19 +347,20 @@
       <a-plane id="plane-layer7" class="editable" opt-plane src="#layer7" position="0.000 0.000 0.100" rotation="0 0 0" width="1" height="1"></a-plane>
 
       <!-- 6. SCATOLA LAYER 1 (3D-BOX UNICO) -->
-      <a-entity 
-        id="box-layer1"
-        class="editable"
-        3d-box="
-          src: #layer1; 
-          srcTop: #layer1-top; 
-          srcBottom: #layer1-bottom; 
-          width: 0.616; 
-          height: 0.052; 
-          depth: 0.03;" 
-        position="0.000 0.300 0.300" 
-        rotation="0 0 0">
-      </a-entity>
+     <!-- 6. SCATOLA LAYER 1 (3D-BOX UNICO) -->
+<a-entity 
+  id="box-layer1"
+  class="editable"
+  3d-box="
+    src: #layer1; 
+    srcTop: #layer1-top; 
+    srcBottom: #layer1-bottom; 
+    width: 0.616; 
+    height: 0.052; 
+    depth: 0.3;" 
+  position="0.000 0.300 0.300" 
+  rotation="0 0 0">
+</a-entity>
 
       <!-- 7. Z = 0.177 (Layer 3 sides) -->
       <a-entity id="layer3-top" class="editable" position="0.035 -0.015 0.177" rotation="0 0 9">
