@@ -46,15 +46,27 @@
       }
     });
 
+    // 3. RENDER-ORDER (Propagazione corretta ai nodi mesh figli)
     AFRAME.registerComponent('render-order', {
-  schema: { type: 'number', default: 0 },
-  init: function () {
-    const applyOrder = () => { this.el.object3D.renderOrder = this.data; };
-    this.el.addEventListener('loaded', applyOrder);
-    applyOrder();
-  }
-});
-    
+      schema: { type: 'number', default: 0 },
+      init: function () {
+        this.applyOrder = this.applyOrder.bind(this);
+        this.el.addEventListener('object3dset', this.applyOrder);
+        this.applyOrder();
+      },
+      update: function () {
+        this.applyOrder();
+      },
+      applyOrder: function () {
+        const order = this.data;
+        if (this.el.object3D) {
+          this.el.object3D.renderOrder = order;
+          this.el.object3D.traverse((node) => {
+            node.renderOrder = order;
+          });
+        }
+      }
+    });
   </script>
 
   <style>
@@ -174,11 +186,11 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
-<!-- ASSETS PRELOAD -->
+    <!-- ASSETS PRELOAD -->
     <a-assets>
       <!-- Layer 0 -->
       <img id="layer0" src="./ima/layer0.png">
-      
+
       <!-- Layer 1 -->
       <img id="layer1" src="./ima/layer1.png">
       <img id="obj-1" src="./ima/obj-1.png">
@@ -230,11 +242,12 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-<!-- TRACCIAMENTO TARGET (ORDINATO PER Z CRESCENTE) -->
+    <!-- TRACCIAMENTO TARGET (ORDINATO PER Z CRESCENTE) -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
-      <!-- ================= 0. Z = 0.005 (Layer 0: render-order="5") ================= -->
-      <a-entity id="layer0" class="editable" position="0.000 0 0.005" rotation="0 0 0">
       
+      <!-- ================= 0. Z = 0.005 (Layer 0) ================= -->
+      <a-plane id="plane-layer0" class="editable" opt-plane src="#layer0" position="0.000 0.000 0.005" rotation="0 0 0" width="1" height="1"></a-plane>
+
       <!-- ================= 1. Z = 0.013 (Layer 5: render-order="5") ================= -->
       <a-entity id="layer5-top" class="editable" position="0.000 0.200 0.013" rotation="0 0 -2">
         <a-plane opt-plane render-order="5" material="alphaTest: 0.5" src="#layer5-top" position="0 0 0" rotation="90 0 0" width="1" height="0.025"></a-plane>
@@ -365,7 +378,6 @@
       let selectedElement = null;
 
       function scanElements() {
-        // Seleziona sia i wrapper genitore (.editable a-entity) che i singoli piani (.editable a-plane)
         elements = Array.from(document.querySelectorAll('.editable'));
         select.innerHTML = '';
         
@@ -459,9 +471,10 @@
             const innerRotStr = `${innerRot.x} ${innerRot.y} ${innerRot.z}`;
             const w = childPlane.getAttribute('width') || '1';
             const h = childPlane.getAttribute('height') || '1';
+            const renderOrderAttr = childPlane.getAttribute('render-order') ? `render-order="${childPlane.getAttribute('render-order')}" ` : '';
 
             outputHTML += `<a-entity ${id}position="${posX} ${posY} ${posZ}" rotation="${rotX} ${rotY} ${rotZ}">\n`;
-            outputHTML += `  <a-plane opt-plane position="0 0 0" rotation="${innerRotStr}" width="${w}" height="${h}"></a-plane>\n`;
+            outputHTML += `  <a-plane opt-plane ${renderOrderAttr}position="0 0 0" rotation="${innerRotStr}" width="${w}" height="${h}"></a-plane>\n`;
             outputHTML += `</a-entity>\n`;
           } else {
             const src = el.getAttribute('src') ? `src="${el.getAttribute('src')}" ` : '';
