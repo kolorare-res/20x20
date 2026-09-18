@@ -217,25 +217,25 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-   <!-- TRACCIAMENTO TARGET (ORDINATO PER Z CRESCENTE) -->
+ <!-- TRACCIAMENTO TARGET (ORDINATO PER Z CRESCENTE) -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
       
       <!-- ================= 1. Z = 0.013 ================= -->
-      <a-entity id="layer5-top" class="editable" position="0.000 0.500 0.013" rotation="0 0 0">
-        <a-plane opt-plane src="#layer5-top" position="0 0 0" rotation="90 0 0" width="1" height="0.025"></a-plane>
+      <a-entity id="layer5-top" class="editable" position="0.000 0.200 0.013" rotation="0 0 -2">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer5-top" position="0 0 0" rotation="90 0 0" width="1" height="0.025"></a-plane>
       </a-entity>
 
-      <a-entity id="layer5-bottom" class="editable" position="0.000 -0.500 0.013" rotation="0 0 0">
-        <a-plane opt-plane src="#layer5-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.025"></a-plane>
+      <a-entity id="layer5-bottom" class="editable" position="0.000 0.090 0.013" rotation="0 0 -2">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer5-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.025"></a-plane>
       </a-entity>
 
       <!-- ================= 2. Z = 0.020 ================= -->
-      <a-entity id="layer4-top" class="editable" position="0.000 0.500 0.020" rotation="0 0 0">
-        <a-plane opt-plane src="#layer4-top" position="0 0 0" rotation="90 0 0" width="1" height="0.040"></a-plane>
+      <a-entity id="layer4-top" class="editable" position="0.000 0.068 0.020" rotation="0 0 -2">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer4-top" position="0 0 0" rotation="90 0 0" width="1" height="0.040"></a-plane>
       </a-entity>
 
       <a-entity id="layer4-bottom" class="editable" position="0.000 -0.500 0.020" rotation="0 0 0">
-        <a-plane opt-plane src="#layer4-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.040"></a-plane>
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer4-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.040"></a-plane>
       </a-entity>
 
       <!-- ================= 3. Z = 0.025 ================= -->
@@ -251,73 +251,72 @@
       <a-plane id="plane-obj4" class="editable" opt-plane src="#obj-4" position="0.000 0.000 0.042" rotation="0 0 0" width="1" height="1"></a-plane>
 
       <!-- ================= 7. Z = 0.050 ================= -->
-      <a-entity id="layer7-top" class="editable" position="0.000 0.500 0.050" rotation="0 0 0">
-        <a-plane opt-plane src="#layer7-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
+      <a-entity id="layer7-top" class="editable" position="0.000 0.410 0.050" rotation="0 0 3">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer7-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
       </a-entity>
 
-      <a-entity id="layer7-bottom" class="editable" position="0.000 -0.500 0.050" rotation="0 0 0">
-        <a-plane opt-plane src="#layer7-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
-      </a-entity>
-
-      <a-entity id="layer3-top" class="editable" position="0.000 0.025 0.050" rotation="0 0 0">
-        <a-plane opt-plane src="#layer3-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
-      </a-entity>
-
-      <a-entity id="layer3-bottom" class="editable" position="0.000 -0.500 0.050" rotation="0 0 0">
-        <a-plane opt-plane src="#layer3-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
+      <a-entity id="layer7-bottom" class="editable" position="0.000 0.285 0.050" rotation="0 0 3">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer7-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
       </a-entity>
 
       <!-- ================= 8. Z = 0.080 ================= -->
       <a-plane id="plane-omino" class="editable" opt-plane src="#omino" position="0.000 0.000 0.080" rotation="0 0 0" width="1" height="1"></a-plane>
 
       <!-- ================= 9. Z = 0.100 ================= -->
-      <a-entity id="layer6-top" class="editable" position="0.000 0.260 0.100" rotation="0 0 0">
-        <a-plane opt-plane src="#layer6-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
+      <a-entity id="layer6-top" class="editable" position="0.000 0.265 0.100" rotation="0 0 -1">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer6-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
 
-      <a-entity id="layer6-bottom" class="editable" position="0.000 0.215 0.100" rotation="0 0 0">
-        <a-plane opt-plane src="#layer6-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
+      <a-entity id="layer6-bottom" class="editable" position="0.000 0.210 0.100" rotation="0 0 -2">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer6-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
 
       <a-entity id="layer2-top" class="editable" position="0.000 -0.165 0.100" rotation="0 0 0">
-        <a-plane opt-plane src="#layer2-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer2-top" position="0 0 0" rotation="90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
 
       <a-entity id="layer2-bottom" class="editable" position="0.000 -0.275 0.100" rotation="0 0 0">
-        <a-plane opt-plane src="#layer2-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer2-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.200"></a-plane>
       </a-entity>
 
       <a-plane id="plane-layer7" class="editable" opt-plane src="#layer7" position="0.000 0.000 0.100" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 11. Z = 0.150 / 0.160 ================= -->
+      <!-- ================= 10. Z = 0.150 / 0.160 ================= -->
       <a-entity id="layer1-top" class="editable" position="0.000 -0.290 0.150" rotation="0 0 0">
-        <a-plane opt-plane src="#layer1-top" position="0 0 0" rotation="90 0 0" width="1" height="0.300"></a-plane>
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer1-top" position="0 0 0" rotation="90 0 0" width="1" height="0.300"></a-plane>
       </a-entity>
 
       <a-entity id="layer1-bottom" class="editable" position="0.000 -0.340 0.160" rotation="0 0 0">
-        <a-plane opt-plane src="#layer1-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.300"></a-plane>
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer1-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.300"></a-plane>
+      </a-entity>
+
+      <!-- ================= 11. Z = 0.177 ================= -->
+      <a-entity id="layer3-top" class="editable" position="0.035 -0.015 0.177" rotation="0 0 9">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer3-top" position="0 0 0" rotation="90 0 0" width="1" height="0.100"></a-plane>
+      </a-entity>
+
+      <a-entity id="layer3-bottom" class="editable" position="0.035 -0.115 0.177" rotation="0 0 9">
+        <a-plane opt-plane material="alphaTest: 0.5" src="#layer3-bottom" position="0 0 0" rotation="-90 0 0" width="1" height="0.100"></a-plane>
       </a-entity>
 
       <!-- ================= 12. Z = 0.179 ================= -->
       <a-plane id="plane-layer6" class="editable" opt-plane src="#layer6" position="0.000 0.000 0.179" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 13. Z = 0.184 ================= -->
+      <!-- ================= 13. Z = 0.184 / 0.186 ================= -->
       <a-plane id="plane-layer3" class="editable" opt-plane src="#layer3" position="0.000 0.000 0.184" rotation="0 0 0" width="1" height="1"></a-plane>
       <a-plane id="plane-obj3" class="editable" opt-plane src="#obj-3" position="0.000 0.000 0.186" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 14. Z = 0.200 ================= -->
+      <!-- ================= 14. Z = 0.200 / 0.205 ================= -->
       <a-plane id="plane-layer2" class="editable" opt-plane src="#layer2" position="0.000 0.000 0.200" rotation="0 0 0" width="1" height="1"></a-plane>
-
-      <!-- ================= 15. Z = 0.205 ================= -->
       <a-plane id="plane-obj6" class="editable" opt-plane src="#obj-6" position="0.000 0.000 0.205" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 16. Z = 0.220 ================= -->
+      <!-- ================= 15. Z = 0.220 ================= -->
       <a-plane id="plane-obj2" class="editable" opt-plane src="#obj-2" position="0.000 0.000 0.220" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 17. Z = 0.300 ================= -->
+      <!-- ================= 16. Z = 0.300 ================= -->
       <a-plane id="plane-layer1" class="editable" opt-plane src="#layer1" position="0.000 0.000 0.300" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- ================= 18. Z = 0.320 ================= -->
+      <!-- ================= 17. Z = 0.320 ================= -->
       <a-plane id="plane-obj1" class="editable" opt-plane src="#obj-1" position="0.000 0.000 0.320" rotation="0 0 0" width="1" height="1"></a-plane>
 
     </a-entity>
