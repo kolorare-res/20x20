@@ -176,6 +176,9 @@
 
 <!-- ASSETS PRELOAD -->
     <a-assets>
+      <!-- Layer 0 -->
+      <img id="layer0" src="./ima/layer0.png">
+      
       <!-- Layer 1 -->
       <img id="layer1" src="./ima/layer1.png">
       <img id="obj-1" src="./ima/obj-1.png">
@@ -229,6 +232,8 @@
 
 <!-- TRACCIAMENTO TARGET (ORDINATO PER Z CRESCENTE) -->
     <a-entity mindar-image-target="targetIndex: 0" smooth-tracker="factor: 0.35">
+      <!-- ================= 0. Z = 0.005 (Layer 0: render-order="5") ================= -->
+      <a-entity id="layer0" class="editable" position="0.000 0 0.005" rotation="0 0 0">
       
       <!-- ================= 1. Z = 0.013 (Layer 5: render-order="5") ================= -->
       <a-entity id="layer5-top" class="editable" position="0.000 0.200 0.013" rotation="0 0 -2">
