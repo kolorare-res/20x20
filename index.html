@@ -215,6 +215,54 @@ AFRAME.registerComponent('falling-particles', {
   }
 });
     // FINE FOGLIE CADENTI
+
+    // FARFALLA 3D - VOLO DONTOLANTE SU LAYER 2 (FIORE)
+AFRAME.registerComponent('butterfly-3d-flight', {
+  schema: {
+    radiusX: { type: 'number', default: 0.07 },     // Ampiezza volo orizzontale
+    radiusY: { type: 'number', default: 0.04 },     // Ampiezza volo verticale
+    radiusZ: { type: 'number', default: 0.015 },    // Variazione di profondità 3D
+    flapAngle: { type: 'number', default: 45 },     // Angolo battito ali
+    flapSpeed: { type: 'number', default: 0.014 },    // Velocità battito ali
+    flightSpeed: { type: 'number', default: 0.0012 }  // Velocità di spostamento
+  },
+  init: function () {
+    this.baseX = this.el.object3D.position.x;
+    this.baseY = this.el.object3D.position.y;
+    this.baseZ = this.el.object3D.position.z;
+    this.timeFlight = 0;
+    this.timeFlap = Math.random() * 100;
+    this.wingLeft = this.el.querySelector('.wing-left');
+    this.wingRight = this.el.querySelector('.wing-right');
+  },
+  tick: function (t, dt) {
+    if (!dt) return;
+    this.timeFlight += dt * this.data.flightSpeed;
+    this.timeFlap += dt * this.data.flapSpeed;
+
+    // Movimento armonico attorno al centro del fiore
+    const offsetX = Math.sin(this.timeFlight) * this.data.radiusX;
+    const offsetY = Math.cos(this.timeFlight * 0.7) * this.data.radiusY;
+    const offsetZ = Math.sin(this.timeFlight * 1.3) * this.data.radiusZ;
+
+    this.el.object3D.position.x = this.baseX + offsetX;
+    this.el.object3D.position.y = this.baseY + offsetY;
+    this.el.object3D.position.z = this.baseZ + offsetZ;
+
+    // Battito d'ali
+    const currentFlap = Math.sin(this.timeFlap) * this.data.flapAngle;
+    if (this.wingLeft) this.wingLeft.object3D.rotation.y = THREE.MathUtils.degToRad(currentFlap);
+    if (this.wingRight) this.wingRight.object3D.rotation.y = THREE.MathUtils.degToRad(-currentFlap);
+
+    // Rotazione automatica in direzione di avanzamento
+    const heading = Math.atan2(
+      Math.cos(this.timeFlight * 0.7) * this.data.radiusY * 0.7,
+      Math.cos(this.timeFlight) * this.data.radiusX
+    );
+    this.el.object3D.rotation.z = heading - Math.PI / 2;
+  }
+});
+    // FINE FARFALLA
     
   </script>
 
@@ -273,6 +321,11 @@ AFRAME.registerComponent('falling-particles', {
       <img id="layer2-bottom" src="./image/layer2-bottom.png">
       <img id="layer2-left" src="./image/layer2-left.png">
       <img id="layer2-right" src="./image/layer2-right.png">
+
+<!-- PRELOAD FARFALLA -->
+<img id="butterfly-body" src="./image/butterfly-body.png">
+<img id="butterfly-wing-left" src="./image/butterfly-wing-left.png">
+<img id="butterfly-wing-right" src="./image/butterfly-wing-right.png">
 
       <!-- Layer 3 -->
       <img id="layer3" src="./image/layer3.png">
@@ -439,6 +492,26 @@ AFRAME.registerComponent('falling-particles', {
       <a-plane id="plane-obj6" opt-plane src="#obj-6" position="0.050 0.000 0.183" rotation="0 15 0" width="1" height="1"></a-plane>
       <a-plane id="plane-obj2" opt-plane src="#obj-2" position="0.000 0.000 0.220" rotation="0 16 0" width="1" height="1"></a-plane>
 
+<!-- FARFALLA LAYER 2 (Attorno al fiore in basso a sinistra) -->
+<a-entity 
+  position="-0.26 -0.18 0.22" 
+  butterfly-3d-flight="radiusX: 0.07; radiusY: 0.04; radiusZ: 0.015; flapAngle: 45; flapSpeed: 0.014; flightSpeed: 0.0012;">
+  
+  <!-- Corpo -->
+  <a-plane src="#butterfly-body" position="0 0 0" width="0.012" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+  
+  <!-- Ala Sinistra -->
+  <a-entity class="wing-left" position="-0.001 0 0.001">
+    <a-plane src="#butterfly-wing-left" position="-0.02 0 0" width="0.04" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+  </a-entity>
+  
+  <!-- Ala Destra -->
+  <a-entity class="wing-right" position="0.001 0 0.002">
+    <a-plane src="#butterfly-wing-right" position="0.02 0 0" width="0.04" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+  </a-entity>
+
+</a-entity>
+      
       <!-- 7. SCATOLA LAYER 1 (Box Principale) -->
       <a-entity 
         id="box-layer1"
