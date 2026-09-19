@@ -115,6 +115,104 @@
         el.setObject3D('mesh', mesh);
       }
     });
+
+// FOGLIE CADENTI (Layer 1 Vegetazione)
+AFRAME.registerComponent('falling-particles', {
+  schema: {
+    count: { type: 'int', default: 22 },
+    zPos: { type: 'number', default: 0.32 },
+    zVariance: { type: 'number', default: 0.01 },
+    baseSizeMin: { type: 'number', default: 0.010 },
+    baseSizeMax: { type: 'number', default: 0.040 },
+    fallSpeedMin: { type: 'number', default: 0.0004 },
+    fallSpeedMax: { type: 'number', default: 0.0008 },
+    swayAmp: { type: 'number', default: 0.020 },
+    enable3DRotation: { type: 'boolean', default: true },
+    assetFolder: { type: 'string', default: './image/foglie/' },
+    assetPrefix: { type: 'string', default: 'layer6-foglie-' },
+    assetStart: { type: 'int', default: 1 },
+    assetEnd: { type: 'int', default: 18 }
+  },
+  init: function () {
+    this.particles = [];
+    this.textureUrls = [];
+    for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
+      const numStr = i.toString().padStart(2, '0');
+      this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
+    }
+
+    // Limiti per l'area vegetazione in basso a destra (Layer 1)
+    this.bounds = {
+      xMin:  0.000,
+      xMax:  0.300,
+      yMin: -0.350,
+      yMax: -0.050,
+      yKill: -0.450
+    };
+
+    const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+
+    for (let i = 0; i < this.data.count; i++) {
+      const pEl = document.createElement('a-plane');
+      const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
+      const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
+      
+      pEl.setAttribute('width', size);
+      pEl.setAttribute('height', size);
+      pEl.setAttribute('material', `src: url(${randTexUrl}); ${overlayMat} side: double;`);
+
+      this.el.appendChild(pEl);
+
+      const pData = {
+        el: pEl,
+        xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
+        x: 0,
+        y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
+        z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
+        fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
+        swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
+        swayFreq: 0.0018 + (Math.random() * 0.0015),
+        rotSpeedZ: (Math.random() - 0.5) * 1.8,
+        rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
+        rotZ: Math.random() * 360,
+        rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
+        timeOffset: Math.random() * 2000
+      };
+
+      pData.x = pData.xInit;
+      this.particles.push(pData);
+    }
+  },
+  randomRange: function (min, max) {
+    return min + Math.random() * (max - min);
+  },
+  resetParticle: function (p) {
+    p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
+    p.x = p.xInit;
+    p.y = this.bounds.yMax;
+    p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
+    p.rotZ = Math.random() * 360;
+  },
+  tick: function (time, timeDelta) {
+    if (!timeDelta) return;
+    this.particles.forEach(p => {
+      p.y -= p.fallSpeed * (timeDelta / 16.6);
+      const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
+      p.x = p.xInit + sway;
+      p.rotZ += p.rotSpeedZ;
+      if (this.data.enable3DRotation) p.rotX += p.rotSpeedX;
+
+      p.el.object3D.position.set(p.x, p.y, p.z);
+      p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
+      if (this.data.enable3DRotation) {
+        p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
+      }
+
+      if (p.y < this.bounds.yKill) this.resetParticle(p);
+    });
+  }
+});
+    
   </script>
 
   <style>
@@ -142,7 +240,7 @@
       <img id="obj-1" src="./image/obj-1.png">
       <img id="layer1-top" src="./image/layer1-top.png">
       <img id="layer1-bottom" src="./image/layer1-bottom.png">
-
+      
       <!-- Layer 2 -->
       <img id="layer2" src="./image/layer2.png">
       <img id="obj-2" src="./image/obj-2.png">
@@ -333,6 +431,9 @@
       <!-- Oggetto 1 -->
       <a-plane id="plane-obj1" opt-plane src="#obj-1" position="-0.025 -0.015 0.320" rotation="0 0 0" width="1" height="1"></a-plane>
 
+      <!-- FOGLIE CADENTI (Layer 1 Vegetazione) -->
+<a-entity falling-particles="count: 22; zPos: 0.32; assetFolder: ./image/foglie/; assetPrefix: layer6-foglie-;"></a-entity>
+      
     </a-entity>
   </a-scene>
 
