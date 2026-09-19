@@ -593,24 +593,26 @@ AFRAME.registerComponent('lamp-flicker', {
         rotation="0 0 189">
       </a-entity>
 
-     <!-- LAYER 3: LAMPIONE CON LUCE SFARFALLANTE -->
+   <!-- LAYER 3: LAMPIONE CON LUCE SFARFALLANTE (Dimensioni 1x1) -->
 <a-entity position="0 0 0.18">
   
   <!-- Base spenta (sempre visibile) -->
   <a-plane 
     src="#obj-3" 
-    width="0.8" height="0.8" 
-    material="transparent: true; alphaTest: 0.1; side: double;">
+    width="1" height="1" 
+    material="transparent: true; alphaTest: 0.1; side: double; depthWrite: false;">
   </a-plane>
 
-  <!-- Overlay acceso (con componente sfarfallio) -->
+  <!-- Overlay acceso (offset minimo Z: 0.001) -->
   <a-plane 
     src="#obj-3-on" 
     position="0 0 0.001" 
-    width="0.8" height="0.8" 
-    material="transparent: true; alphaTest: 0.01; side: double;"
-    lamp-flicker="minInterval: 3000; maxInterval: 7000;">
+    width="1" height="1" 
+    material="transparent: true; alphaTest: 0.01; side: double; depthWrite: false;"
+    lamp-flicker="minInterval: 9000; maxInterval: 12000;">
   </a-plane>
+
+</a-entity>
 
 </a-entity>
 
