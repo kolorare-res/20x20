@@ -516,32 +516,30 @@
         animation__position="property: position; from: 0.000 -0.018 0.031; to: 0.000 0.006 0.031; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true">
       </a-plane>
 
-      <!-- LAMPIONE CON LUCE SFARFALLANTE (obj-5 e obj-5-on) -->
-      <a-entity id="lampione-group">
-        <!-- Base lampione spento -->
-        <a-plane 
-          id="plane-obj5" 
-          opt-plane 
-          src="#obj-5" 
-          position="0.000 0.000 0.820" 
-          rotation="0 0 0" 
-          width="1" 
-          height="1">
-        </a-plane>
+      <!-- LAMPIONE CON LUCE SFARFALLANTE -->
+<a-entity id="lampione-group">
+  <!-- Base lampione (spento) -->
+  <a-plane 
+    id="plane-obj5" 
+    material="src: #obj-5; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
+    position="0.000 0.000 0.0820" 
+    rotation="0 0 0" 
+    width="1" 
+    height="1">
+  </a-plane>
 
-        <!-- Luce del lampione con sfarfallio -->
-        <a-plane 
-          id="plane-obj5-on" 
-          src="#obj-5-on" 
-          position="0.000 0.000 0.830" 
-          rotation="0 0 0" 
-          width="1" 
-          height="1" 
-          material="transparent: true; alphaTest: 0.01; side: double; depthWrite: false;"
-          lamp-flicker="minInterval: 9000; maxInterval: 12000;">
-        </a-plane>
-      </a-entity>
-
+  <!-- Luce del lampione (acceso con sfarfallio) -->
+  <a-plane 
+    id="plane-obj5-on" 
+    material="src: #obj-5-on; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
+    position="0.000 0.000 0.0830" 
+    rotation="0 0 0" 
+    width="1" 
+    height="1" 
+    lamp-flicker="minInterval: 9000; maxInterval: 12000;">
+  </a-plane>
+</a-entity>
+      
       <!-- 2. SCATOLA LAYER 4 (Pesce) -->
       <a-entity 
         id="box-layer4" 
