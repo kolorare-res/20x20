@@ -72,7 +72,7 @@
       }
     });
 
-    // 4. BOX-3D COMPONENT (Ancorato alla faccia frontale)
+    // 4. BOX-3D COMPONENT
     AFRAME.registerComponent('box-3d', {
       schema: {
         width: { type: 'number', default: 1 },
@@ -441,8 +441,6 @@
 
       <!-- Layer 3 -->
       <img id="layer3" src="./image/layer3.png">
-      <img id="obj-3" src="./image/obj-3.png">
-      <img id="obj-3-on" src="./image/obj-3-on.png">
       <img id="layer3-top" src="./image/layer3-top.png">
       <img id="layer3-bottom" src="./image/layer3-bottom.png">
 
@@ -452,9 +450,10 @@
       <img id="layer4-top" src="./image/layer4-top.png">
       <img id="layer4-bottom" src="./image/layer4-bottom.png">
 
-      <!-- Layer 5 -->
+      <!-- Layer 5 (Lampione e Barca) -->
       <img id="layer5" src="./image/layer5.png">
       <img id="obj-5" src="./image/obj-5.png">
+      <img id="obj-5-on" src="./image/obj-5-on.png">
       <img id="obj-5-boat" src="./image/obj-5-boat.png">
       <img id="layer5-top" src="./image/layer5-top.png">
       <img id="layer5-bottom" src="./image/layer5-bottom.png">
@@ -488,7 +487,7 @@
       <!-- 0. Layer 0 Sfondo -->
       <a-plane id="plane-layer0" opt-plane src="#layer0" position="0.000 0.000 0.005" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- 1. SCATOLA LAYER 5 (Barca) -->
+      <!-- 1. SCATOLA LAYER 5 -->
       <a-entity 
         id="box-layer5" 
         box-3d="
@@ -517,8 +516,31 @@
         animation__position="property: position; from: 0.000 -0.018 0.031; to: 0.000 0.006 0.031; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true">
       </a-plane>
 
-      <!-- Oggetto 5 -->
-      <a-plane id="plane-obj5" opt-plane src="#obj-5" position="0.000 0.000 0.035" rotation="0 0 0" width="1" height="1"></a-plane>
+      <!-- LAMPIONE CON LUCE SFARFALLANTE (obj-5 e obj-5-on) -->
+      <a-entity id="lampione-group">
+        <!-- Base lampione spento -->
+        <a-plane 
+          id="plane-obj5" 
+          opt-plane 
+          src="#obj-5" 
+          position="0.000 0.000 0.820" 
+          rotation="0 0 0" 
+          width="1" 
+          height="1">
+        </a-plane>
+
+        <!-- Luce del lampione con sfarfallio -->
+        <a-plane 
+          id="plane-obj5-on" 
+          src="#obj-5-on" 
+          position="0.000 0.000 0.830" 
+          rotation="0 0 0" 
+          width="1" 
+          height="1" 
+          material="transparent: true; alphaTest: 0.01; side: double; depthWrite: false;"
+          lamp-flicker="minInterval: 9000; maxInterval: 12000;">
+        </a-plane>
+      </a-entity>
 
       <!-- 2. SCATOLA LAYER 4 (Pesce) -->
       <a-entity 
@@ -568,7 +590,7 @@
         rotation="0 15 358">
       </a-entity>
 
-      <!-- 5. SCATOLA LAYER 3 (Lampione) -->
+      <!-- 5. SCATOLA LAYER 3 -->
       <a-entity 
         id="box-layer3" 
         box-3d="
@@ -580,25 +602,6 @@
           depth: 0.184;" 
         position="0.000 -0.090 0.184" 
         rotation="0 0 189">
-      </a-entity>
-
-      <!-- LAYER 3: LAMPIONE CON LUCE SFARFALLANTE -->
-      <a-entity position="0 0 0.18">
-        <!-- Base spenta -->
-        <a-plane 
-          src="#obj-3" 
-          width="1" height="1" 
-          material="transparent: true; alphaTest: 0.1; side: double; depthWrite: false;">
-        </a-plane>
-
-        <!-- Overlay acceso -->
-        <a-plane 
-          src="#obj-3-on" 
-          position="0 0 0.001" 
-          width="1" height="1" 
-          material="transparent: true; alphaTest: 0.01; side: double; depthWrite: false;"
-          lamp-flicker="minInterval: 9000; maxInterval: 12000;">
-        </a-plane>
       </a-entity>
 
       <!-- 6. SCATOLA LAYER 2 (Fiori) -->
