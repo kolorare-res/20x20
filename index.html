@@ -498,29 +498,6 @@
       <!-- Oggetto 5 -->
       <a-plane id="plane-obj5" opt-plane src="#obj-5" position="0.000 0.000 0.035" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- LAMPIONE CON LUCE SFARFALLANTE -->
-<a-entity id="lampione-group">
-  <!-- Base lampione (spento) -->
-  <a-plane 
-    id="plane-obj3" 
-    material="src: #obj-3; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
-    position="0.000 0.000 0.185" 
-    rotation="0 0 0" 
-    width="1" 
-    height="1">
-  </a-plane>
-
-  <!-- Luce del lampione (acceso con sfarfallio) -->
-  <a-plane 
-    id="plane-obj3-on" 
-    material="src: #obj-3-on; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
-    position="0.000 0.000 0.186" 
-    rotation="0 0 0" 
-    width="1" 
-    height="1" 
-    lamp-flicker="minInterval: 9000; maxInterval: 12000;">
-  </a-plane>
-</a-entity>
       
       <!-- 2. SCATOLA LAYER 4 (Pesce) -->
       <a-entity 
@@ -583,6 +560,31 @@
         position="0.000 -0.090 0.184" 
         rotation="0 0 189">
       </a-entity>
+
+            <!-- LAMPIONE CON LUCE SFARFALLANTE -->
+<a-entity id="lampione-group">
+  <!-- Base lampione (spento) -->
+  <a-plane 
+    id="plane-obj3" 
+    material="src: #obj-3; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
+    position="0.000 0.000 0.185" 
+    rotation="0 0 0" 
+    width="1" 
+    height="1">
+  </a-plane>
+
+  <!-- Luce del lampione (acceso con sfarfallio) -->
+  <a-plane 
+    id="plane-obj3-on" 
+    material="src: #obj-3-on; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
+    position="0.000 0.000 0.186" 
+    rotation="0 0 0" 
+    width="1" 
+    height="1" 
+    lamp-flicker="minInterval: 9000; maxInterval: 12000;">
+  </a-plane>
+</a-entity>
+
 
       <!-- 6. SCATOLA LAYER 2 (Fiori) -->
       <a-entity 
