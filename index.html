@@ -217,8 +217,19 @@
 
       <!-- Oggetto 5 -->
       <a-plane id="plane-obj5" opt-plane src="#obj-5" position="0.000 0.000 0.035" rotation="0 0 0" width="1" height="1"></a-plane>
-      <a-plane id="plane-obj5-boat" opt-plane src="#obj-5-boat" position="0.000 0.000 0.032" rotation="0 0 0" width="1" height="1"></a-plane>
-
+      
+      <!-- Barca Animata (Beccheggio e Galleggiamento) -->
+      <a-plane 
+        id="plane-obj5-boat" 
+        opt-plane 
+        src="#obj-5-boat" 
+        position="0.000 0.000 0.031" 
+        rotation="0 0 0" 
+        width="1" 
+        height="1"
+        animation__rotation="property: rotation; from: -1.5 0 -2.5; to: 1.5 0 2.5; dir: alternate; dur: 2800; easing: easeInOutSine; loop: true"
+        animation__position="property: position; from: 0.000 -0.006 0.031; to: 0.000 0.006 0.031; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true">
+      </a-plane>
 
       <!-- 2. SCATOLA LAYER 4 (Pesce) -->
       <a-entity 
