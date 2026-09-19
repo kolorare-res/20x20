@@ -275,7 +275,7 @@ AFRAME.registerComponent('typo-cloud', {
     maxScale: { type: 'number', default: 0.22 },
     color: { type: 'string', default: '#1A1412' },
     font: { type: 'string', default: 'dejavu' },
-    driftSpeed: { type: 'number', default: 0.0004 },
+    driftSpeed: { type: 'number', default: 0.0008 }, // Velocità incrementata per una fluttuazione fluida
     charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' },
     // Limiti del volume 3D entro cui diffondere i caratteri
     xMin: { type: 'number', default: -0.45 },
@@ -283,7 +283,7 @@ AFRAME.registerComponent('typo-cloud', {
     yMin: { type: 'number', default: -0.40 },
     yMax: { type: 'number', default: 0.40 },
     zMin: { type: 'number', default: 0.02 }, // Inizia subito dopo lo sfondo Layer 0
-    zMax: { type: 'number', default: 0.35 }  // Arriva davanti al Layer 1
+    zMax: { type: 'number', default: 0.15 }  // Limitato ai livelli posteriori (fino a Layer 3)
   },
   init: function () {
     this.nodes = [];
@@ -293,13 +293,12 @@ AFRAME.registerComponent('typo-cloud', {
       const charEl = document.createElement('a-entity');
       const randomChar = chars[Math.floor(Math.random() * chars.length)];
 
-      // Distribuzione casuale uniforme nel volume 3D
       const posX = this.data.xMin + Math.random() * (this.data.xMax - this.data.xMin);
       const posY = this.data.yMin + Math.random() * (this.data.yMax - this.data.yMin);
       const posZ = this.data.zMin + Math.random() * (this.data.zMax - this.data.zMin);
 
       const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      const baseOpacity = 0.55 + Math.random() * 0.45; // Trasparenza variabile per maggiore profondità
+      const baseOpacity = 0.55 + Math.random() * 0.45;
 
       charEl.setAttribute('text', {
         value: randomChar,
@@ -330,24 +329,25 @@ AFRAME.registerComponent('typo-cloud', {
     }
   },
   tick: function (time, dt) {
-  if (!dt) return;
+    if (!dt) return;
 
-  this.nodes.forEach(node => {
-    const t = time * this.data.driftSpeed * node.freq + node.phase;
+    this.nodes.forEach(node => {
+      const t = time * this.data.driftSpeed * node.freq + node.phase;
 
-    const offsetX = Math.sin(t) * node.amp;
-    const offsetY = Math.cos(t * 0.8) * node.amp * 1.5;
-    const offsetZ = Math.sin(t * 1.2) * node.amp;
+      const offsetX = Math.sin(t) * node.amp;
+      const offsetY = Math.cos(t * 0.8) * node.amp * 1.5;
+      const offsetZ = Math.sin(t * 1.2) * node.amp;
 
-    node.el.object3D.position.x = node.basePos.x + offsetX;
-    node.el.object3D.position.y = node.basePos.y + offsetY;
-    node.el.object3D.position.z = node.basePos.z + offsetZ;
+      node.el.object3D.position.x = node.basePos.x + offsetX;
+      node.el.object3D.position.y = node.basePos.y + offsetY;
+      node.el.object3D.position.z = node.basePos.z + offsetZ;
 
-    // Rotazione rallentata (moltiplicatore ridotto da 0.001 a 0.0002 per un effetto più ipnotico)
-    node.el.object3D.rotation.y += node.rotY * 0.0002;
-  });
-}
+      // Micro-rotazione proporzionata alla nuova velocità
+      node.el.object3D.rotation.y += node.rotY * 0.0004;
+    });
+  }
 });
+    
     // FINE PULVISCOLO TIPOGRAFICO
 
 
@@ -679,7 +679,7 @@ AFRAME.registerComponent('lamp-flicker', {
 <a-entity typo-cloud="
   totalChars: 200; 
   color: #1A1412; 
-  driftSpeed: 0.0002; 
+  driftSpeed: 0.0008; 
   xMin: -0.45; xMax: 0.45; 
   yMin: -0.40; yMax: 0.40; 
   zMin: 0.02; zMax: 0.15;">
