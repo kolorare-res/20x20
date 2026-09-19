@@ -619,14 +619,14 @@ AFRAME.registerComponent('typo-cloud', {
 <a-entity falling-particles="count: 22; zPos: 0.32; assetFolder: ./image/foglie/; assetPrefix: layer6-foglie-;"></a-entity>
 
 
-     <!-- PULVISCOLO TIPOGRAFICO (Effetto fluttuazione lenta) -->
+     <!-- PULVISCOLO TIPOGRAFICO (Solo nello sfondo, movimento quasi impercettibile) -->
 <a-entity typo-cloud="
   totalChars: 200; 
   color: #1A1412; 
-  driftSpeed: 0.0004; 
+  driftSpeed: 0.0002; 
   xMin: -0.45; xMax: 0.45; 
   yMin: -0.40; yMax: 0.40; 
-  zMin: 0.02; zMax: 0.35;">
+  zMin: 0.02; zMax: 0.15;">
 </a-entity>
       
     </a-entity>
