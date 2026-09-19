@@ -15,7 +15,11 @@
       schema: { factor: { type: 'number', default: 0.35 } },
       init: function () {
         this.hasTarget = false;
-        this.el.addEventListener('targetFound', () => { this.hasTarget = true; });
+        this.el.addEventListener('targetFound', () => { 
+          this.hasTarget = true; 
+          this.prevPos = null;
+          this.prevQuat = null;
+        });
         this.el.addEventListener('targetLost', () => { this.hasTarget = false; });
       },
       tick: function () {
@@ -68,8 +72,8 @@
       }
     });
 
-    // 4. 3D-BOX COMPONENT (Ancorato alla faccia frontale)
-    AFRAME.registerComponent('3d-box', {
+    // 4. BOX-3D COMPONENT (Ancorato alla faccia frontale)
+    AFRAME.registerComponent('box-3d', {
       schema: {
         width: { type: 'number', default: 1 },
         height: { type: 'number', default: 1 },
@@ -116,277 +120,264 @@
       }
     });
 
-// ANIMAZIONI
+    // ANIMAZIONI
 
-// FOGLIE CADENTI (Layer 1 Vegetazione)
-AFRAME.registerComponent('falling-particles', {
-  schema: {
-    count: { type: 'int', default: 22 },
-    zPos: { type: 'number', default: 0.32 },
-    zVariance: { type: 'number', default: 0.03 },
-    baseSizeMin: { type: 'number', default: 0.007 },
-    baseSizeMax: { type: 'number', default: 0.02 },
-    fallSpeedMin: { type: 'number', default: 0.0004 },
-    fallSpeedMax: { type: 'number', default: 0.0008 },
-    swayAmp: { type: 'number', default: 0.020 },
-    enable3DRotation: { type: 'boolean', default: true },
-    assetFolder: { type: 'string', default: './image/foglie/' },
-    assetPrefix: { type: 'string', default: 'layer6-foglie-' },
-    assetStart: { type: 'int', default: 1 },
-    assetEnd: { type: 'int', default: 18 }
-  },
-  init: function () {
-    this.particles = [];
-    this.textureUrls = [];
-    for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
-      const numStr = i.toString().padStart(2, '0');
-      this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
-    }
+    // FOGLIE CADENTI (Layer 1 Vegetazione)
+    AFRAME.registerComponent('falling-particles', {
+      schema: {
+        count: { type: 'int', default: 22 },
+        zPos: { type: 'number', default: 0.32 },
+        zVariance: { type: 'number', default: 0.03 },
+        baseSizeMin: { type: 'number', default: 0.007 },
+        baseSizeMax: { type: 'number', default: 0.02 },
+        fallSpeedMin: { type: 'number', default: 0.0004 },
+        fallSpeedMax: { type: 'number', default: 0.0008 },
+        swayAmp: { type: 'number', default: 0.020 },
+        enable3DRotation: { type: 'boolean', default: true },
+        assetFolder: { type: 'string', default: './image/foglie/' },
+        assetPrefix: { type: 'string', default: 'layer6-foglie-' },
+        assetStart: { type: 'int', default: 1 },
+        assetEnd: { type: 'int', default: 18 }
+      },
+      init: function () {
+        this.particles = [];
+        this.textureUrls = [];
+        for (let i = this.data.assetStart; i <= this.data.assetEnd; i++) {
+          const numStr = i.toString().padStart(2, '0');
+          this.textureUrls.push(`${this.data.assetFolder}${this.data.assetPrefix}${numStr}.png`);
+        }
 
-    // Limiti per l'area vegetazione in basso a destra (Layer 1)
-    this.bounds = {
-      xMin:  0.000,
-      xMax:  0.300,
-      yMin: -0.350,
-      yMax: -0.050,
-      yKill: -0.450
-    };
+        this.bounds = {
+          xMin:  0.000,
+          xMax:  0.300,
+          yMin: -0.350,
+          yMax: -0.050,
+          yKill: -0.450
+        };
 
-    const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
+        const overlayMat = "transparent: true; alphaTest: 0.1; depthWrite: false; depthTest: true;";
 
-    for (let i = 0; i < this.data.count; i++) {
-      const pEl = document.createElement('a-plane');
-      const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
-      const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
-      
-      pEl.setAttribute('width', size);
-      pEl.setAttribute('height', size);
-      pEl.setAttribute('material', `src: url(${randTexUrl}); ${overlayMat} side: double;`);
+        for (let i = 0; i < this.data.count; i++) {
+          const pEl = document.createElement('a-plane');
+          const randTexUrl = this.textureUrls[Math.floor(Math.random() * this.textureUrls.length)];
+          const size = this.randomRange(this.data.baseSizeMin, this.data.baseSizeMax);
+          
+          pEl.setAttribute('width', size);
+          pEl.setAttribute('height', size);
+          pEl.setAttribute('material', `src: url(${randTexUrl}); ${overlayMat} side: double;`);
 
-      this.el.appendChild(pEl);
+          this.el.appendChild(pEl);
 
-      const pData = {
-        el: pEl,
-        xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
-        x: 0,
-        y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
-        z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
-        fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
-        swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
-        swayFreq: 0.0018 + (Math.random() * 0.0015),
-        rotSpeedZ: (Math.random() - 0.5) * 1.8,
-        rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
-        rotZ: Math.random() * 360,
-        rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
-        timeOffset: Math.random() * 2000
-      };
+          const pData = {
+            el: pEl,
+            xInit: this.randomRange(this.bounds.xMin, this.bounds.xMax),
+            x: 0,
+            y: this.randomRange(this.bounds.yMin, this.bounds.yMax),
+            z: this.data.zPos + (Math.random() * this.data.zVariance - (this.data.zVariance / 2)),
+            fallSpeed: this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax),
+            swayAmp: this.data.swayAmp * (0.8 + Math.random() * 0.4),
+            swayFreq: 0.0018 + (Math.random() * 0.0015),
+            rotSpeedZ: (Math.random() - 0.5) * 1.8,
+            rotSpeedX: this.data.enable3DRotation ? (Math.random() - 0.5) * 1.2 : 0,
+            rotZ: Math.random() * 360,
+            rotX: this.data.enable3DRotation ? Math.random() * 360 : 0,
+            timeOffset: Math.random() * 2000
+          };
 
-      pData.x = pData.xInit;
-      this.particles.push(pData);
-    }
-  },
-  randomRange: function (min, max) {
-    return min + Math.random() * (max - min);
-  },
-  resetParticle: function (p) {
-    p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
-    p.x = p.xInit;
-    p.y = this.bounds.yMax;
-    p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
-    p.rotZ = Math.random() * 360;
-  },
-  tick: function (time, timeDelta) {
-    if (!timeDelta) return;
-    this.particles.forEach(p => {
-      p.y -= p.fallSpeed * (timeDelta / 16.6);
-      const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
-      p.x = p.xInit + sway;
-      p.rotZ += p.rotSpeedZ;
-      if (this.data.enable3DRotation) p.rotX += p.rotSpeedX;
+          pData.x = pData.xInit;
+          this.particles.push(pData);
+        }
+      },
+      randomRange: function (min, max) {
+        return min + Math.random() * (max - min);
+      },
+      resetParticle: function (p) {
+        p.xInit = this.randomRange(this.bounds.xMin, this.bounds.xMax);
+        p.x = p.xInit;
+        p.y = this.bounds.yMax;
+        p.fallSpeed = this.randomRange(this.data.fallSpeedMin, this.data.fallSpeedMax);
+        p.rotZ = Math.random() * 360;
+      },
+      tick: function (time, timeDelta) {
+        if (!timeDelta) return;
+        this.particles.forEach(p => {
+          p.y -= p.fallSpeed * (timeDelta / 16.6);
+          const sway = Math.sin((time + p.timeOffset) * p.swayFreq) * p.swayAmp;
+          p.x = p.xInit + sway;
+          p.rotZ += p.rotSpeedZ;
+          if (this.data.enable3DRotation) p.rotX += p.rotSpeedX;
 
-      p.el.object3D.position.set(p.x, p.y, p.z);
-      p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
-      if (this.data.enable3DRotation) {
-        p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
+          p.el.object3D.position.set(p.x, p.y, p.z);
+          p.el.object3D.rotation.z = THREE.MathUtils.degToRad(p.rotZ);
+          if (this.data.enable3DRotation) {
+            p.el.object3D.rotation.x = THREE.MathUtils.degToRad(p.rotX);
+          }
+
+          if (p.y < this.bounds.yKill) this.resetParticle(p);
+        });
       }
-
-      if (p.y < this.bounds.yKill) this.resetParticle(p);
     });
-  }
-});
-    // FINE FOGLIE CADENTI
 
-    // FARFALLA 3D - TRAIETTORIA A "8" (INFINITO ∞)
-AFRAME.registerComponent('butterfly-3d-flight', {
-  schema: {
-    radiusX: { type: 'number', default: 0.09 },     // Ampiezza orizzontale
-    radiusY: { type: 'number', default: 0.035 },    // Ampiezza verticale dell'8
-    radiusZ: { type: 'number', default: 0.015 },    // Variazione profondità 3D
-    flapAngle: { type: 'number', default: 45 },     // Angolo apertura ali
-    flapSpeed: { type: 'number', default: 0.014 },    // Velocità battito ali
-    flightSpeed: { type: 'number', default: 0.0012 }  // Velocità lungo l'8
-  },
-  init: function () {
-    this.baseX = this.el.object3D.position.x;
-    this.baseY = this.el.object3D.position.y;
-    this.baseZ = this.el.object3D.position.z;
-    this.timeFlight = 0;
-    this.timeFlap = Math.random() * 100;
-    this.wingLeft = this.el.querySelector('.wing-left');
-    this.wingRight = this.el.querySelector('.wing-right');
-  },
-  tick: function (t, dt) {
-    if (!dt) return;
-    this.timeFlight += dt * this.data.flightSpeed;
-    this.timeFlap += dt * this.data.flapSpeed;
+    // FARFALLA 3D
+    AFRAME.registerComponent('butterfly-3d-flight', {
+      schema: {
+        radiusX: { type: 'number', default: 0.09 },
+        radiusY: { type: 'number', default: 0.035 },
+        radiusZ: { type: 'number', default: 0.015 },
+        flapAngle: { type: 'number', default: 45 },
+        flapSpeed: { type: 'number', default: 0.014 },
+        flightSpeed: { type: 'number', default: 0.0012 }
+      },
+      init: function () {
+        this.baseX = this.el.object3D.position.x;
+        this.baseY = this.el.object3D.position.y;
+        this.baseZ = this.el.object3D.position.z;
+        this.timeFlight = 0;
+        this.timeFlap = Math.random() * 100;
+        this.wingLeft = this.el.querySelector('.wing-left');
+        this.wingRight = this.el.querySelector('.wing-right');
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        this.timeFlight += dt * this.data.flightSpeed;
+        this.timeFlap += dt * this.data.flapSpeed;
 
-    const tF = this.timeFlight;
+        const tF = this.timeFlight;
 
-    // Movimento a "8" orizzontale
-    const offsetX = Math.sin(tF) * this.data.radiusX;
-    const offsetY = Math.sin(2 * tF) * this.data.radiusY;
-    const offsetZ = Math.cos(tF) * this.data.radiusZ;
+        const offsetX = Math.sin(tF) * this.data.radiusX;
+        const offsetY = Math.sin(2 * tF) * this.data.radiusY;
+        const offsetZ = Math.cos(tF) * this.data.radiusZ;
 
-    this.el.object3D.position.x = this.baseX + offsetX;
-    this.el.object3D.position.y = this.baseY + offsetY;
-    this.el.object3D.position.z = this.baseZ + offsetZ;
+        this.el.object3D.position.x = this.baseX + offsetX;
+        this.el.object3D.position.y = this.baseY + offsetY;
+        this.el.object3D.position.z = this.baseZ + offsetZ;
 
-    // Battito ali
-    const currentFlap = Math.sin(this.timeFlap) * this.data.flapAngle;
-    if (this.wingLeft) this.wingLeft.object3D.rotation.y = THREE.MathUtils.degToRad(currentFlap);
-    if (this.wingRight) this.wingRight.object3D.rotation.y = THREE.MathUtils.degToRad(-currentFlap);
+        const currentFlap = Math.sin(this.timeFlap) * this.data.flapAngle;
+        if (this.wingLeft) this.wingLeft.object3D.rotation.y = THREE.MathUtils.degToRad(currentFlap);
+        if (this.wingRight) this.wingRight.object3D.rotation.y = THREE.MathUtils.degToRad(-currentFlap);
 
-    // Vettore velocità per orientamento testa
-    const velX = Math.cos(tF) * this.data.radiusX;
-    const velY = 2 * Math.cos(2 * tF) * this.data.radiusY;
-    const heading = Math.atan2(velY, velX);
+        const velX = Math.cos(tF) * this.data.radiusX;
+        const velY = 2 * Math.cos(2 * tF) * this.data.radiusY;
+        const heading = Math.atan2(velY, velX);
 
-    this.el.object3D.rotation.z = heading - Math.PI / 2;
-  }
-});
-    // FINE FARFALLA
-
-
-// PULVISCOLO TIPOGRAFICO DIFFUSO OMOGENEO SUI LIVELLI
-AFRAME.registerComponent('typo-cloud', {
-  schema: {
-    totalChars: { type: 'int', default: 200 },
-    minScale: { type: 'number', default: 0.08 },
-    maxScale: { type: 'number', default: 0.22 },
-    color: { type: 'string', default: '#1A1412' },
-    font: { type: 'string', default: 'dejavu' },
-    driftSpeed: { type: 'number', default: 0.0008 }, // Velocità incrementata per una fluttuazione fluida
-    charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' },
-    // Limiti del volume 3D entro cui diffondere i caratteri
-    xMin: { type: 'number', default: -0.45 },
-    xMax: { type: 'number', default: 0.45 },
-    yMin: { type: 'number', default: -0.40 },
-    yMax: { type: 'number', default: 0.40 },
-    zMin: { type: 'number', default: 0.02 }, // Inizia subito dopo lo sfondo Layer 0
-    zMax: { type: 'number', default: 0.15 }  // Limitato ai livelli posteriori (fino a Layer 3)
-  },
-  init: function () {
-    this.nodes = [];
-    const chars = Array.from(this.data.charSet);
-
-    for (let i = 0; i < this.data.totalChars; i++) {
-      const charEl = document.createElement('a-entity');
-      const randomChar = chars[Math.floor(Math.random() * chars.length)];
-
-      const posX = this.data.xMin + Math.random() * (this.data.xMax - this.data.xMin);
-      const posY = this.data.yMin + Math.random() * (this.data.yMax - this.data.yMin);
-      const posZ = this.data.zMin + Math.random() * (this.data.zMax - this.data.zMin);
-
-      const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
-      const baseOpacity = 0.55 + Math.random() * 0.45;
-
-      charEl.setAttribute('text', {
-        value: randomChar,
-        align: 'center',
-        anchor: 'center',
-        font: this.data.font,
-        color: this.data.color,
-        side: 'double',
-        opacity: baseOpacity,
-        width: 2,
-        transparent: true
-      });
-
-      charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
-      charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
-      charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 45} 0`);
-
-      this.el.appendChild(charEl);
-
-      this.nodes.push({
-        el: charEl,
-        basePos: { x: posX, y: posY, z: posZ },
-        rotY: (Math.random() - 0.5) * 0.2,
-        freq: 0.5 + Math.random() * 1.0,
-        phase: Math.random() * Math.PI * 2,
-        amp: 0.008 + Math.random() * 0.015
-      });
-    }
-  },
-  tick: function (time, dt) {
-    if (!dt) return;
-
-    this.nodes.forEach(node => {
-      const t = time * this.data.driftSpeed * node.freq + node.phase;
-
-      const offsetX = Math.sin(t) * node.amp;
-      const offsetY = Math.cos(t * 0.8) * node.amp * 1.5;
-      const offsetZ = Math.sin(t * 1.2) * node.amp;
-
-      node.el.object3D.position.x = node.basePos.x + offsetX;
-      node.el.object3D.position.y = node.basePos.y + offsetY;
-      node.el.object3D.position.z = node.basePos.z + offsetZ;
-
-      // Micro-rotazione proporzionata alla nuova velocità
-      node.el.object3D.rotation.y += node.rotY * 0.0004;
+        this.el.object3D.rotation.z = heading - Math.PI / 2;
+      }
     });
-  }
-});
-    
-    // FINE PULVISCOLO TIPOGRAFICO
 
+    // PULVISCOLO TIPOGRAFICO
+    AFRAME.registerComponent('typo-cloud', {
+      schema: {
+        totalChars: { type: 'int', default: 50 },
+        minScale: { type: 'number', default: 0.08 },
+        maxScale: { type: 'number', default: 0.22 },
+        color: { type: 'string', default: '#1A1412' },
+        font: { type: 'string', default: 'dejavu' },
+        driftSpeed: { type: 'number', default: 0.0008 },
+        charSet: { type: 'string', default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' },
+        xMin: { type: 'number', default: -0.45 },
+        xMax: { type: 'number', default: 0.45 },
+        yMin: { type: 'number', default: -0.40 },
+        yMax: { type: 'number', default: 0.40 },
+        zMin: { type: 'number', default: 0.02 },
+        zMax: { type: 'number', default: 0.15 }
+      },
+      init: function () {
+        this.nodes = [];
+        const chars = Array.from(this.data.charSet);
 
-// ANIMAZIONE SFARFALLIO LAMPIONE (LAMP-FLICKER)
-AFRAME.registerComponent('lamp-flicker', {
-  schema: {
-    minInterval: { type: 'number', default: 3000 }, // Tempo minimo tra uno sfarfallio e l'altro (ms)
-    maxInterval: { type: 'number', default: 7000 }  // Tempo massimo (ms)
-  },
-  init: function () {
-    this.scheduleNextFlicker();
-  },
-  scheduleNextFlicker: function () {
-    // Calcola un'attesa casuale prima del prossimo sfarfallio
-    const delay = this.data.minInterval + Math.random() * (this.data.maxInterval - this.data.minInterval);
-    setTimeout(() => {
-      this.triggerFlicker();
-    }, delay);
-  },
-  triggerFlicker: function () {
-    // Sequenza di opacità per simulare i micro-salti (0 = spento, 1 = acceso)
-    const pattern = [0, 0.8, 0, 0.2, 0, 1, 0, 1];
-    let step = 0;
+        for (let i = 0; i < this.data.totalChars; i++) {
+          const charEl = document.createElement('a-entity');
+          const randomChar = chars[Math.floor(Math.random() * chars.length)];
 
-    const flickerInterval = setInterval(() => {
-      if (step < pattern.length) {
-        this.el.setAttribute('material', 'opacity', pattern[step]);
-        step++;
-      } else {
-        // Ripristina la luce accesa fissa e programma il prossimo evento
-        this.el.setAttribute('material', 'opacity', 1);
-        clearInterval(flickerInterval);
+          const posX = this.data.xMin + Math.random() * (this.data.xMax - this.data.xMin);
+          const posY = this.data.yMin + Math.random() * (this.data.yMax - this.data.yMin);
+          const posZ = this.data.zMin + Math.random() * (this.data.zMax - this.data.zMin);
+
+          const scale = this.data.minScale + Math.random() * (this.data.maxScale - this.data.minScale);
+          const baseOpacity = 0.55 + Math.random() * 0.45;
+
+          charEl.setAttribute('text', {
+            value: randomChar,
+            align: 'center',
+            anchor: 'center',
+            font: this.data.font,
+            color: this.data.color,
+            side: 'double',
+            opacity: baseOpacity,
+            width: 2,
+            transparent: true
+          });
+
+          charEl.setAttribute('scale', `${scale} ${scale} ${scale}`);
+          charEl.setAttribute('position', `${posX} ${posY} ${posZ}`);
+          charEl.setAttribute('rotation', `${(Math.random() - 0.5) * 20} ${(Math.random() - 0.5) * 45} 0`);
+
+          this.el.appendChild(charEl);
+
+          this.nodes.push({
+            el: charEl,
+            basePos: { x: posX, y: posY, z: posZ },
+            rotY: (Math.random() - 0.5) * 0.2,
+            freq: 0.5 + Math.random() * 1.0,
+            phase: Math.random() * Math.PI * 2,
+            amp: 0.008 + Math.random() * 0.015
+          });
+        }
+      },
+      tick: function (time, dt) {
+        if (!dt) return;
+
+        this.nodes.forEach(node => {
+          const t = time * this.data.driftSpeed * node.freq + node.phase;
+
+          const offsetX = Math.sin(t) * node.amp;
+          const offsetY = Math.cos(t * 0.8) * node.amp * 1.5;
+          const offsetZ = Math.sin(t * 1.2) * node.amp;
+
+          node.el.object3D.position.x = node.basePos.x + offsetX;
+          node.el.object3D.position.y = node.basePos.y + offsetY;
+          node.el.object3D.position.z = node.basePos.z + offsetZ;
+
+          node.el.object3D.rotation.y += node.rotY * 0.0004;
+        });
+      }
+    });
+
+    // SFARFALLIO LAMPIONE
+    AFRAME.registerComponent('lamp-flicker', {
+      schema: {
+        minInterval: { type: 'number', default: 3000 },
+        maxInterval: { type: 'number', default: 7000 }
+      },
+      init: function () {
         this.scheduleNextFlicker();
+      },
+      scheduleNextFlicker: function () {
+        const delay = this.data.minInterval + Math.random() * (this.data.maxInterval - this.data.minInterval);
+        this.flickerTimeout = setTimeout(() => {
+          this.triggerFlicker();
+        }, delay);
+      },
+      triggerFlicker: function () {
+        const pattern = [0, 0.8, 0, 0.2, 0, 1, 0, 1];
+        let step = 0;
+
+        this.flickerInterval = setInterval(() => {
+          if (step < pattern.length) {
+            this.el.setAttribute('material', 'opacity', pattern[step]);
+            step++;
+          } else {
+            this.el.setAttribute('material', 'opacity', 1);
+            clearInterval(this.flickerInterval);
+            this.scheduleNextFlicker();
+          }
+        }, 50);
+      },
+      remove: function () {
+        if (this.flickerTimeout) clearTimeout(this.flickerTimeout);
+        if (this.flickerInterval) clearInterval(this.flickerInterval);
       }
-    }, 50); // Velocità dello scatto (50ms per frame)
-  }
-});
-    // FINE SFARFALLIO
-    
+    });
   </script>
 
   <style>
@@ -415,28 +406,26 @@ AFRAME.registerComponent('lamp-flicker', {
       <img id="layer1-top" src="./image/layer1-top.png">
       <img id="layer1-bottom" src="./image/layer1-bottom.png">
 
+      <!-- PRELOAD FOGLIE -->
+      <img id="foglia-01" src="./image/foglie/layer6-foglie-01.png">
+      <img id="foglia-02" src="./image/foglie/layer6-foglie-02.png">
+      <img id="foglia-03" src="./image/foglie/layer6-foglie-03.png">
+      <img id="foglia-04" src="./image/foglie/layer6-foglie-04.png">
+      <img id="foglia-05" src="./image/foglie/layer6-foglie-05.png">
+      <img id="foglia-06" src="./image/foglie/layer6-foglie-06.png">
+      <img id="foglia-07" src="./image/foglie/layer6-foglie-07.png">
+      <img id="foglia-08" src="./image/foglie/layer6-foglie-08.png">
+      <img id="foglia-09" src="./image/foglie/layer6-foglie-09.png">
+      <img id="foglia-10" src="./image/foglie/layer6-foglie-10.png">
+      <img id="foglia-11" src="./image/foglie/layer6-foglie-11.png">
+      <img id="foglia-12" src="./image/foglie/layer6-foglie-12.png">
+      <img id="foglia-13" src="./image/foglie/layer6-foglie-13.png">
+      <img id="foglia-14" src="./image/foglie/layer6-foglie-14.png">
+      <img id="foglia-15" src="./image/foglie/layer6-foglie-15.png">
+      <img id="foglia-16" src="./image/foglie/layer6-foglie-16.png">
+      <img id="foglia-17" src="./image/foglie/layer6-foglie-17.png">
+      <img id="foglia-18" src="./image/foglie/layer6-foglie-18.png">
 
-  <!-- PRELOAD FOGLIE -->
-  <img src="./image/foglie/layer6-foglie-01.png">
-  <img src="./image/foglie/layer6-foglie-02.png">
-  <img src="./image/foglie/layer6-foglie-03.png">
-  <img src="./image/foglie/layer6-foglie-04.png">
-  <img src="./image/foglie/layer6-foglie-05.png">
-  <img src="./image/foglie/layer6-foglie-06.png">
-  <img src="./image/foglie/layer6-foglie-07.png">
-  <img src="./image/foglie/layer6-foglie-08.png">
-  <img src="./image/foglie/layer6-foglie-09.png">
-  <img src="./image/foglie/layer6-foglie-10.png">
-  <img src="./image/foglie/layer6-foglie-11.png">
-  <img src="./image/foglie/layer6-foglie-12.png">
-  <img src="./image/foglie/layer6-foglie-13.png">
-  <img src="./image/foglie/layer6-foglie-14.png">
-  <img src="./image/foglie/layer6-foglie-15.png">
-  <img src="./image/foglie/layer6-foglie-16.png">
-  <img src="./image/foglie/layer6-foglie-17.png">
-  <img src="./image/foglie/layer6-foglie-18.png">
-
-      
       <!-- Layer 2 -->
       <img id="layer2" src="./image/layer2.png">
       <img id="obj-2" src="./image/obj-2.png">
@@ -445,10 +434,10 @@ AFRAME.registerComponent('lamp-flicker', {
       <img id="layer2-left" src="./image/layer2-left.png">
       <img id="layer2-right" src="./image/layer2-right.png">
 
-<!-- PRELOAD FARFALLA -->
-<img id="butterfly-body" src="./image/butterfly-body.png">
-<img id="butterfly-wing-left" src="./image/butterfly-wing-left.png">
-<img id="butterfly-wing-right" src="./image/butterfly-wing-right.png">
+      <!-- PRELOAD FARFALLA -->
+      <img id="butterfly-body" src="./image/butterfly-body.png">
+      <img id="butterfly-wing-left" src="./image/butterfly-wing-left.png">
+      <img id="butterfly-wing-right" src="./image/butterfly-wing-right.png">
 
       <!-- Layer 3 -->
       <img id="layer3" src="./image/layer3.png">
@@ -502,7 +491,7 @@ AFRAME.registerComponent('lamp-flicker', {
       <!-- 1. SCATOLA LAYER 5 (Barca) -->
       <a-entity 
         id="box-layer5" 
-        3d-box="
+        box-3d="
           src: #layer5; 
           srcTop: #layer5-top; 
           srcBottom: #layer5-bottom; 
@@ -515,7 +504,7 @@ AFRAME.registerComponent('lamp-flicker', {
         rotation="0 0 357">
       </a-entity>
       
-      <!-- Barca Animata (Beccheggio e Galleggiamento) -->
+      <!-- Barca Animata -->
       <a-plane 
         id="plane-obj5-boat" 
         opt-plane 
@@ -534,7 +523,7 @@ AFRAME.registerComponent('lamp-flicker', {
       <!-- 2. SCATOLA LAYER 4 (Pesce) -->
       <a-entity 
         id="box-layer4" 
-        3d-box="
+        box-3d="
           src: #layer4; 
           srcTop: #layer4-top; 
           srcBottom: #layer4-bottom; 
@@ -554,7 +543,7 @@ AFRAME.registerComponent('lamp-flicker', {
       <!-- 3. SCATOLA LAYER 7 (Omino Box) -->
       <a-entity 
         id="box-layer7" 
-        3d-box="
+        box-3d="
           src: #layer7; 
           srcTop: #layer7-top; 
           srcBottom: #layer7-bottom; 
@@ -568,7 +557,7 @@ AFRAME.registerComponent('lamp-flicker', {
       <!-- 4. SCATOLA LAYER 6 (Case) -->
       <a-entity 
         id="box-layer6" 
-        3d-box="
+        box-3d="
           src: #layer6; 
           srcTop: #layer6-top; 
           srcBottom: #layer6-bottom; 
@@ -582,7 +571,7 @@ AFRAME.registerComponent('lamp-flicker', {
       <!-- 5. SCATOLA LAYER 3 (Lampione) -->
       <a-entity 
         id="box-layer3" 
-        3d-box="
+        box-3d="
           src: #layer3; 
           srcTop: #layer3-top; 
           srcBottom: #layer3-bottom; 
@@ -593,33 +582,29 @@ AFRAME.registerComponent('lamp-flicker', {
         rotation="0 0 189">
       </a-entity>
 
-   <!-- LAYER 3: LAMPIONE CON LUCE SFARFALLANTE (Dimensioni 1x1) -->
-<a-entity position="0 0 0.18">
-  
-  <!-- Base spenta (sempre visibile) -->
-  <a-plane 
-    src="#obj-3" 
-    width="1" height="1" 
-    material="transparent: true; alphaTest: 0.1; side: double; depthWrite: false;">
-  </a-plane>
+      <!-- LAYER 3: LAMPIONE CON LUCE SFARFALLANTE -->
+      <a-entity position="0 0 0.18">
+        <!-- Base spenta -->
+        <a-plane 
+          src="#obj-3" 
+          width="1" height="1" 
+          material="transparent: true; alphaTest: 0.1; side: double; depthWrite: false;">
+        </a-plane>
 
-  <!-- Overlay acceso (offset minimo Z: 0.001) -->
-  <a-plane 
-    src="#obj-3-on" 
-    position="0 0 0.001" 
-    width="1" height="1" 
-    material="transparent: true; alphaTest: 0.01; side: double; depthWrite: false;"
-    lamp-flicker="minInterval: 9000; maxInterval: 12000;">
-  </a-plane>
-
-</a-entity>
-
-</a-entity>
+        <!-- Overlay acceso -->
+        <a-plane 
+          src="#obj-3-on" 
+          position="0 0 0.001" 
+          width="1" height="1" 
+          material="transparent: true; alphaTest: 0.01; side: double; depthWrite: false;"
+          lamp-flicker="minInterval: 9000; maxInterval: 12000;">
+        </a-plane>
+      </a-entity>
 
       <!-- 6. SCATOLA LAYER 2 (Fiori) -->
       <a-entity 
         id="box-layer2" 
-        3d-box="
+        box-3d="
           src: #layer2; 
           srcTop: #layer2-top; 
           srcBottom: #layer2-bottom; 
@@ -636,30 +621,29 @@ AFRAME.registerComponent('lamp-flicker', {
       <a-plane id="plane-obj6" opt-plane src="#obj-6" position="0.050 0.000 0.183" rotation="0 15 0" width="1" height="1"></a-plane>
       <a-plane id="plane-obj2" opt-plane src="#obj-2" position="0.000 0.000 0.220" rotation="0 16 0" width="1" height="1"></a-plane>
 
-<!-- FARFALLA LAYER 2 (Volo a 8 esteso oltre il fiore di sinistra) -->
-<a-entity 
-  position="-0.32 -0.07 0.24" 
-  butterfly-3d-flight="radiusX: 0.11; radiusY: 0.035; radiusZ: 0.015; flapAngle: 75; flapSpeed: 0.016; flightSpeed: 0.0012;">
-  
-  <!-- Corpo -->
-  <a-plane src="#butterfly-body" position="0 0 0" width="0.012" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-  
-  <!-- Ala Sinistra -->
-  <a-entity class="wing-left" position="-0.001 0 0.001">
-    <a-plane src="#butterfly-wing-left" position="-0.02 0 0" width="0.04" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-  </a-entity>
-  
-  <!-- Ala Destra -->
-  <a-entity class="wing-right" position="0.001 0 0.002">
-    <a-plane src="#butterfly-wing-right" position="0.02 0 0" width="0.04" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
-  </a-entity>
-
-</a-entity>
-      
+      <!-- FARFALLA LAYER 2 -->
+      <a-entity 
+        position="-0.32 -0.07 0.24" 
+        butterfly-3d-flight="radiusX: 0.11; radiusY: 0.035; radiusZ: 0.015; flapAngle: 75; flapSpeed: 0.016; flightSpeed: 0.0012;">
+        
+        <!-- Corpo -->
+        <a-plane src="#butterfly-body" position="0 0 0" width="0.012" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        
+        <!-- Ala Sinistra -->
+        <a-entity class="wing-left" position="-0.001 0 0.001">
+          <a-plane src="#butterfly-wing-left" position="-0.02 0 0" width="0.04" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
+        
+        <!-- Ala Destra -->
+        <a-entity class="wing-right" position="0.001 0 0.002">
+          <a-plane src="#butterfly-wing-right" position="0.02 0 0" width="0.04" height="0.04" material="transparent: true; alphaTest: 0.1; side: double;"></a-plane>
+        </a-entity>
+      </a-entity>
+        
       <!-- 7. SCATOLA LAYER 1 (Box Principale) -->
       <a-entity 
         id="box-layer1"
-        3d-box="
+        box-3d="
           src: #layer1; 
           srcTop: #layer1-top; 
           srcBottom: #layer1-bottom; 
@@ -673,20 +657,19 @@ AFRAME.registerComponent('lamp-flicker', {
       <!-- Oggetto 1 -->
       <a-plane id="plane-obj1" opt-plane src="#obj-1" position="-0.025 -0.015 0.320" rotation="0 0 0" width="1" height="1"></a-plane>
 
-      <!-- FOGLIE CADENTI (Layer 1 Vegetazione) -->
-<a-entity falling-particles="count: 22; zPos: 0.32; assetFolder: ./image/foglie/; assetPrefix: layer6-foglie-;"></a-entity>
+      <!-- FOGLIE CADENTI -->
+      <a-entity falling-particles="count: 22; zPos: 0.32; assetFolder: ./image/foglie/; assetPrefix: layer6-foglie-;"></a-entity>
 
+      <!-- PULVISCOLO TIPOGRAFICO -->
+      <a-entity typo-cloud="
+        totalChars: 50; 
+        color: #1A1412; 
+        driftSpeed: 0.0008; 
+        xMin: -0.45; xMax: 0.45; 
+        yMin: -0.40; yMax: 0.40; 
+        zMin: 0.02; zMax: 0.15;">
+      </a-entity>
 
-     <!-- PULVISCOLO TIPOGRAFICO (Solo nello sfondo, movimento quasi impercettibile) -->
-<a-entity typo-cloud="
-  totalChars: 200; 
-  color: #1A1412; 
-  driftSpeed: 0.0008; 
-  xMin: -0.45; xMax: 0.45; 
-  yMin: -0.40; yMax: 0.40; 
-  zMin: 0.02; zMax: 0.15;">
-</a-entity>
-      
     </a-entity>
   </a-scene>
 
