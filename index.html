@@ -50,28 +50,7 @@
       }
     });
 
-    // 3. RENDER-ORDER
-    AFRAME.registerComponent('render-order', {
-      schema: { type: 'number', default: 0 },
-      init: function () {
-        this.applyOrder = this.applyOrder.bind(this);
-        this.el.addEventListener('object3dset', this.applyOrder);
-        this.applyOrder();
-      },
-      update: function () {
-        this.applyOrder();
-      },
-      applyOrder: function () {
-        const order = this.data;
-        if (this.el.object3D) {
-          this.el.object3D.renderOrder = order;
-          this.el.object3D.traverse((node) => {
-            node.renderOrder = order;
-          });
-        }
-      }
-    });
-
+   
     // 4. BOX-3D COMPONENT
     AFRAME.registerComponent('box-3d', {
       schema: {
@@ -443,6 +422,8 @@
       <img id="layer3" src="./image/layer3.png">
       <img id="layer3-top" src="./image/layer3-top.png">
       <img id="layer3-bottom" src="./image/layer3-bottom.png">
+       <img id="obj-3" src="./image/obj-3.png">
+      <img id="obj-3-on" src="./image/obj-3-on.png">
 
       <!-- Layer 4 -->
       <img id="layer4" src="./image/layer4.png">
@@ -450,10 +431,9 @@
       <img id="layer4-top" src="./image/layer4-top.png">
       <img id="layer4-bottom" src="./image/layer4-bottom.png">
 
-      <!-- Layer 5 (Lampione e Barca) -->
+      <!-- Layer 5  (Barca) -->
       <img id="layer5" src="./image/layer5.png">
       <img id="obj-5" src="./image/obj-5.png">
-      <img id="obj-5-on" src="./image/obj-5-on.png">
       <img id="obj-5-boat" src="./image/obj-5-boat.png">
       <img id="layer5-top" src="./image/layer5-top.png">
       <img id="layer5-bottom" src="./image/layer5-bottom.png">
@@ -520,9 +500,9 @@
 <a-entity id="lampione-group">
   <!-- Base lampione (spento) -->
   <a-plane 
-    id="plane-obj5" 
-    material="src: #obj-5; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
-    position="0.000 0.000 0.0820" 
+    id="plane-obj3" 
+    material="src: #obj-3; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
+    position="0.000 0.000 0.185" 
     rotation="0 0 0" 
     width="1" 
     height="1">
@@ -532,7 +512,7 @@
   <a-plane 
     id="plane-obj5-on" 
     material="src: #obj-5-on; transparent: true; alphaTest: 0.01; depthWrite: false; side: double;" 
-    position="0.000 0.000 0.0830" 
+    position="0.000 0.000 0.186" 
     rotation="0 0 0" 
     width="1" 
     height="1" 
